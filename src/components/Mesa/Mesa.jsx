@@ -24,12 +24,12 @@ export function Mesa(props) {
         delta * 12
       );
 
-     if (rightBackLeg.current && rightFrontLeg.current && leftBackLeg.current && leftFrontLeg.current){
-      leftFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-      rightFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-      leftBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-      rightBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-     }
+      if (rightBackLeg.current && rightFrontLeg.current && leftBackLeg.current && leftFrontLeg.current) {
+        leftFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
+        rightFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
+        leftBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
+        rightBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
+      }
 
     }
 
@@ -57,23 +57,25 @@ export function Mesa(props) {
         )}
         {legs === 1 && (
           <>
-            <mesh castShadow geometry={nodes.polySurface18.geometry} material={materials.LightMetal} position={[-1.326, 1.318, -0.634]} />
-            <mesh castShadow geometry={nodes.polySurface20.geometry} material={materials.LightMetal} position={[-1.326, 0.617, 0.246]}  />
-            <mesh castShadow geometry={nodes.polySurface21.geometry} material={materials.LightMetal} position={[-1.326, 0.618, -1.514]}  />
+            <group>
+              <mesh castShadow geometry={nodes.polySurface18.geometry} material={materials.LightMetal} position={[-1.326, 1.318, -0.634]} />
+              <mesh castShadow geometry={nodes.polySurface20.geometry} material={materials.LightMetal} position={[-1.326, 0.617, 0.246]} />
+              <mesh castShadow geometry={nodes.polySurface21.geometry} material={materials.LightMetal} position={[-1.326, 0.618, -1.514]} />
+            </group>
             <mesh castShadow geometry={nodes.polySurface22.geometry} material={materials.LightMetal} position={[1.326, 1.318, -0.634]} />
-            <mesh castShadow geometry={nodes.polySurface24.geometry} material={materials.LightMetal} position={[1.326, 0.617, 0.246]}  />
-            <mesh castShadow geometry={nodes.polySurface25.geometry} material={materials.LightMetal} position={[1.326, 0.618, -1.514]}  />
+            <mesh castShadow geometry={nodes.polySurface24.geometry} material={materials.LightMetal} position={[1.326, 0.617, 0.246]} />
+            <mesh castShadow geometry={nodes.polySurface25.geometry} material={materials.LightMetal} position={[1.326, 0.618, -1.514]} />
           </>
         )}
         {legs === 2 && (
           <>
             <mesh castShadow geometry={nodes.polySurface27001.geometry} material={materials.LightMetal} position={[1.326, -0.121, -0.636]} />
             <mesh castShadow geometry={nodes.polySurface28001.geometry} material={materials.LightMetal} position={[1.326, 1.332, -0.636]} />
-            <mesh castShadow geometry={nodes.polySurface30001.geometry} material={materials.LightMetal} position={[1.326, 0.606, -1.518]}/>
+            <mesh castShadow geometry={nodes.polySurface30001.geometry} material={materials.LightMetal} position={[1.326, 0.606, -1.518]} />
             <mesh castShadow geometry={nodes.polySurface31001.geometry} material={materials.LightMetal} position={[1.326, 0.606, 0.246]} />
             <mesh castShadow geometry={nodes.polySurface27.geometry} material={materials.LightMetal} position={[-1.326, -0.121, -0.636]} />
             <mesh castShadow geometry={nodes.polySurface28.geometry} material={materials.LightMetal} position={[-1.326, 1.332, -0.636]} />
-            <mesh castShadow geometry={nodes.polySurface30.geometry} material={materials.LightMetal} position={[-1.326, 0.606, -1.518]}/>
+            <mesh castShadow geometry={nodes.polySurface30.geometry} material={materials.LightMetal} position={[-1.326, 0.606, -1.518]} />
             <mesh castShadow geometry={nodes.polySurface31.geometry} material={materials.LightMetal} position={[-1.326, 0.606, 0.246]} />
           </>
         )}
