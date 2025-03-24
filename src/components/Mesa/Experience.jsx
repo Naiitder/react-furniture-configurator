@@ -3,8 +3,8 @@ import { Canvas } from "@react-three/fiber";
 import { Environment, Stage, OrbitControls, Grid } from '@react-three/drei'
 import { EffectComposer, Bloom, ToneMapping } from '@react-three/postprocessing'
 
-import { Table } from "./Table";
-import { useConfigurator } from "../contexts/Configurator";
+import { Table } from "../Table";
+import { useConfigurator } from "../../contexts/Configurator";
 import { Mesa } from "./Mesa";
 
 // <Grid renderOrder={-1} position={[0, -.5, 0]} infiniteGrid cellSize={0.6} cellThickness={0.6} sectionSize={3.3} sectionThickness={1.5} sectionColor={[0.5, 0.5, 10]} fadeDistance={30} />

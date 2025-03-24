@@ -1,6 +1,6 @@
 import React from "react";
 import { Slider, Radio, Typography, Form, Space } from "antd";
-import { useConfigurator } from "../contexts/Configurator";
+import { useConfigurator } from "../../contexts/Configurator";
 
 const { Title } = Typography;
 

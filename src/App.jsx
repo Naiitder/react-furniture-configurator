@@ -1,5 +1,5 @@
-import { Experience } from "./components/Experience";
-import Interface from "./components/Interface";
+import { Experience } from "./components/Mesa/Experience";
+import Interface from "./components/Mesa/Interface";
 
 function App() {
   
