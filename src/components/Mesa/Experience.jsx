@@ -29,7 +29,7 @@ export const Experience = () => {
                     <meshStandardMaterial color="white" />
                 </mesh>
                 <Stage intensity={5} environment="city" shadows={{ type: 'accumulative', bias: -0.001, intensity: Math.PI }} adjustCamera={false}>
-                    <Mesa2 rotation={[0, Math.PI, 0]} />
+                    <Mesa rotation={[0, Math.PI, 0]} />
                 </Stage>
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>

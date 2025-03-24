@@ -27,7 +27,6 @@ const Interface = () => {
     { image: "./images/SolidLegs.png", label: "Solid", value: 2 },
     { image: "./images/DesignLegs.png", label: "Design", value: 3 },
     { image: "./images/Design2Legs.png", label: "Design2", value: 4 },
-    { image: "./images/Standard2Legs.png", label: "StandardT", value: 5 },
   ];
 
   return (

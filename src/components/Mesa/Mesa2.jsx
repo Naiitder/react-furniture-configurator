@@ -31,11 +31,18 @@ export function Mesa2(props) {
                 rightBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
             }
 
+            if (cornersBarsBack.current && cornersBarsFront.current) {
+                cornersBarsBack.current.scale.lerp(new Three.Vector3(tableWidthScale, 1, 1), delta * 12);
+                cornersBarsFront.current.scale.lerp(new Three.Vector3(tableWidthScale, 1, 1), delta * 12);
+            }
+
         }
 
     });
 
     const plate = useRef();
+    const cornersBarsBack = useRef();
+    const cornersBarsFront = useRef();
     const tableGroup = useRef();
     const leftFrontLeg = useRef();
     const rightFrontLeg = useRef();
@@ -57,16 +64,22 @@ export function Mesa2(props) {
                 )}
                 {legs === 1 && (
                     <>
-                        <mesh castShadow geometry={nodes.Pata2IntermedioBack.geometry} material={materials.Metal} position={[1.326, 1.304, -0.634]} />
-                        <mesh castShadow geometry={nodes.Pata2IntermedioFront.geometry} material={materials.Metal} position={[-1.326, 1.304, -0.634]} />
-                        <mesh castShadow geometry={nodes.Pata2DerBack001.geometry} material={materials.Metal} position={[1.326, 0.624, 0.246]} />
-                        <mesh castShadow geometry={nodes.Pata2DerConexionBack.geometry} material={materials.Metal} position={[1.327, 1.285, 0.077]} />
-                        <mesh castShadow geometry={nodes.Pata2DerConexionFront.geometry} material={materials.Metal} position={[-1.327, 1.285, 0.077]} />
-                        <mesh castShadow geometry={nodes.Pata2DerFront001.geometry} material={materials.Metal} position={[-1.326, 0.624, 0.246]} />
-                        <mesh castShadow geometry={nodes.Pata2IzqBack001.geometry} material={materials.Metal} position={[1.326, 0.624, -1.514]} />
-                        <mesh castShadow geometry={nodes.Pata2IzqConexionBack.geometry} material={materials.Metal} position={[1.326, 1.285, -1.345]} />
-                        <mesh castShadow geometry={nodes.Pata2IzqConexionFront.geometry} material={materials.Metal} position={[-1.326, 1.285, -1.345]} />
-                        <mesh castShadow geometry={nodes.Pata2IzqFront.geometry} material={materials.Metal} position={[-1.326, 0.625, -1.514]} />
+                        <group>
+                            <group>
+                                <mesh castShadow geometry={nodes.Pata2IntermedioBack.geometry} material={materials.Metal} position={[1.326, 1.304, -0.634]} />
+                                <mesh castShadow geometry={nodes.Pata2IzqConexionBack.geometry} material={materials.Metal} position={[1.326, 1.285, -1.345]} />
+                                <mesh castShadow geometry={nodes.Pata2DerConexionBack.geometry} material={materials.Metal} position={[1.327, 1.285, 0.077]} />
+                            </group>
+                            <mesh castShadow geometry={nodes.Pata2DerBack001.geometry} material={materials.Metal} position={[1.326, 0.624, 0.246]} />
+                            <mesh castShadow geometry={nodes.Pata2IzqBack001.geometry} material={materials.Metal} position={[1.326, 0.624, -1.514]} />
+                        </group>
+                        <group>
+                            <mesh castShadow geometry={nodes.Pata2IntermedioFront.geometry} material={materials.Metal} position={[-1.326, 1.304, -0.634]} />
+                            <mesh castShadow geometry={nodes.Pata2DerConexionFront.geometry} material={materials.Metal} position={[-1.327, 1.285, 0.077]} />
+                            <mesh castShadow geometry={nodes.Pata2DerFront001.geometry} material={materials.Metal} position={[-1.326, 0.624, 0.246]} />
+                            <mesh castShadow geometry={nodes.Pata2IzqConexionFront.geometry} material={materials.Metal} position={[-1.326, 1.285, -1.345]} />
+                            <mesh castShadow geometry={nodes.Pata2IzqFront.geometry} material={materials.Metal} position={[-1.326, 0.625, -1.514]} />
+                        </group>
                     </>
                 )}
                 {legs === 2 && (
@@ -95,16 +108,6 @@ export function Mesa2(props) {
                         <mesh castShadow geometry={nodes.polySurface15.geometry} material={materials.Metal} position={[-1.131, 0.655, 0.082]} ref={leftFrontLeg} />
                         <mesh castShadow geometry={nodes.polySurface16.geometry} material={materials.Metal} position={[1.131, 0.655, -1.487]} ref={rightBackLeg} />
                         <mesh castShadow geometry={nodes.polySurface17.geometry} material={materials.Metal} position={[-1.131, 0.655, -1.487]} ref={leftBackLeg} />
-                    </>
-                )}
-                {legs === 5 && (
-                    <>
-                        <mesh castShadow geometry={nodes.Pata6DerBack.geometry} material={materials.Metal} position={[1.326, 0.694, 0.233]} />
-                        <mesh castShadow geometry={nodes.Pata6IzqBack.geometry} material={materials.Metal} position={[1.326, 0.695, -1.501]} />
-                        <mesh castShadow geometry={nodes.Pata6IntermedioBack.geometry} material={materials.Metal} position={[1.326, 1.304, -0.634]} />
-                        <mesh castShadow geometry={nodes.Pata6DerFront.geometry} material={materials.Metal} position={[-1.326, 0.694, 0.233]} />
-                        <mesh castShadow geometry={nodes.Pata6IntermedioFront.geometry} material={materials.Metal} position={[-1.326, 1.304, -0.634]} />
-                        <mesh castShadow geometry={nodes.Pata6IzqFrotn.geometry} material={materials.Metal} position={[-1.326, 0.695, -1.501]} />
                     </>
                 )}
             </group>
