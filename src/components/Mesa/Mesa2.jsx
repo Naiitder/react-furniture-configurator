@@ -38,8 +38,6 @@ export function Mesa2(props) {
 
                 connectorBack.current.scale.lerp(new Three.Vector3(1,1,tableDepthScale),delta*12);
                 connectorFront.current.scale.lerp(new Three.Vector3(1,1,tableDepthScale),delta*12);
-
-
             }
         }
 
