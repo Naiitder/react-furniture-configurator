@@ -38,6 +38,7 @@ const Interface = () => {
         left: 0,
         padding: "20px",
         width: "300px",
+        overflow: "auto",
         background: "rgba(255, 255, 255, 0.8)",
         borderRadius: "8px",
         margin: "10px",
