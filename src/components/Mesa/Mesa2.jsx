@@ -4,6 +4,7 @@ import { useConfigurator } from '../../contexts/Configurator';
 import * as Three from 'three'
 import { useFrame } from '@react-three/fiber'
 
+
 export function Mesa2(props) {
     const { nodes, materials } = useGLTF('./models/Mesa.glb')
 
@@ -39,10 +40,19 @@ export function Mesa2(props) {
                 connectorBack.current.scale.lerp(new Three.Vector3(1,1,tableDepthScale),delta*12);
                 connectorFront.current.scale.lerp(new Three.Vector3(1,1,tableDepthScale),delta*12);
             }
+
+            if (connectorBackUp.current && connectorFrontUp.current && connectorBackDown.current && connectorFrontDown.current){
+                connectorBackUp.current.position.lerp(new Three.Vector3(-tableWidthScale,1.332,0),delta*12);
+                connectorFrontUp.current.position.lerp(new Three.Vector3(tableWidthScale,1.332,0),delta*12);
+                connectorBackDown.current.position.lerp(new Three.Vector3(-tableWidthScale,-0.121,0),delta*12);
+                connectorFrontDown.current.position.lerp(new Three.Vector3(tableWidthScale,-0.121,0),delta*12);
+
+                connectorBackUp.current.scale.lerp(new Three.Vector3(1,1,tableDepthScale),delta*12);
+                connectorFrontUp.current.scale.lerp(new Three.Vector3(1,1,tableDepthScale),delta*12);
+                connectorBackDown.current.scale.lerp(new Three.Vector3(1,1,tableDepthScale),delta*12);
+                connectorFrontDown.current.scale.lerp(new Three.Vector3(1,1,tableDepthScale),delta*12);
+            }
         }
-
-
-
 
     });
 
@@ -55,6 +65,11 @@ export function Mesa2(props) {
 
     const connectorBack = useRef();
     const connectorFront = useRef();
+
+    const connectorBackUp = useRef();
+    const connectorFrontUp = useRef();
+    const connectorBackDown = useRef();
+    const connectorFrontDown = useRef();
 
 
     return (
@@ -83,14 +98,14 @@ export function Mesa2(props) {
                 )}
                 {legs === 2 && (
                     <>
-                        <mesh castShadow geometry={nodes.polySurface27001.geometry} material={materials.LightMetal} position={[1.326, -0.121, -0.636]} />
-                        <mesh castShadow geometry={nodes.polySurface28001.geometry} material={materials.LightMetal} position={[1.326, 1.332, -0.636]} />
-                        <mesh castShadow geometry={nodes.polySurface30001.geometry} material={materials.LightMetal} position={[1.326, 0.606, -1.518]} />
-                        <mesh castShadow geometry={nodes.polySurface31001.geometry} material={materials.LightMetal} position={[1.326, 0.606, 0.246]} />
-                        <mesh castShadow geometry={nodes.polySurface27.geometry} material={materials.LightMetal} position={[-1.326, -0.121, -0.636]} />
-                        <mesh castShadow geometry={nodes.polySurface28.geometry} material={materials.LightMetal} position={[-1.326, 1.332, -0.636]} />
-                        <mesh castShadow geometry={nodes.polySurface30.geometry} material={materials.LightMetal} position={[-1.326, 0.606, -1.518]} />
-                        <mesh castShadow geometry={nodes.polySurface31.geometry} material={materials.LightMetal} position={[-1.326, 0.606, 0.246]} />
+                        <mesh castShadow geometry={nodes.polySurface27001.geometry} material={materials.LightMetal} position={[1.326, -0.121, -0.636]} ref={connectorFrontDown}/>
+                        <mesh castShadow geometry={nodes.polySurface28001.geometry} material={materials.LightMetal} position={[1.326, 1.332, -0.636]} ref={connectorFrontUp}/>
+                        <mesh castShadow geometry={nodes.polySurface30001.geometry} material={materials.LightMetal} position={[1.326, 0.606, -1.518]} ref={rightBackLeg}/>
+                        <mesh castShadow geometry={nodes.polySurface31001.geometry} material={materials.LightMetal} position={[1.326, 0.606, 0.246]} ref={rightFrontLeg}/>
+                        <mesh castShadow geometry={nodes.polySurface27.geometry} material={materials.LightMetal} position={[-1.326, -0.121, -0.636]} ref={connectorBackDown}/>
+                        <mesh castShadow geometry={nodes.polySurface28.geometry} material={materials.LightMetal} position={[-1.326, 1.332, -0.636]} ref={connectorBackUp}/>
+                        <mesh castShadow geometry={nodes.polySurface30.geometry} material={materials.LightMetal} position={[-1.326, 0.606, -1.518]} ref={leftBackLeg}/>
+                        <mesh castShadow geometry={nodes.polySurface31.geometry} material={materials.LightMetal} position={[-1.326, 0.606, 0.246]} ref={leftFrontLeg}/>
                     </>
                 )}
                 {legs === 3 && (
