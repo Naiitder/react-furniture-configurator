@@ -2,12 +2,15 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import { ConfiguratorProvider } from './contexts/Configurator.jsx'
+import {ConfiguratorProvider} from './contexts/Configurator.jsx'
+import {RoomConfiguratorProvider} from "./contexts/RoomConfigurator.jsx";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+    <React.StrictMode>
     <ConfiguratorProvider>
-      <App />
+        <RoomConfiguratorProvider>
+            <App/>
+        </RoomConfiguratorProvider>
     </ConfiguratorProvider>
-  </React.StrictMode>,
+</React.StrictMode>,
 )
