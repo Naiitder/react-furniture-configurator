@@ -6,26 +6,41 @@ import { useFrame } from '@react-three/fiber'
 
 
 export function Mesa2(props) {
-    const { nodes, materials } = useGLTF('./models/Mesa.glb')
+    const { nodes, materials } = useGLTF('./models/Mesa3.glb')
 
-    const { legs, legsColor, tableWidth, tableHeight, tableDepth } = useConfigurator();
+    const { legs, legsColor, tableWidth, tableHeight, tableDepth, plankTexture } = useConfigurator();
 
     useEffect(() => {
         materials.LightMetal.color = new Three.Color(legsColor);
     }, [legsColor]);
+
+    useEffect(() => {
+        const texture = new Three.TextureLoader().load("./textures/" + plankTexture);
+        texture.flipY = false;
+        texture.colorSpace = "srgb";
+        texture.wrapS = Three.RepeatWrapping;
+        texture.wrapT = Three.RepeatWrapping;
+
+        const tableWidthScale = tableWidth / 100;
+        const tableDepthScale = tableDepth / 100;
+
+        texture.repeat.set(tableDepthScale, tableWidthScale);
+        materials.Madera.map = texture;
+        materials.Madera.map.needsUpdate = true;
+    }, [plankTexture]);
+
 
     useFrame((state, delta) => {
         const tableWidthScale = tableWidth / 100;
         const tableHeightScale = tableHeight / 100;
         const tableDepthScale = tableDepth / 100;
 
-        if (plate.current) {
-            plate.current.scale.lerp(
+        if (plank.current) {
+            plank.current.scale.lerp(
                 new Three.Vector3(tableWidthScale, tableHeightScale, tableDepthScale),
                 delta * 12
             );
-            plate.current.material.map.repeat.set(tableDepthScale, tableWidthScale);
-            console.log(plate.current);
+            plank.current.material.map.repeat.set(tableDepthScale, tableWidthScale);
         }
 
         if (rightBackLeg.current && rightFrontLeg.current && leftBackLeg.current && leftFrontLeg.current) {
@@ -54,10 +69,10 @@ export function Mesa2(props) {
                 connectorFrontDown.current.scale.lerp(new Three.Vector3(1,1,tableDepthScale),delta*12);
             }
         }
-
+        console.log(materials.Madera);
     });
 
-    const plate = useRef();
+    const plank = useRef();
 
     const leftFrontLeg = useRef();
     const rightFrontLeg = useRef();
@@ -76,7 +91,7 @@ export function Mesa2(props) {
     return (
         <group {...props} dispose={null}>
             <group>
-                <mesh castShadow geometry={nodes.pCube1.geometry} material={materials.Madera} position={[0, 1.475, 0]} ref={plate} />
+                <mesh castShadow geometry={nodes.pCube1.geometry} material={materials.Madera} position={[0, 1.475, 0]} ref={plank} />
 
                 {legs === 0 && (
                     <>
@@ -130,4 +145,4 @@ export function Mesa2(props) {
     )
 }
 
-useGLTF.preload('./models/Mesa.glb')
+useGLTF.preload('./models/Mesa3.glb')

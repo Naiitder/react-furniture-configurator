@@ -1,179 +1,234 @@
 import React from "react";
-import { Slider, Radio, Typography, Form, Space } from "antd";
-import { useConfigurator } from "../../contexts/Configurator";
+import {Slider, Radio, Typography, Form, Space} from "antd";
+import {useConfigurator} from "../../contexts/Configurator";
 
-const { Title } = Typography;
+const {Title} = Typography;
 
 const Interface = () => {
-  const {
-    legs, setLegs,
-    legsColor, setLegsColor,
-    tableWidth, setTableWidth,
-    tableHeight, setTableHeight,
-    tableDepth, setTableDepth
-  } = useConfigurator();
+    const {
+        legs, setLegs,
+        legsColor, setLegsColor,
+        tableWidth, setTableWidth,
+        tableHeight, setTableHeight,
+        tableDepth, setTableDepth,
+        plankTexture, setPlankTexture,
+    } = useConfigurator();
 
-  // Define color options with their labels and hex values
-  const colorOptions = [
-    { label: "Black", value: "#777777" },
-    { label: "Chrome", value: "#ECECEC" },
-    { label: "Gold", value: "#C9BD71" },
-    { label: "Pink Gold", value: "#C9A3B9" },
-  ];
+    // Define color options with their labels and hex values
+    const colorOptions = [
+        {label: "Black", value: "#777777"},
+        {label: "Chrome", value: "#ECECEC"},
+        {label: "Gold", value: "#C9BD71"},
+        {label: "Pink Gold", value: "#C9A3B9"},
+    ];
 
-  const legOptions = [
-    { image: "./images/standardLegs.png", label: "Standard", value: 0 },
-    { image: "./images/Standard2Legs.png", label: "Standard2", value: 1 },
-    { image: "./images/SolidLegs.png", label: "Solid", value: 2 },
-    { image: "./images/DesignLegs.png", label: "Design", value: 3 },
-    { image: "./images/Design2Legs.png", label: "Design2", value: 4 },
-  ];
+    const legOptions = [
+        {image: "./images/standardLegs.png", label: "Standard", value: 0},
+        {image: "./images/Standard2Legs.png", label: "Standard2", value: 1},
+        {image: "./images/SolidLegs.png", label: "Solid", value: 2},
+        {image: "./images/DesignLegs.png", label: "Design", value: 3},
+        {image: "./images/Design2Legs.png", label: "Design2", value: 4},
+    ];
 
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 0,
-        bottom: 0,
-        left: 0,
-        padding: "20px",
-        width: "300px",
-        overflow: "auto",
-        background: "rgba(255, 255, 255, 0.8)",
-        borderRadius: "8px",
-        margin: "10px",
-        boxShadow: "0 5px 15px rgba(0,0,0,0.1)"
-      }}
-    >
-      <Space direction="vertical" size={16}>
-        <Title level={5}>Table Configurator</Title>
+    const textureOptions = [
+        {image: "./textures/oak.jpg", label: "Standard", value: "oak.jpg"},
+        {image: "./textures/hard.jpg", label: "Dark", value: "hard.jpg"},
+    ];
 
-        {/* Table dimensions configuration */}
-        <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px" }}>
-          <Form>
-            <Form.Item label="Table Width">
-              <Slider
-                min={50}
-                max={200}
-                value={tableWidth}
-                onChange={(value) => setTableWidth(value)}
-                tooltip={open}
-              />
-            </Form.Item>
-            <Form.Item label="Table Height">
-              <Slider
-                min={50}
-                max={100}
-                value={tableHeight}
-                onChange={(value) => setTableHeight(value)}
-                tooltip={open}
-              />
-            </Form.Item>
-            <Form.Item label="Table Depth">
-              <Slider
-                min={50}
-                max={200}
-                value={tableDepth}
-                onChange={(value) => setTableDepth(value)}
-                tooltip={open}
-              />
-            </Form.Item>
-          </Form>
-        </div>
+    return (
+        <div
+            style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: 0,
+                padding: "20px",
+                width: "300px",
+                overflow: "auto",
+                background: "rgba(255, 255, 255, 0.8)",
+                borderRadius: "8px",
+                margin: "10px",
+                boxShadow: "0 5px 15px rgba(0,0,0,0.1)"
+            }}
+        >
+            <Space direction="vertical" size={16}>
+                <Title level={5}>Table Configurator</Title>
 
-        {/* Legs layout configuration */}
-        <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px" }}>
-          <Form.Item label="Legs Layout">
-            <div style={{ marginTop: "10px" }}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
-                {legOptions.map(option => (
-                  <div
-                    key={option.value}
-                    onClick={() => setLegs(option.value)}
-                    style={{
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        border: option.value === legs ? "2px solid #1890ff" : "1px solid #d9d9d9",
-                        borderRadius: "4px",
-                        boxShadow: option.value === legs ? "0 0 8px rgba(24, 144, 255, 0.5)" : "none",
-                        transition: "all 0.3s ease",
-                        overflow: "hidden", // Para contener la imagen dentro del div
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        padding: "4px"
-                      }}
-                    >
-                      <img 
-                        src={option.image} 
-                        alt={option.label} 
-                        style={{
-                          maxWidth: "100%",
-                          maxHeight: "100%",
-                          objectFit: "contain"
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Form.Item>
-        </div>
+                {/* Table dimensions configuration */}
+                <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+                    <Form>
+                        <Form.Item label="Table Width">
+                            <Slider
+                                min={50}
+                                max={200}
+                                value={tableWidth}
+                                onChange={(value) => setTableWidth(value)}
+                                tooltip={open}
+                            />
+                        </Form.Item>
+                        <Form.Item label="Table Height">
+                            <Slider
+                                min={50}
+                                max={100}
+                                value={tableHeight}
+                                onChange={(value) => setTableHeight(value)}
+                                tooltip={open}
+                            />
+                        </Form.Item>
+                        <Form.Item label="Table Depth">
+                            <Slider
+                                min={50}
+                                max={200}
+                                value={tableDepth}
+                                onChange={(value) => setTableDepth(value)}
+                                tooltip={open}
+                            />
+                        </Form.Item>
+                    </Form>
+                </div>
 
-        {/* Legs color configuration with custom color swatches */}
-        <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px" }}>
-          <Form.Item label="Legs Color">
-            <div style={{ marginTop: "10px" }}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
-                {colorOptions.map(option => (
-                  <div
-                    key={option.value}
-                    onClick={() => setLegsColor(option.value)}
-                    style={{
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        backgroundColor: option.value,
-                        border: option.value === legsColor ? "2px solid #1890ff" : "1px solid #d9d9d9",
-                        borderRadius: "4px",
-                        boxShadow: option.value === legsColor ? "0 0 8px rgba(24, 144, 255, 0.5)" : "none",
-                        transition: "all 0.3s ease"
-                      }}
-                    />
-                    <span style={{
-                      fontSize: "12px",
-                      fontWeight: option.value === legsColor ? "bold" : "normal",
-                      color: option.value === legsColor ? "#1890ff" : "inherit"
-                    }}>
+                {/* Legs layout configuration */}
+                <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+                    <Form.Item label="Legs Layout">
+                        <div style={{marginTop: "10px"}}>
+                            <div style={{display: "flex", flexWrap: "wrap", gap: "12px"}}>
+                                {legOptions.map(option => (
+                                    <div
+                                        key={option.value}
+                                        onClick={() => setLegs(option.value)}
+                                        style={{
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            gap: "6px",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: "60px",
+                                                height: "60px",
+                                                border: option.value === legs ? "2px solid #1890ff" : "1px solid #d9d9d9",
+                                                borderRadius: "4px",
+                                                boxShadow: option.value === legs ? "0 0 8px rgba(24, 144, 255, 0.5)" : "none",
+                                                transition: "all 0.3s ease",
+                                                overflow: "hidden", // Para contener la imagen dentro del div
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                padding: "4px"
+                                            }}
+                                        >
+                                            <img
+                                                src={option.image}
+                                                alt={option.label}
+                                                style={{
+                                                    maxWidth: "100%",
+                                                    maxHeight: "100%",
+                                                    objectFit: "contain"
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </Form.Item>
+                </div>
+
+                {/* Legs color configuration with custom color swatches */}
+                <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+                    <Form.Item label="Legs Color">
+                        <div style={{marginTop: "10px"}}>
+                            <div style={{display: "flex", flexWrap: "wrap", gap: "12px"}}>
+                                {colorOptions.map(option => (
+                                    <div
+                                        key={option.value}
+                                        onClick={() => setLegsColor(option.value)}
+                                        style={{
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            gap: "6px",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: "40px",
+                                                height: "40px",
+                                                backgroundColor: option.value,
+                                                border: option.value === legsColor ? "2px solid #1890ff" : "1px solid #d9d9d9",
+                                                borderRadius: "4px",
+                                                boxShadow: option.value === legsColor ? "0 0 8px rgba(24, 144, 255, 0.5)" : "none",
+                                                transition: "all 0.3s ease"
+                                            }}
+                                        />
+                                        <span style={{
+                                            fontSize: "12px",
+                                            fontWeight: option.value === legsColor ? "bold" : "normal",
+                                            color: option.value === legsColor ? "#1890ff" : "inherit"
+                                        }}>
                       {option.label}
                     </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Form.Item>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </Form.Item>
+                </div>
+
+                {/* Texture configuration */}
+                <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+                    <Form.Item label="Texture">
+                        <div style={{marginTop: "10px"}}>
+                            <div style={{display: "flex", flexWrap: "wrap", gap: "12px"}}>
+                                {textureOptions.map(option => (
+                                    <div
+                                        key={option.value}
+                                        onClick={() => setPlankTexture(option.value)}
+                                        style={{
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            gap: "6px",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: "60px",
+                                                height: "60px",
+                                                border: option.value === plankTexture ? "2px solid #1890ff" : "1px solid #d9d9d9",
+                                                borderRadius: "4px",
+                                                boxShadow: option.value === plankTexture ? "0 0 8px rgba(24, 144, 255, 0.5)" : "none",
+                                                transition: "all 0.3s ease",
+                                                overflow: "hidden", // Para contener la imagen dentro del div
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                padding: "4px"
+                                            }}
+                                        >
+                                            <img
+                                                src={option.image}
+                                                alt={option.label}
+                                                style={{
+                                                    maxWidth: "100%",
+                                                    maxHeight: "100%",
+                                                    objectFit: "contain"
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </Form.Item>
+                </div>
+            </Space>
         </div>
-      </Space>
-    </div>
-  );
+    );
 };
 
 export default Interface;
