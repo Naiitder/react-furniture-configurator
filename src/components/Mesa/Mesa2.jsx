@@ -24,7 +24,8 @@ export function Mesa2(props) {
                 new Three.Vector3(tableWidthScale, tableHeightScale, tableDepthScale),
                 delta * 12
             );
-
+            plate.current.material.map.repeat.set(tableDepthScale, tableWidthScale);
+            console.log(plate.current);
         }
 
         if (rightBackLeg.current && rightFrontLeg.current && leftBackLeg.current && leftFrontLeg.current) {

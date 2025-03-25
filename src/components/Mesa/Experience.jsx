@@ -4,6 +4,7 @@ import {EffectComposer, Bloom, ToneMapping} from '@react-three/postprocessing'
 
 import {Room} from "../Enviroment/Room.jsx";
 import {Mesa} from "./Mesa.jsx";
+import {Mesa2} from "./Mesa2.jsx";
 
 
 // <Grid renderOrder={-1} position={[0, -.5, 0]} infiniteGrid cellSize={0.6} cellThickness={0.6} sectionSize={3.3} sectionThickness={1.5} sectionColor={[0.5, 0.5, 10]} fadeDistance={30} />
@@ -16,7 +17,7 @@ export const Experience = () => {
                 <Room/>
                 <Stage intensity={5} environment="city"
                        shadows="contact" adjustCamera={false}>
-                    <Mesa rotation={[0, Math.PI, 0]}/>
+                    <Mesa2 rotation={[0, Math.PI, 0]}/>
                 </Stage>
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
