@@ -24,13 +24,35 @@ export function Mesa(props) {
         delta * 12
       );
 
-     if (rightBackLeg.current && rightFrontLeg.current && leftBackLeg.current && leftFrontLeg.current){
-      leftFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-      rightFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-      leftBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-      rightBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-     }
+      if (rightBackLeg.current && rightFrontLeg.current && leftBackLeg.current && leftFrontLeg.current) {
+        leftFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
+        rightFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
+        leftBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
+        rightBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
+      }
 
+      if (polySurface18Ref.current && polySurface20Ref.current && polySurface21Ref.current) {
+        polySurface20Ref.current.scale.lerp(new Three.Vector3(1/tableWidthScale, 1, 1/tableDepthScale), delta * 5);  // Escalamos con valores normales
+        polySurface21Ref.current.scale.lerp(new Three.Vector3(1/tableWidthScale, 1, 1/tableDepthScale), delta * 5);  
+
+        const pos18 = new Three.Vector3().setFromMatrixPosition(polySurface18Ref.current.matrixWorld);
+        const pos20 = new Three.Vector3().setFromMatrixPosition(polySurface20Ref.current.matrixWorld);
+        const pos21 = new Three.Vector3().setFromMatrixPosition(polySurface21Ref.current.matrixWorld);
+    
+        // Calcular la distancia entre los puntos
+        let distance20 = pos18.distanceTo(pos20);
+        let distance21 = pos18.distanceTo(pos21);
+    
+        // Limitar la distancia (esto evita que la escala se vuelva excesivamente grande o pequeña)
+        distance20 = Three.MathUtils.clamp(distance20, 0.5, 2); // Limitar entre 0.5 y 2 unidades
+        distance21 = Three.MathUtils.clamp(distance21, 0.5, 2); // Limitar entre 0.5 y 2 unidades
+    
+        // Escalar progresivamente
+        polySurface18Ref.current.scale.lerp(new Three.Vector3(1/tableWidthScale, distance20, distance20), delta * 5);  // Escalamos en la dirección Y según la distancia
+// Escalamos con valores normales
+      }
+
+      
     }
 
   });
@@ -41,6 +63,10 @@ export function Mesa(props) {
   const rightFrontLeg = useRef();
   const leftBackLeg = useRef();
   const rightBackLeg = useRef();
+
+  const polySurface18Ref = useRef();
+  const polySurface20Ref = useRef();
+  const polySurface21Ref = useRef();
 
   return (
     <group {...props} dispose={null}>
@@ -57,23 +83,25 @@ export function Mesa(props) {
         )}
         {legs === 1 && (
           <>
-            <mesh castShadow geometry={nodes.polySurface18.geometry} material={materials.LightMetal} position={[-1.326, 1.318, -0.634]} />
-            <mesh castShadow geometry={nodes.polySurface20.geometry} material={materials.LightMetal} position={[-1.326, 0.617, 0.246]}  />
-            <mesh castShadow geometry={nodes.polySurface21.geometry} material={materials.LightMetal} position={[-1.326, 0.618, -1.514]}  />
+            <group>
+              <mesh castShadow geometry={nodes.polySurface18.geometry} material={materials.LightMetal} position={[-1.326, 1.318, -0.634]} ref={polySurface18Ref} />
+              <mesh castShadow geometry={nodes.polySurface20.geometry} material={materials.LightMetal} position={[-1.326, 0.617, 0.246]} ref={polySurface20Ref}/>
+              <mesh castShadow geometry={nodes.polySurface21.geometry} material={materials.LightMetal} position={[-1.326, 0.618, -1.514]} ref={polySurface21Ref}/>
+            </group>
             <mesh castShadow geometry={nodes.polySurface22.geometry} material={materials.LightMetal} position={[1.326, 1.318, -0.634]} />
-            <mesh castShadow geometry={nodes.polySurface24.geometry} material={materials.LightMetal} position={[1.326, 0.617, 0.246]}  />
-            <mesh castShadow geometry={nodes.polySurface25.geometry} material={materials.LightMetal} position={[1.326, 0.618, -1.514]}  />
+            <mesh castShadow geometry={nodes.polySurface24.geometry} material={materials.LightMetal} position={[1.326, 0.617, 0.246]} />
+            <mesh castShadow geometry={nodes.polySurface25.geometry} material={materials.LightMetal} position={[1.326, 0.618, -1.514]} />
           </>
         )}
         {legs === 2 && (
           <>
             <mesh castShadow geometry={nodes.polySurface27001.geometry} material={materials.LightMetal} position={[1.326, -0.121, -0.636]} />
             <mesh castShadow geometry={nodes.polySurface28001.geometry} material={materials.LightMetal} position={[1.326, 1.332, -0.636]} />
-            <mesh castShadow geometry={nodes.polySurface30001.geometry} material={materials.LightMetal} position={[1.326, 0.606, -1.518]}/>
+            <mesh castShadow geometry={nodes.polySurface30001.geometry} material={materials.LightMetal} position={[1.326, 0.606, -1.518]} />
             <mesh castShadow geometry={nodes.polySurface31001.geometry} material={materials.LightMetal} position={[1.326, 0.606, 0.246]} />
             <mesh castShadow geometry={nodes.polySurface27.geometry} material={materials.LightMetal} position={[-1.326, -0.121, -0.636]} />
             <mesh castShadow geometry={nodes.polySurface28.geometry} material={materials.LightMetal} position={[-1.326, 1.332, -0.636]} />
-            <mesh castShadow geometry={nodes.polySurface30.geometry} material={materials.LightMetal} position={[-1.326, 0.606, -1.518]}/>
+            <mesh castShadow geometry={nodes.polySurface30.geometry} material={materials.LightMetal} position={[-1.326, 0.606, -1.518]} />
             <mesh castShadow geometry={nodes.polySurface31.geometry} material={materials.LightMetal} position={[-1.326, 0.606, 0.246]} />
           </>
         )}
