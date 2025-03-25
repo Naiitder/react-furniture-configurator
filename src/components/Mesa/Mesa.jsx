@@ -4,60 +4,49 @@ import { useConfigurator } from '../../contexts/Configurator';
 import * as Three from 'three'
 import { useFrame } from '@react-three/fiber'
 
+
 export function Mesa(props) {
   const { nodes, materials } = useGLTF('./models/Mesa.glb')
-
   const { legs, legsColor, tableWidth, tableHeight, tableDepth } = useConfigurator();
+
+
+  useEffect(() => {
+    if (plate.current) {
+      // Create a scale matrix
+      const scaleMatrix = new Three.Matrix4().makeScale(
+        tableWidth / 100,  // X scale
+        1,                   // Y scale (keep original)
+        tableDepth / 100   // Z scale
+      );
+
+      // Apply the scale matrix to the geometry
+      plate.current.geometry.applyMatrix4(scaleMatrix);
+
+      // Ensure normals are updated after scaling
+      plate.current.geometry.computeVertexNormals();
+    }
+  }, [tableWidth, tableDepth, tableHeight]);
 
   useEffect(() => {
     materials.LightMetal.color = new Three.Color(legsColor);
   }, [legsColor]);
 
-  useFrame((state, delta) => {
-    const tableWidthScale = tableWidth / 100;
-    const tableHeightScale = tableHeight / 100;
-    const tableDepthScale = tableDepth / 100;
-
-    if (tableGroup.current) {
-      tableGroup.current.scale.lerp(
-        new Three.Vector3(tableWidthScale, tableHeightScale, tableDepthScale),
-        delta * 12
-      );
-
-      if (rightBackLeg.current && rightFrontLeg.current && leftBackLeg.current && leftFrontLeg.current) {
-        leftFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-        rightFrontLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-        leftBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-        rightBackLeg.current.scale.lerp(new Three.Vector3(1 / tableWidthScale, 1, 1 / tableDepthScale), delta * 12);
-      }
-
-      if(connectedPiece.current && leftBackLegPiece.current && rightBackLegPiece.current){
-        
-        const offsetZ = (tableDepthScale - 1) / 2;
-        leftBackLegPiece.current.position.z = -1.514 + offsetZ;
-        rightBackLegPiece.current.position.z = 0.246 + offsetZ;
-      }
-  
-    }
-
-  });
 
   const plate = useRef();
-  const tableGroup = useRef();
+
   const leftFrontLeg = useRef();
   const rightFrontLeg = useRef();
   const leftBackLeg = useRef();
   const rightBackLeg = useRef();
 
-  const connectedPiece = useRef();
-  const leftBackLegPiece = useRef();
-  const rightBackLegPiece = useRef();
+  const connectorBack = useRef();
+  const connectorFront = useRef();
+
 
   return (
     <group {...props} dispose={null}>
-      <group ref={tableGroup}>
-        <mesh castShadow geometry={nodes.pCube1.geometry} material={materials.Madera} position={[0, 1.475, -0.629]} ref={plate} />
-
+      <group>
+        <mesh castShadow geometry={nodes.pCube1.geometry} material={materials.Madera} position={[0, 1.475, 0]} ref={plate} />
         {legs === 0 && (
           <>
             <mesh castShadow geometry={nodes.polySurface1.geometry} material={materials.LightMetal} position={[1.327, 0.596, -1.515]} ref={leftBackLeg} />
@@ -68,14 +57,13 @@ export function Mesa(props) {
         )}
         {legs === 1 && (
           <>
-            <group>
-              <mesh castShadow geometry={nodes.polySurface18.geometry} material={materials.LightMetal} position={[-1.326, 1.318, -0.634]} ref={connectedPiece}/>
-              <mesh castShadow geometry={nodes.polySurface20.geometry} material={materials.LightMetal} position={[-1.326, 0.617, 0.246]} ref={rightBackLegPiece}/>
-              <mesh castShadow geometry={nodes.polySurface21.geometry} material={materials.LightMetal} position={[-1.326, 0.618, -1.514]} ref={leftBackLegPiece}/>
-            </group>
-            <mesh castShadow geometry={nodes.polySurface22.geometry} material={materials.LightMetal} position={[1.326, 1.318, -0.634]} />
-            <mesh castShadow geometry={nodes.polySurface24.geometry} material={materials.LightMetal} position={[1.326, 0.617, 0.246]} />
-            <mesh castShadow geometry={nodes.polySurface25.geometry} material={materials.LightMetal} position={[1.326, 0.618, -1.514]} />
+            <mesh castShadow geometry={nodes.polySurface18.geometry} material={materials.LightMetal} position={[-1.326, 1.318, -0.634]} ref={connectorBack} />
+            <mesh castShadow geometry={nodes.polySurface20.geometry} material={materials.LightMetal} position={[-1.326, 0.617, 0.246]} ref={leftFrontLeg} />
+            <mesh castShadow geometry={nodes.polySurface21.geometry} material={materials.LightMetal} position={[-1.326, 0.618, -1.514]} ref={leftBackLeg} />
+
+            <mesh castShadow geometry={nodes.polySurface22.geometry} material={materials.LightMetal} position={[1.326, 1.318, -0.634]} ref={connectorFront} />
+            <mesh castShadow geometry={nodes.polySurface24.geometry} material={materials.LightMetal} position={[1.326, 0.617, 0.246]} ref={rightFrontLeg} />
+            <mesh castShadow geometry={nodes.polySurface25.geometry} material={materials.LightMetal} position={[1.326, 0.618, -1.514]} ref={rightBackLeg} />
           </>
         )}
         {legs === 2 && (
