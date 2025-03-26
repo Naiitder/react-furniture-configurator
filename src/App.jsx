@@ -1,18 +1,27 @@
-import {Experience} from "./components/Mesa/Experience";
-import Interface from "./components/Mesa/Interface";
-import RoomConfigPanel from "./components/Enviroment/RoomConfigPanel.jsx";
+import {Experience} from "./pages/Experience.jsx";
+import {BrowserRouter, Routes, Route} from "react-router-dom";
+import {FurnitureMenu} from "./pages/FurnitureMenu.jsx";
 
 function App() {
 
 
-    return (
+    /*return (
         <>
             <Experience/>
             <Interface/>
             <RoomConfigPanel/>
 
         </>
-    )
+    )*/
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route index element={<FurnitureMenu/>}/>
+                <Route path="canvas" element={<Experience/>}/>
+                {/*<Route path="*" element={<NoPage/>}/>*/}
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App
