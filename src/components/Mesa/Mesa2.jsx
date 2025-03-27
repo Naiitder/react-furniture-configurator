@@ -3,6 +3,7 @@ import { useGLTF } from '@react-three/drei'
 import { useConfigurator } from '../../contexts/Configurator';
 import * as Three from 'three'
 import { useFrame } from '@react-three/fiber'
+import Interface from "./Interface.jsx";
 
 
 export function Mesa2(props) {
@@ -15,7 +16,7 @@ export function Mesa2(props) {
     }, [legsColor]);
 
     useEffect(() => {
-        const texture = new Three.TextureLoader().load("./textures/" + plankTexture);
+        const texture = new Three.TextureLoader().load(plankTexture);
         texture.flipY = false;
         texture.colorSpace = "srgb";
         texture.wrapS = Three.RepeatWrapping;
