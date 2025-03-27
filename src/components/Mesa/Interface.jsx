@@ -1,6 +1,7 @@
-import React from "react";
-import {Slider, Radio, Typography, Form, Space} from "antd";
+import {Slider, Radio, Typography, Form, Space, message, Button, Upload} from "antd";
 import {useConfigurator} from "../../contexts/Configurator";
+import {useState} from "react";
+import {UploadOutlined} from "@ant-design/icons";
 
 const {Title} = Typography;
 
@@ -13,6 +14,9 @@ const Interface = () => {
         tableDepth, setTableDepth,
         plankTexture, setPlankTexture,
     } = useConfigurator();
+
+    const [customTexture, setCustomTexture] = useState(null);
+
 
     // Define color options with their labels and hex values
     const colorOptions = [
@@ -31,9 +35,65 @@ const Interface = () => {
     ];
 
     const textureOptions = [
-        {image: "./textures/oak.jpg", label: "Standard", value: "oak.jpg"},
-        {image: "./textures/hard.jpg", label: "Dark", value: "hard.jpg"},
+        {image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg"},
+        {image: "./textures/hard.jpg", label: "Dark", value: "./textures/hard.jpg"},
     ];
+
+    const handleRemoveCustomTexture = () => {
+        setCustomTexture(null);
+        // Volver a la textura por defecto
+        setPlankTexture('./textures/oak.jpg');
+    };
+
+    // Configuración del Uploader de Ant Design
+    const uploadProps = {
+        name: 'texture',
+        accept: '.jpg,.jpeg,.png,.webp',
+        maxCount: 1,
+        // Eliminar la propiedad 'action'
+
+        // Manejador personalizado de carga
+        customRequest: ({ file, onSuccess, onError }) => {
+            // Validar tamaño del archivo
+            const isLt5M = file.size / 1024 / 1024 < 5;
+            if (!isLt5M) {
+                message.error('La imagen debe ser menor a 5MB');
+                onError(new Error('File too large'));
+                return;
+            }
+
+            // Validar tipo de archivo
+            const isImage = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
+            if (!isImage) {
+                message.error('Solo se permiten archivos de imagen (JPEG, PNG, WebP)');
+                onError(new Error('Invalid file type'));
+                return;
+            }
+
+            // Crear FileReader para leer el archivo localmente
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                // Guardar la imagen como URL de datos
+                setCustomTexture(e.target.result);
+
+                // Simular éxito de carga
+                onSuccess('Ok');
+
+                message.success(`${file.name} archivo cargado exitosamente`);
+            };
+
+            reader.onerror = (error) => {
+                message.error('Error al leer el archivo');
+                onError(error);
+            };
+
+            // Leer el archivo como URL de datos
+            reader.readAsDataURL(file);
+        },
+
+        // Deshabilitar la lista de archivos
+        showUploadList: false,
+    };
 
     return (
         <div
@@ -180,13 +240,16 @@ const Interface = () => {
 
                 {/* Texture configuration */}
                 <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
-                    <Form.Item label="Texture">
+                    <Form.Item label="Textura">
                         <div style={{marginTop: "10px"}}>
-                            <div style={{display: "flex", flexWrap: "wrap", gap: "12px"}}>
+                            {/* Texturas predefinidas */}
+                            <div style={{display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "10px"}}>
                                 {textureOptions.map(option => (
                                     <div
                                         key={option.value}
-                                        onClick={() => setPlankTexture(option.value)}
+                                        onClick={() => {
+                                            setPlankTexture(option.value);
+                                        }}
                                         style={{
                                             cursor: "pointer",
                                             display: "flex",
@@ -203,7 +266,7 @@ const Interface = () => {
                                                 borderRadius: "4px",
                                                 boxShadow: option.value === plankTexture ? "0 0 8px rgba(24, 144, 255, 0.5)" : "none",
                                                 transition: "all 0.3s ease",
-                                                overflow: "hidden", // Para contener la imagen dentro del div
+                                                overflow: "hidden",
                                                 display: "flex",
                                                 justifyContent: "center",
                                                 alignItems: "center",
@@ -222,6 +285,48 @@ const Interface = () => {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                            {/* Carga de textura personalizada */}
+                            <div style={{marginTop: "10px"}}>
+                                <Upload {...uploadProps}>
+                                    <Button icon={<UploadOutlined />}>
+                                        Subir Textura Personalizada
+                                    </Button>
+                                </Upload>
+                                {customTexture && (
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                        <div
+                                            onClick={() => {
+                                                setPlankTexture(customTexture);
+                                            }}
+                                        >
+                                            <img
+                                                src={customTexture}
+                                                alt="Custom Texture"
+                                                style={{
+                                                    width: "60px",
+                                                    height: "60px",
+                                                    border: customTexture === plankTexture ? "2px solid #1890ff" : "1px solid #d9d9d9",
+                                                    borderRadius: "4px",
+                                                    boxShadow: customTexture === plankTexture ? "0 0 8px rgba(24, 144, 255, 0.5)" : "none",
+                                                    transition: "all 0.3s ease",
+                                                    overflow: "hidden",
+                                                    display: "flex",
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                    padding: "4px"
+                                                }}
+                                            />
+                                        </div>
+                                        <Button
+                                            type="link"
+                                            onClick={handleRemoveCustomTexture}
+                                            style={{color: 'red'}}
+                                        >
+                                            Eliminar
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </Form.Item>
