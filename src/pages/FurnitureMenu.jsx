@@ -10,14 +10,34 @@ const furnitureCategories = [
     { key: "sofas", name: "Sofás" },
     { key: "chairs", name: "Sillas" },
     { key: "tables", name: "Mesas" },
+    { key: "wardrobes", name: "Armarios"},
     { key: "beds", name: "Camas" },
 ];
 
 const furnitureItems = {
-    sofas: ["Sofá de cuero", "Sofá esquinero", "Sofá cama"],
-    chairs: ["Silla de oficina", "Silla de comedor", "Silla ergonómica"],
-    tables: ["Mesa de centro", "Mesa de comedor", "Escritorio"],
-    beds: ["Cama king size", "Cama individual", "Cama con almacenamiento"],
+    sofas: [
+        { name: "Sofá de cuero", image: "/images/leather-sofa.jpg" },
+        { name: "Sofá esquinero", image: "/images/corner-sofa.jpg" },
+        { name: "Sofá cama", image: "/images/sofa-bed.jpg" }
+    ],
+    chairs: [
+        { name: "Silla de oficina", image: "/images/office-chair.jpg" },
+        { name: "Silla de comedor", image: "/images/dining-chair.jpg" },
+        { name: "Silla ergonómica", image: "/images/ergonomic-chair.jpg" }
+    ],
+    tables: [
+        { name: "Mesa de centro", image: "/images/coffee-table.png" },
+        { name: "Mesa de comedor", image: "/images/dining-table.jpg" },
+        { name: "Escritorio", image: "/images/desk.jpg" }
+    ],
+    wardrobes: [
+        { name: "Armario", image: "/images/wardrobe.jpg" }
+    ],
+    beds: [
+        { name: "Cama king size", image: "/images/king-bed.jpg" },
+        { name: "Cama individual", image: "/images/single-bed.jpg" },
+        { name: "Cama con almacenamiento", image: "/images/storage-bed.jpg" }
+    ],
 };
 
 export const FurnitureMenu = () => {
@@ -26,7 +46,7 @@ export const FurnitureMenu = () => {
 
     useEffect(() => {
         const handleScroll = () => {
-            const scrollPosition = window.scrollY + window.innerHeight / 3; // Ajuste para mejorar la detección
+            const scrollPosition = window.scrollY + window.innerHeight / 3;
 
             let lastCategory = furnitureCategories[furnitureCategories.length - 1].key;
 
@@ -43,7 +63,6 @@ export const FurnitureMenu = () => {
                 }
             }
 
-            // Si se llega al final de la página, asegurar que la última categoría esté activa
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
                 setSelectedCategory(lastCategory);
             }
@@ -62,7 +81,6 @@ export const FurnitureMenu = () => {
 
     return (
         <Layout style={{ minHeight: "100vh" }}>
-            {/* Barra superior */}
             <Header style={{
                 background: "#001529",
                 padding: "0 16px",
@@ -77,7 +95,6 @@ export const FurnitureMenu = () => {
             </Header>
 
             <Layout style={{ marginTop: 64 }}>
-                {/* Menú lateral */}
                 <Sider
                     width={200}
                     theme="dark"
@@ -108,7 +125,6 @@ export const FurnitureMenu = () => {
                     </Menu>
                 </Sider>
 
-                {/* Contenido principal */}
                 <Layout style={{
                     marginLeft: 200,
                     padding: "16px"
@@ -125,7 +141,10 @@ export const FurnitureMenu = () => {
                                 <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} justify="space-around">
                                     {furnitureItems[category.key].map((item, index) => (
                                         <Col key={index}>
-                                            <FurnitureMenuItem name={item} />
+                                            <FurnitureMenuItem 
+                                                name={item.name} 
+                                                image={item.image} 
+                                            />
                                         </Col>
                                     ))}
                                 </Row>
