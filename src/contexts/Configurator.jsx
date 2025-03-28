@@ -8,7 +8,7 @@ export const ConfiguratorProvider = ({children}) => {
     const [tableWidth, setTableWidth] = useState(100);
     const [tableHeight, setTableHeight] = useState(100);
     const [tableDepth, setTableDepth] = useState(100);
-    const [plankTexture, setPlankTexture] = useState("oak.jpg");
+    const [plankTexture, setPlankTexture] = useState("./textures/oak.jpg");
 
     return <ConfiguratorContext.Provider value={{
         legs,
@@ -22,7 +22,7 @@ export const ConfiguratorProvider = ({children}) => {
         tableDepth,
         setTableDepth,
         plankTexture,
-        setPlankTexture,
+        setPlankTexture
     }}>
         {children}
     </ConfiguratorContext.Provider>

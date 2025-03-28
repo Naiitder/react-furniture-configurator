@@ -16,7 +16,7 @@ export function Mesa2(props) {
     }, [legsColor]);
 
     useEffect(() => {
-        const texture = new Three.TextureLoader().load("./textures/" + plankTexture);
+        const texture = new Three.TextureLoader().load(plankTexture);
         texture.flipY = false;
         texture.colorSpace = "srgb";
         texture.wrapS = Three.RepeatWrapping;
