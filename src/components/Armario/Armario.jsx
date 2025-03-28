@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useGLTF } from '@react-three/drei';
+import React, {useEffect, useRef, useState} from 'react';
+import {useGLTF} from '@react-three/drei';
 import * as Three from 'three';
-import { useFrame } from '@react-three/fiber';
+import {useFrame} from '@react-three/fiber';
 
 export function Armario(props) {
-    const { nodes, materials } = useGLTF('./models/Armario.glb');
+    const {nodes, materials} = useGLTF('./models/Armario.glb');
     const [selectedLeftDoor, setSelectedLeftDoor] = useState(false);
     const [selectedRightDoor, setSelectedRightDoor] = useState(false);
 
@@ -69,7 +69,6 @@ export function Armario(props) {
         }
 
 
-
     });
 
     const leftDoor = useRef();
@@ -83,36 +82,54 @@ export function Armario(props) {
     return (
         <group {...props} dispose={null}>
             <group>
-            <mesh
-                geometry={nodes.pCube1.geometry}
-                material={materials.WoodArmario}
-            />
-            <group position={[-2.069, 4.12, 0.118]} onClick={() => { setSelectedLeftDoor(!selectedLeftDoor) }} ref={leftDoor}>
-                <mesh geometry={nodes.Mesh002.geometry} material={materials.MaderaArmario} />
-                <mesh geometry={nodes.Mesh002_1.geometry} material={materials.aiStandardSurface2} />
-            </group>
-            <group position={[2.086, 4.167, 0.101]} onClick={() => { setSelectedRightDoor(!selectedRightDoor) }} ref={rightDoor}>
-                <mesh geometry={nodes.Mesh003.geometry} material={materials.MaderaArmario} />
-                <mesh geometry={nodes.Mesh003_1.geometry} material={materials.aiStandardSurface2} />
-            </group>
-            <group onClick={() => { setSelectedLowerrightDrawer(!selectedLowerrightDrawer) }} ref={lowerrightdrawer}>
-                <mesh geometry={nodes.Mesh005.geometry} material={materials.MaderaArmario} />
-                <mesh geometry={nodes.Mesh005_1.geometry} material={materials.aiStandardSurface2} />
-            </group>
-            <group onClick={() => { setSelectedLowerleftDrawer(!selectedLowerleftDrawer) }} ref={lowerleftdrawer}>
-                <mesh geometry={nodes.Mesh006.geometry} material={materials.MaderaArmario} />
-                <mesh geometry={nodes.Mesh006_1.geometry} material={materials.aiStandardSurface2} />
-            </group>
-            <group onClick={() => { setSelectedUpleftDrawer(!selectedUpleftDrawer) }} ref={upleftdrawer}>
-                <mesh geometry={nodes.Mesh001.geometry} material={materials.MaderaArmario} />
-                <mesh geometry={nodes.Mesh001_1.geometry} material={materials.aiStandardSurface2} />
-            </group>
-            <group onClick={() => { setSelectedUprightDrawer(!selectedUprightDrawer) }} ref={uprightdrawer}>
-                <mesh geometry={nodes.Mesh004.geometry} material={materials.MaderaArmario} />
-                <mesh geometry={nodes.Mesh004_1.geometry} material={materials.aiStandardSurface2} />
+                <mesh onClick={(event) => {event.stopPropagation();}}
+                    geometry={nodes.pCube1.geometry}
+                    material={materials.WoodArmario}
+                />
+                <group position={[-2.069, 4.12, 0.118]} onClick={(event) => {
+                    setSelectedLeftDoor(!selectedLeftDoor)
+                    event.stopPropagation();
+                }} ref={leftDoor}>
+                    <mesh geometry={nodes.Mesh002.geometry} material={materials.MaderaArmario}/>
+                    <mesh geometry={nodes.Mesh002_1.geometry} material={materials.aiStandardSurface2}/>
+                </group>
+                <group position={[2.086, 4.167, 0.101]} onClick={(event) => {
+                    setSelectedRightDoor(!selectedRightDoor);
+                    event.stopPropagation();
+                }} ref={rightDoor}>
+                    <mesh geometry={nodes.Mesh003.geometry} material={materials.MaderaArmario}/>
+                    <mesh geometry={nodes.Mesh003_1.geometry} material={materials.aiStandardSurface2}/>
+                </group>
+                <group onClick={(event) => {
+                    setSelectedLowerrightDrawer(!selectedLowerrightDrawer);
+                    event.stopPropagation();
+                }} ref={lowerrightdrawer}>
+                    <mesh geometry={nodes.Mesh005.geometry} material={materials.MaderaArmario}/>
+                    <mesh geometry={nodes.Mesh005_1.geometry} material={materials.aiStandardSurface2}/>
+                </group>
+                <group onClick={(event) => {
+                    setSelectedLowerleftDrawer(!selectedLowerleftDrawer);
+                    event.stopPropagation();
+                }} ref={lowerleftdrawer}>
+                    <mesh geometry={nodes.Mesh006.geometry} material={materials.MaderaArmario}/>
+                    <mesh geometry={nodes.Mesh006_1.geometry} material={materials.aiStandardSurface2}/>
+                </group>
+                <group onClick={(event) => {
+                    setSelectedUpleftDrawer(!selectedUpleftDrawer);
+                    event.stopPropagation();
+                }} ref={upleftdrawer}>
+                    <mesh geometry={nodes.Mesh001.geometry} material={materials.MaderaArmario}/>
+                    <mesh geometry={nodes.Mesh001_1.geometry} material={materials.aiStandardSurface2}/>
+                </group>
+                <group onClick={(event) => {
+                    setSelectedUprightDrawer(!selectedUprightDrawer);
+                    event.stopPropagation();
+                }} ref={uprightdrawer}>
+                    <mesh geometry={nodes.Mesh004.geometry} material={materials.MaderaArmario}/>
+                    <mesh geometry={nodes.Mesh004_1.geometry} material={materials.aiStandardSurface2}/>
+                </group>
             </group>
         </group>
-        </group >
     );
 }
 
