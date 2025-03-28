@@ -20,11 +20,7 @@ export const Experience = () => {
                 <Stage intensity={5} environment="city"
                        shadows="contact" adjustCamera={false}>
                     {selectedItem.includes("Mesa") && <Mesa rotation={[0, Math.PI, 0]}/>}
-                    {selectedItem.includes("Armario") && (
-                        <>
-                        <Armario rotation={[0,Math.PI,0]} />
-                        <Mesa rotation={[0,Math.PI,0]}/>
-                        </>)}
+                    {selectedItem.includes("Armario") && <Armario rotation={[0,Math.PI,0]} />}
                 </Stage>
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
