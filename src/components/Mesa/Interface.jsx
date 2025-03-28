@@ -1,7 +1,8 @@
 import {Slider, Radio, Typography, Form, Space, message, Button, Upload} from "antd";
 import {useConfigurator} from "../../contexts/Configurator";
 import {useState} from "react";
-import {UploadOutlined} from "@ant-design/icons";
+import {ArrowLeftOutlined, UploadOutlined} from "@ant-design/icons";
+import {useNavigate} from "react-router-dom";
 
 const {Title} = Typography;
 
@@ -14,6 +15,7 @@ const Interface = () => {
         tableDepth, setTableDepth,
         plankTexture, setPlankTexture,
     } = useConfigurator();
+    const navigate = useNavigate();
 
     const [customTexture, setCustomTexture] = useState(null);
 
@@ -111,7 +113,12 @@ const Interface = () => {
                 boxShadow: "0 5px 15px rgba(0,0,0,0.1)"
             }}
         >
+            <Button onClick={() => navigate(`/`)}>
+                <ArrowLeftOutlined/>
+            </Button>
             <Space direction="vertical" size={16}>
+
+
                 <Title level={5}>Table Configurator</Title>
 
                 {/* Table dimensions configuration */}
