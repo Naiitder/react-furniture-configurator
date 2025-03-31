@@ -3,7 +3,7 @@ import { useGLTF, Box } from '@react-three/drei'
 import { useConfigurator } from '../../contexts/Configurator.jsx';
 import * as Three from 'three'
 import { useFrame } from '@react-three/fiber'
-import Interface from "./Interface.jsx";
+import MesaInterface from "./MesaInterface.jsx";
 
 
 export function Mesa(props) {
