@@ -47,7 +47,7 @@ const ArmarioInterface = () => {
                     <Form.Item label="Closet Depth">
                         <Slider
                             min={50}
-                            max={200}
+                            max={150}
                             value={closetDepth}
                             onChange={(value) => setClosetDepth(value)}
                             tooltip={open}
