@@ -18,7 +18,7 @@ const ArmarioInterface = () => {
 
     const textureOptions = [
         { image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg" },
-        { image: "./textures/hard.jpg", label: "Dark", value: "./textures/hard.jpg" },
+        { image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg" },
     ];
 
     return (

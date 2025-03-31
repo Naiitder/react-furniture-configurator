@@ -1,43 +1,43 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Layout, Menu, Row, Col, Card, Typography } from "antd";
-import { AppstoreOutlined } from "@ant-design/icons";
+import React, {useState, useRef, useEffect} from "react";
+import {Layout, Menu, Row, Col, Card, Typography} from "antd";
+import {AppstoreOutlined} from "@ant-design/icons";
 import {FurnitureMenuItem} from "../components/Menu/FurnitureMenuItem.jsx";
 
-const { Header, Sider, Content } = Layout;
-const { Title } = Typography;
+const {Header, Sider, Content} = Layout;
+const {Title} = Typography;
 
 const furnitureCategories = [
-    { key: "sofas", name: "Sofás" },
-    { key: "chairs", name: "Sillas" },
-    { key: "tables", name: "Mesas" },
-    { key: "wardrobes", name: "Armarios"},
-    { key: "beds", name: "Camas" },
+    {key: "sofas", name: "Sofás"},
+    {key: "chairs", name: "Sillas"},
+    {key: "tables", name: "Mesas"},
+    {key: "wardrobes", name: "Armarios"},
+    {key: "beds", name: "Camas"},
 ];
 
 const furnitureItems = {
     sofas: [
-        { name: "Sofá de cuero", image: "/images/leather-sofa.jpg" },
-        { name: "Sofá esquinero", image: "/images/corner-sofa.jpg" },
-        { name: "Sofá cama", image: "/images/sofa-bed.jpg" }
+        {name: "Sofá de cuero", image: "/images/leather-sofa.jpg"},
+        {name: "Sofá esquinero", image: "/images/corner-sofa.jpg"},
+        {name: "Sofá cama", image: "/images/sofa-bed.jpg"}
     ],
     chairs: [
-        { name: "Silla de oficina", image: "/images/office-chair.jpg" },
-        { name: "Silla de comedor", image: "/images/dining-chair.jpg" },
-        { name: "Silla ergonómica", image: "/images/ergonomic-chair.jpg" }
+        {name: "Silla de oficina", image: "/images/office-chair.jpg"},
+        {name: "Silla de comedor", image: "/images/dining-chair.jpg"},
+        {name: "Silla ergonómica", image: "/images/ergonomic-chair.jpg"}
     ],
     tables: [
-        { name: "Mesa de centro", image: "/images/coffee-table.png" },
-        { name: "Mesa de comedor", image: "/images/dining-table.jpg" },
-        { name: "Escritorio", image: "/images/desk.jpg" }
+        {name: "Mesa de centro", image: "/images/coffee-table.png"},
+        {name: "Mesa de comedor", image: "/images/dining-table.jpg"},
+        {name: "Escritorio", image: "/images/desk.jpg"}
     ],
     wardrobes: [
-        { name: "Armario", image: "/images/wardrobre.jpg" },
-        { name: "Armario Step", image: "/images/armario-step.png"}
+        {name: "Armario", image: "/images/wardrobre.jpg"},
+        {name: "Armario Step", image: "/images/armario-step.png"}
     ],
     beds: [
-        { name: "Cama king size", image: "/images/king-bed.jpg" },
-        { name: "Cama individual", image: "/images/single-bed.jpg" },
-        { name: "Cama con almacenamiento", image: "/images/storage-bed.jpg" }
+        {name: "Cama king size", image: "/images/king-bed.jpg"},
+        {name: "Cama individual", image: "/images/single-bed.jpg"},
+        {name: "Cama con almacenamiento", image: "/images/storage-bed.jpg"}
     ],
 };
 
@@ -89,7 +89,7 @@ export const FurnitureMenu = () => {
     };
 
     return (
-        <Layout style={{ minHeight: "100vh" }}>
+        <Layout style={{minHeight: "100vh"}}>
             <Header style={{
                 background: "#001529",
                 padding: "0 16px",
@@ -98,12 +98,12 @@ export const FurnitureMenu = () => {
                 width: "100%",
                 zIndex: 1000
             }}>
-                <Title level={3} style={{ color: "#fff", margin: 0 }}>
+                <Title level={3} style={{color: "#fff", margin: 0}}>
                     Menú de Muebles
                 </Title>
             </Header>
 
-            <Layout style={{ marginTop: 64 }}>
+            <Layout style={{marginTop: 64}}>
                 <Sider
                     width={200}
                     theme="dark"
@@ -121,12 +121,12 @@ export const FurnitureMenu = () => {
                             setSelectedCategory(e.key);
                             scrollToCategory(e.key);
                         }}
-                        style={{ height: "100%", borderRight: 0 }}
+                        style={{height: "100%", borderRight: 0}}
                     >
                         {furnitureCategories.map((category) => (
                             <Menu.Item
                                 key={category.key}
-                                icon={<AppstoreOutlined />}
+                                icon={<AppstoreOutlined/>}
                             >
                                 {category.name}
                             </Menu.Item>
@@ -138,7 +138,7 @@ export const FurnitureMenu = () => {
                     marginLeft: 200,
                     padding: "16px"
                 }}>
-                    <Content style={{ background: "#fff", padding: 24 }}>
+                    <Content style={{background: "#fff", padding: 24}}>
                         {furnitureCategories.map((category) => (
                             <div
                                 key={category.key}
@@ -147,13 +147,14 @@ export const FurnitureMenu = () => {
                                 ref={(el) => categoryRefs.current[category.key] = el}
                                 style={{
                                     marginBottom: 240,
-                                    minHeight: "300px"
+                                    minHeight: "300px",
                                 }}
                             >
-                                <Title level={4}>{category.name}</Title>
+                                <Title level={4} style={{borderBottom: "1px solid #001529",}}>
+                                    {category.name}</Title>
                                 <div className="furniture-items-container">
                                     <Row
-                                        gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}
+                                        gutter={{xs: 8, sm: 16, md: 24, lg: 32}}
                                         style={{
                                             display: "flex",
                                             justifyContent: "flex-start",

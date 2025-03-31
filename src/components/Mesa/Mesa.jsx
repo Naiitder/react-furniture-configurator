@@ -32,7 +32,6 @@ export function Mesa(props) {
 
 
 
-
     useFrame((state, delta) => {
         const tableWidthScale = tableWidth / 100;
         const tableHeightScale = tableHeight / 100;
@@ -57,21 +56,21 @@ export function Mesa(props) {
                 rightBackLeg.current.position.lerp(new Three.Vector3(size.x/2- (size.x*10/100), leftBackLeg.current.position.y, -size.z/2 +( size.z*10/100)), delta * 12);
                 leftFrontLeg.current.position.lerp(new Three.Vector3(-size.x/2 + (size.x*10/100), leftBackLeg.current.position.y, size.z/2 -( size.z*10/100)), delta * 12);
                 rightFrontLeg.current.position.lerp(new Three.Vector3(size.x/2- (size.x*10/100), leftBackLeg.current.position.y, size.z/2 -( size.z*10/100)), delta * 12);
-    
+
                 if (connectorBack.current && connectorFront.current) {
                     connectorBack.current.position.lerp(new Three.Vector3(-size.x/2 + (size.x*10/100), 1.318, 0), delta * 12);
                     connectorFront.current.position.lerp(new Three.Vector3(size.x/2 - (size.x*10/100), 1.318, 0), delta * 12);
-    
+
                     connectorBack.current.scale.lerp(new Three.Vector3(1, 1, size.z/2), delta * 12);
                     connectorFront.current.scale.lerp(new Three.Vector3(1, 1, size.z/2), delta * 12);
                 }
-    
+
                 if (connectorBackUp.current && connectorFrontUp.current && connectorBackDown.current && connectorFrontDown.current) {
                     connectorBackUp.current.position.lerp(new Three.Vector3(-size.x/2 + (size.x*10/100), 1.332, 0), delta * 12);
                     connectorFrontUp.current.position.lerp(new Three.Vector3(size.x/2 - (size.x*10/100), 1.332, 0), delta * 12);
                     connectorBackDown.current.position.lerp(new Three.Vector3(-size.x/2 + (size.x*10/100), -0.121, 0), delta * 12);
                     connectorFrontDown.current.position.lerp(new Three.Vector3(size.x/2 - (size.x*10/100), -0.121, 0), delta * 12);
-    
+
                     connectorBackUp.current.scale.lerp(new Three.Vector3(1, 1, size.z/2), delta * 12);
                     connectorFrontUp.current.scale.lerp(new Three.Vector3(1, 1, size.z/2), delta * 12);
                     connectorBackDown.current.scale.lerp(new Three.Vector3(1, 1, size.z/2), delta * 12);
