@@ -26,13 +26,13 @@ export function ArmarioStep(props) {
 
             connectorWalls.current.forEach((wall) => {
                 if (wall) {
-                    wall.scale.set(closetWidthScale, closetHeightScale, closetDepthScale);
+                    wall.scale.set(closetWidthScale, closetHeightScale, 1);
                 }
             });
 
             if (backWall.current) {
-                backWall.current.scale.set(closetWidthScale * 2, closetHeightScale, closetDepthScale);
-                backWall.current.position.set(0, backWall.current.position.y, -size.z);
+                backWall.current.scale.set(closetWidthScale * 2, 1, 1);
+                backWall.current.position.set(0, backWall.current.position.y, backWall.current.position.z);
 
                 // backWall.material.map.repeat.set(closetWidthScale, closetDepthScale);
 
@@ -40,11 +40,11 @@ export function ArmarioStep(props) {
 
             if (leftWall.current) {
                 leftWall.current.position.set(-size.x / 2, leftWall.current.position.y, leftWall.current.position.z);
-                leftWall.current.scale.set(1, 1, closetDepthScale);
+                leftWall.current.scale.set(1, 1, 1);
             }
             if (rightWall.current) {
                 rightWall.current.position.set(size.x / 2, rightWall.current.position.y, rightWall.current.position.z);
-                rightWall.current.scale.set(1, 1, closetDepthScale);
+                rightWall.current.scale.set(1, 1, 1);
             }
             materials.Exterior.map.repeat.set(closetWidthScale, closetDepthScale);
 
