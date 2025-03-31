@@ -4,7 +4,7 @@ import {Environment, Stage, OrbitControls} from '@react-three/drei';
 import {Room} from "../components/Enviroment/Room.jsx";
 import {Mesa} from "../components/Mesa/Mesa.jsx";
 import {Armario} from "../components/Armario/Armario.jsx";
-import {ArmarioStep} from "../components/Armario/Armario-Step.jsx";
+import {ArmarioStep} from "../components/Armario/ArmarioStep.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import MesaInterface from "../components/Mesa/MesaInterface.jsx";
 import React from "react";
