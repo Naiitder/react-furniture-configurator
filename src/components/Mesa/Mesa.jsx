@@ -44,12 +44,12 @@ export function Mesa(props) {
             );
             plank.current.material.map.repeat.set(tableDepthScale, tableWidthScale);
 
-            const geometry = plank.current.geometry;
-
             // Crear un bounding box
             const box = new Three.Box3().setFromObject(plank.current);
             const size = new Three.Vector3();
             box.getSize(size);
+
+
 
             if (rightBackLeg.current && rightFrontLeg.current && leftBackLeg.current && leftFrontLeg.current) {
                 leftBackLeg.current.position.lerp(new Three.Vector3(-size.x/2 + (size.x*10/100), leftBackLeg.current.position.y, -size.z/2 +( size.z*10/100)), delta * 12);
