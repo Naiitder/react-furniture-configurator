@@ -43,33 +43,41 @@ const furnitureItems = {
 export const FurnitureMenu = () => {
     const [selectedCategory, setSelectedCategory] = useState("sofas");
     const categoryRefs = useRef({});
+    const observer = useRef(null);
 
     useEffect(() => {
-        const handleScroll = () => {
-            const scrollPosition = window.scrollY + window.innerHeight / 3;
-
-            let lastCategory = furnitureCategories[furnitureCategories.length - 1].key;
-
-            for (let category of furnitureCategories) {
-                const element = categoryRefs.current[category.key];
-                if (element) {
-                    const offsetTop = element.offsetTop;
-                    const height = element.offsetHeight;
-
-                    if (scrollPosition >= offsetTop && scrollPosition < offsetTop + height) {
-                        setSelectedCategory(category.key);
-                        break;
-                    }
-                }
-            }
-
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-                setSelectedCategory(lastCategory);
-            }
+        // Opciones para el Intersection Observer
+        const options = {
+            root: null, // Viewport
+            rootMargin: "0px",
+            threshold: 0.3 // Porcentaje del elemento visible para activar
         };
 
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
+        // Crear una nueva instancia de Intersection Observer
+        observer.current = new IntersectionObserver((entries) => {
+            // Encontrar la sección visible con mayor intersección
+            const visibleEntry = entries.find(entry => entry.isIntersecting);
+
+            if (visibleEntry) {
+                const categoryKey = visibleEntry.target.getAttribute("data-category");
+                setSelectedCategory(categoryKey);
+            }
+        }, options);
+
+        // Observar cada categoría
+        furnitureCategories.forEach((category) => {
+            const element = categoryRefs.current[category.key];
+            if (element) {
+                observer.current.observe(element);
+            }
+        });
+
+        // Limpiar al desmontar
+        return () => {
+            if (observer.current) {
+                observer.current.disconnect();
+            }
+        };
     }, []);
 
     const scrollToCategory = (categoryKey) => {
@@ -134,20 +142,39 @@ export const FurnitureMenu = () => {
                             <div
                                 key={category.key}
                                 id={category.key}
+                                data-category={category.key}
                                 ref={(el) => categoryRefs.current[category.key] = el}
-                                style={{ marginBottom: 240, paddingBottom: category.key === "beds" ? 360 : 0}}
+                                style={{
+                                    marginBottom: 240,
+                                    minHeight: "300px"
+                                }}
                             >
                                 <Title level={4}>{category.name}</Title>
-                                <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} justify="space-around">
-                                    {furnitureItems[category.key].map((item, index) => (
-                                        <Col key={index}>
-                                            <FurnitureMenuItem 
-                                                name={item.name} 
-                                                image={item.image} 
-                                            />
-                                        </Col>
-                                    ))}
-                                </Row>
+                                <div className="furniture-items-container">
+                                    <Row
+                                        gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "flex-start",
+                                            width: "100%",
+                                        }}
+                                    >
+                                        {furnitureItems[category.key].map((item, index) => (
+                                            <Col
+                                                key={index}
+                                                style={{
+                                                    flex: "0 0 auto",
+                                                    marginBottom: "20px"
+                                                }}
+                                            >
+                                                <FurnitureMenuItem
+                                                    name={item.name}
+                                                    image={item.image}
+                                                />
+                                            </Col>
+                                        ))}
+                                    </Row>
+                                </div>
                             </div>
                         ))}
                     </Content>
