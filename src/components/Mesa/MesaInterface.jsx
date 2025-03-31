@@ -39,7 +39,7 @@ const MesaInterface = () => {
 
     const textureOptions = [
         { image: "./textures/oak.jpg", label: "Roble", value: "./textures/oak.jpg" },
-        { image: "./textures/hard.jpg", label: "Oscuro", value: "./textures/hard.jpg" },
+        { image: "./textures/dark.jpg", label: "Oscuro", value: "./textures/dark.jpg" },
     ];
 
     return (

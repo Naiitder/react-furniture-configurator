@@ -18,7 +18,7 @@ const ArmarioInterface = () => {
 
     const textureOptions = [
         { image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg" },
-        { image: "./textures/hard.jpg", label: "Dark", value: "./textures/hard.jpg" },
+        { image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg" },
     ];
 
     return (
@@ -47,7 +47,7 @@ const ArmarioInterface = () => {
                     <Form.Item label="Closet Depth">
                         <Slider
                             min={50}
-                            max={200}
+                            max={150}
                             value={closetDepth}
                             onChange={(value) => setClosetDepth(value)}
                             tooltip={open}
