@@ -4,14 +4,22 @@ import { Environment, Stage, OrbitControls } from '@react-three/drei';
 import { Room } from "../components/Enviroment/Room.jsx";
 import { Mesa } from "../components/Mesa/Mesa.jsx";
 import { Armario } from "../components/Armario/Armario.jsx";
+import { ArmarioStep } from "../components/Armario/Armario-Step.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import Interface from "../components/Mesa/Interface.jsx";
 import React from "react";
+
+const itemComponents = {
+    "Mesa de centro": <Mesa rotation={[0, Math.PI, 0]} />,
+    "Armario": <Armario rotation={[0,Math.PI,0]}/>,
+    "Armario Step": <ArmarioStep rotation={[0, Math.PI, 0]} />
+};
 
 export const Experience = () => {
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const selectedItem = params.get("item"); // Obtiene el valor de "item" en la URL
+    const selectedComponent = itemComponents[selectedItem] || null;
 
     return (
         <>
@@ -19,8 +27,7 @@ export const Experience = () => {
                 <Room positionY={1}/>
                 <Stage intensity={5} environment="city"
                        shadows="contact" adjustCamera={false}>
-                    {selectedItem.includes("Mesa") && <Mesa rotation={[0, Math.PI, 0]}/>}
-                    {selectedItem.includes("Armario") && <Armario rotation={[0,Math.PI,0]} />}
+                    {selectedComponent}
                 </Stage>
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>

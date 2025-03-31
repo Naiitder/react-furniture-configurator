@@ -31,7 +31,8 @@ const furnitureItems = {
         { name: "Escritorio", image: "/images/desk.jpg" }
     ],
     wardrobes: [
-        { name: "Armario", image: "/images/wardrobre.jpg" }
+        { name: "Armario", image: "/images/wardrobre.jpg" },
+        { name: "Armario Step", image: "/images/armario-step.png"}
     ],
     beds: [
         { name: "Cama king size", image: "/images/king-bed.jpg" },
