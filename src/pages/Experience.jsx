@@ -9,6 +9,7 @@ import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import MesaInterface from "../components/Mesa/MesaInterface.jsx";
 import React from "react";
 import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
+import Casco from "../components/Casco/Casco.js";
 
 const itemComponents = {
     "Mesa de centro": <Mesa rotation={[0, Math.PI, 0]}/>,
@@ -37,6 +38,7 @@ export const Experience = () => {
                        shadows="contact" adjustCamera={false}>
                         <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
                     {selectedComponent}
+                    <Casco/>
                 </Stage>
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
