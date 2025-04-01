@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { useArmarioConfigurator } from '../../contexts/ArmarioConfigurator';
 import * as Three from 'three'
+import { BoxHelper } from 'three';
 import { useFrame } from '@react-three/fiber';
 
 export function ArmarioStep(props) {
@@ -13,12 +14,16 @@ export function ArmarioStep(props) {
 
       const [sizeX, setSizeX] = useState(0);
 
-
       useEffect(() => {
+            if (connectorWalls.current[4]) {
+                const box = new Three.Box3().setFromObject(connectorWalls.current[4]);
+                const size = new Three.Vector3();
+                box.getSize(size);
+                setSizeX(size.x);
+            }
             const nuevasSecciones = Math.ceil(closetWidth / 60);
             setSecciones(nuevasSecciones);
-      }, [closetWidth]);
-
+        }, [closetWidth]);
 
       useFrame((state, delta) => {
             const closetWidthScale = closetWidth / 100;
@@ -120,7 +125,7 @@ export function ArmarioStep(props) {
                         {Array.from({ length: secciones }, (_, i) => {
                               const sectionWidth = sizeX / secciones;
                               const startX = -sizeX / 2 + sectionWidth / 2; // Left edge + half section width
-                              const xOffset = startX + (i * sectionWidth);
+                              const xOffset = (-sizeX/2) + (i + 0.5) * sectionWidth;
 
                               console.log("xOffset", xOffset, "Width Seccion", sectionWidth, "Width Closet", closetWidth);
 
@@ -131,7 +136,7 @@ export function ArmarioStep(props) {
                                           materials={materials}
                                           variacion={i % 2 + 1}
                                           centerPoint={[xOffset, 0, 0]}
-                                          sectionWidth={closetWidth / 50 / secciones}
+                                          sectionWidth={closetWidth/50/secciones}
                                           paredIntermedia={i !== secciones - 1}
                                     />
                               );
@@ -144,7 +149,8 @@ export function ArmarioStep(props) {
 }
 
 function SeccionArmario({ nodes, materials, variacion, centerPoint, sectionWidth, paredIntermedia = true }) {
-      // Calcula la posición relativa de los elementos dentro de la sección
+
+
       const getRelativePosition = (position) => {
             return [
                   position[0] - centerPoint[0],
