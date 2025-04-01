@@ -123,7 +123,6 @@ export function ArmarioStep(props) {
                               const xOffset = startX + (i * sectionWidth);
 
                               console.log("xOffset", xOffset, "Width Seccion", sectionWidth, "Width Closet", closetWidth);
-                              console.log("sizeX", sizeX)
 
                               return (
                                     <SeccionArmario
@@ -132,7 +131,7 @@ export function ArmarioStep(props) {
                                           materials={materials}
                                           variacion={i % 2 + 1}
                                           centerPoint={[xOffset, 0, 0]}
-                                          sectionWidth={closetWidth / 50 /secciones}
+                                          sectionWidth={closetWidth / 50 / secciones}
                                           paredIntermedia={i !== secciones - 1}
                                     />
                               );
