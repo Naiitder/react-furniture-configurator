@@ -119,7 +119,7 @@ export function ArmarioStep(props) {
 
                 {Array.from({ length: secciones }, (_, i) => {
                     const sectionWidth = sizeX / secciones;
-                    const xOffset = ((i - (secciones - 1) / 2) * sectionWidth)-1.225;
+                    const xOffset = ((i - (secciones - 1) / 2) * sectionWidth);
 
                     console.log("xOffset", xOffset, "Width Seccion", sectionWidth, "Width Closet", closetWidth);
 
@@ -130,7 +130,7 @@ export function ArmarioStep(props) {
                             materials={materials}
                             variacion={i % 2 + 1}
                             centerPoint={[xOffset, 0, 0]}
-                            sectionWidth={sectionWidth}
+                            sectionWidth={closetWidth/50/secciones}
                             paredIntermedia={i !== secciones - 1}
                         />
                     );
@@ -166,7 +166,7 @@ function SeccionArmario({ nodes, materials, variacion, centerPoint, sectionWidth
     };
 
     return (
-        <group dispose={null}>
+        <group scale={[sectionWidth,1,1]} dispose={null}>
             {paredIntermedia &&
                 <RelativeMesh
                     geometry={nodes.nodes4.geometry}
