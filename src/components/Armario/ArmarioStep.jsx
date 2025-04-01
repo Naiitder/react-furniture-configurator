@@ -131,6 +131,7 @@ export function ArmarioStep(props) {
                             variacion={i % 2 + 1}
                             centerPoint={[xOffset, 0, 0]}
                             sectionWidth={sectionWidth}
+                            paredIntermedia={i !== secciones - 1}
                         />
                     );
                 })}
@@ -170,7 +171,7 @@ function SeccionArmario({ nodes, materials, variacion, centerPoint, sectionWidth
                 <RelativeMesh
                     geometry={nodes.nodes4.geometry}
                     material={materials.Interior}
-                    position={[0, 2.902, -0.003]}
+                    position={[-2.463, 2.902, -0.003]}
                 />
             }
 
