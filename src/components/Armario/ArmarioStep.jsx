@@ -11,6 +11,8 @@ export function ArmarioStep(props) {
 
     const [secciones, setSecciones] = useState(2);
 
+    const [sizeX, setSizeX] = useState(0);
+
 
     useEffect(() => {
         const nuevasSecciones = Math.ceil(closetWidth / 60);
@@ -26,6 +28,9 @@ export function ArmarioStep(props) {
             const box = new Three.Box3().setFromObject(connectorWalls.current[4])
             const size = new Three.Vector3()
             box.getSize(size)
+
+            const newSizeX = size.x;
+            setSizeX(newSizeX);
 
             if (closet.current) {
                 closet.current.scale.set(1, 1, closetDepthScale);
@@ -113,8 +118,8 @@ export function ArmarioStep(props) {
                 </group>
 
                 {Array.from({ length: secciones }, (_, i) => {
-                    const sectionWidth = closetWidth / secciones;
-                    const xOffset = (i - (secciones - 1) / 2) * sectionWidth;
+                    const sectionWidth = sizeX / secciones;
+                    const xOffset = ((i - (secciones - 1) / 2) * sectionWidth)-1.225;
 
                     console.log("xOffset", xOffset, "Width Seccion", sectionWidth, "Width Closet", closetWidth);
 
