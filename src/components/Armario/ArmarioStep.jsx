@@ -11,6 +11,13 @@ export function ArmarioStep(props) {
 
     const [secciones, setSecciones] = useState(2);
 
+
+    useEffect(() => {
+      const nuevasSecciones = Math.ceil(closetWidth / 60);
+      setSecciones(nuevasSecciones);
+    }, [closetWidth]);
+    
+
     useFrame((state, delta) => {
             const closetWidthScale = closetWidth / 100;
             const closetHeightScale = closetHeight / 100;
