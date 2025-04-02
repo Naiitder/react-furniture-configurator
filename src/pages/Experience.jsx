@@ -79,6 +79,7 @@ export const Experience = () => {
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
             {selectedInterface}
+
             <RoomConfigPanel/>
         </>
     );

@@ -58,10 +58,16 @@ const Puerta: React.FC<PuertaProps> = ({
     return (
         <group position={position} onClick={handleClick}>
 
-                <mesh geometry={geometry}  rotation={[0, doorRotation, 0]}
-                      position={[doorX, 0, doorZ]}>
-                    <meshStandardMaterial color={color} />
-                </mesh>
+                <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
+                    <mesh geometry={geometry} >
+                        <meshStandardMaterial color={color} />
+                    </mesh>
+
+                    <mesh position={[(pivot === "right" ? (-width+(width*10/100)) : (width -(width*10/100))), 0, depth/2]}>
+                        <boxGeometry args={[0.1, 0.1, 0.1]}/>
+                        <meshStandardMaterial color={"red"} />
+                    </mesh>
+                </group>
             </group>
     );
 };
