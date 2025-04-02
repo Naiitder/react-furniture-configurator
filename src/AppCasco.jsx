@@ -11,7 +11,8 @@ const App = () => {
         width: 3,
         height: 2,
         depth: 2,
-        stepHeight: 1
+        stepHeight: 1,
+        backWallOffset:0
     });
 
     const [options, setOptions] = useState({
@@ -70,6 +71,19 @@ const App = () => {
                         onChange={(e) => setDimensions({...dimensions, depth: parseFloat(e.target.value)})}
                     />
                     <span>{dimensions.depth.toFixed(1)}</span>
+                </div>
+                <div>
+                    <label>Offset trasero: </label>
+                    <input
+                        disabled={!options.traseroDentro}
+                        type="range"
+                        min="0"
+                        max="0.1"
+                        step="0.01"
+                        value={dimensions.backWallOffset}
+                        onChange={(e) => setDimensions({...dimensions, backWallOffset: parseFloat(e.target.value)})}
+                    />
+                    <span>{(dimensions.backWallOffset * 10).toFixed(1)}</span>
                 </div>
                 <div>
                     <label>Altura patas: </label>
@@ -155,6 +169,7 @@ const App = () => {
                         sueloDentro={options.sueloDentro}
                         techoDentro={options.techoDentro}
                         traseroDentro={options.traseroDentro}
+                        offsetTrasero={dimensions.backWallOffset}
                         pata={<Pata height={dimensions.stepHeight}/>}
                         puerta={<Puerta />}
                     />
