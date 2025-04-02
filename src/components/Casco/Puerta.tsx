@@ -62,10 +62,6 @@ const Puerta: React.FC<PuertaProps> = ({
                       position={[doorX, 0, doorZ]}>
                     <meshStandardMaterial color={color} />
                 </mesh>
-            <mesh position={[0, 0, 0]}>
-                <boxGeometry args={[.1, .1, .1]} />
-                <meshStandardMaterial color="red" />
-            </mesh>
             </group>
     );
 };
