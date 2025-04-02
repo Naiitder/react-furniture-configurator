@@ -5,6 +5,9 @@ import * as Three from 'three'
 import { BoxHelper } from 'three';
 import { useFrame } from '@react-three/fiber';
 
+
+
+
 export function ArmarioStep(props) {
       const { nodes, materials } = useGLTF('./models/ArmarioStep.glb');
 
@@ -13,6 +16,8 @@ export function ArmarioStep(props) {
       const [secciones, setSecciones] = useState(2);
 
       const [sizeX, setSizeX] = useState(0);
+
+      const [sizeInterior, setSizeInterior] = useState(0);
 
       useEffect(() => {
             if (connectorWalls.current[4]) {
@@ -127,7 +132,7 @@ export function ArmarioStep(props) {
                               const startX = -sizeX / 2 + sectionWidth / 2; // Left edge + half section width
                               const xOffset = (-sizeX/2) + (i + 0.5) * sectionWidth;
 
-                              console.log("xOffset", xOffset, "Width Seccion", sectionWidth, "Width Closet", closetWidth);
+                              console.log("sizeInterior", sizeInterior);
 
                               return (
                                     <SeccionArmario
@@ -136,8 +141,9 @@ export function ArmarioStep(props) {
                                           materials={materials}
                                           variacion={i % 2 + 1}
                                           centerPoint={[xOffset, 0, 0]}
-                                          sectionWidth={closetWidth/50/secciones}
                                           paredIntermedia={i !== secciones - 1}
+                                          sizeX = {sizeX}
+                                          secciones={secciones}
                                     />
                               );
                         })}
@@ -148,7 +154,7 @@ export function ArmarioStep(props) {
       )
 }
 
-function SeccionArmario({ nodes, materials, variacion, centerPoint, sectionWidth, paredIntermedia = true }) {
+function SeccionArmario({ nodes, materials, variacion, centerPoint, paredIntermedia = true , sizeX, secciones}) {
 
 
       const getRelativePosition = (position) => {
@@ -172,8 +178,32 @@ function SeccionArmario({ nodes, materials, variacion, centerPoint, sectionWidth
             );
       };
 
+      const interiorGroup = useRef();
+      const widthToScale = sizeX/secciones;
+
+      useFrame((state, delta) => {
+            if (interiorGroup.current) {
+                  const box = new Three.Box3().setFromObject(interiorGroup.current)
+                  const size = new Three.Vector3()
+                  box.getSize(size)
+
+                  console.log("sizeX", sizeX);
+                  console.log("secciones", secciones);
+                  console.log("size", size);
+                  console.log("widthToScale", widthToScale);
+
+                  if (size.x < widthToScale) {
+                        interiorGroup.current.scale.set += (0.1,0,0);
+                  }
+                  else if (size.x > widthToScale){
+                        interiorGroup.current.scale.set -= (0.1,0,0);
+                  }
+            }
+
+      })
+
       return (
-            <group scale={[sectionWidth, 1, 1]} dispose={null}>
+            <group dispose={null} ref={interiorGroup}>
                   {paredIntermedia &&
                         <RelativeMesh
                               geometry={nodes.nodes4.geometry}
