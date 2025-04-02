@@ -129,6 +129,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.suelo.height}
                 depth={dimensiones.suelo.depth}
                 color="#ff0000"
+                posicionCaja={"bottom"}
                 bordesTriangulados={esquinaXTriangulada}
                 bordeEjeY={false}
             />
@@ -141,6 +142,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
+                posicionCaja={"left"}
                 bordesTriangulados={esquinaXTriangulada}
             />
 
@@ -152,6 +154,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
+                posicionCaja={"right"}
                 bordesTriangulados={esquinaXTriangulada}
             />
 
@@ -174,6 +177,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.techo.height}
                 depth={dimensiones.techo.depth}
                 color="#ff0000"
+                posicionCaja={"top"}
                 bordesTriangulados={esquinaXTriangulada || esquinaZTriangulada}
                 bordeEjeY={false}
                 bordeEjeZ={esquinaZTriangulada}

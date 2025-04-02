@@ -5,6 +5,7 @@ import { Stage, Environment, OrbitControls } from '@react-three/drei';
 import Casco from './components/Casco/Casco.js';
 import Pata from "./components/Casco/Pata.js";
 import Puerta from "./components/Casco/Puerta.js";
+import BordeTriangular from "./components/Casco/BordeTriangular.js";
 
 const App = () => {
     const [dimensions, setDimensions] = useState({
