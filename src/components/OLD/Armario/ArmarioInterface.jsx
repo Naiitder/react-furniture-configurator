@@ -1,8 +1,8 @@
 import { Slider, Form, Space } from "antd";
-import { useArmarioConfigurator } from "../../contexts/ArmarioConfigurator.jsx";
-import BaseConfiguratorInterface from "../BaseConfiguratorInterface";
-import ItemSelector from "../ItemSelector.jsx";
-import TextureUploader from "../TextureUploader";
+import { useArmarioConfigurator } from "../../../contexts/ArmarioConfigurator.jsx";
+import BaseConfiguratorInterface from "../../BaseConfiguratorInterface.jsx";
+import ItemSelector from "../../ItemSelector.jsx";
+import TextureUploader from "../../TextureUploader.jsx";
 
 const ArmarioInterface = () => {
     const {

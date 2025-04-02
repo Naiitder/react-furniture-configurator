@@ -2,13 +2,13 @@ import {useLocation} from "react-router-dom";
 import {Canvas} from "@react-three/fiber";
 import {Environment, Stage, OrbitControls} from '@react-three/drei';
 import {Room} from "../components/Enviroment/Room.jsx";
-import {Mesa} from "../components/Mesa/Mesa.jsx";
-import {Armario} from "../components/Armario/Armario.jsx";
-import {ArmarioStep} from "../components/Armario/ArmarioStep.jsx";
+import {Mesa} from "../components/OLD/Mesa/Mesa.jsx";
+import {Armario} from "../components/OLD/Armario/Armario.jsx";
+import {ArmarioStep} from "../components/OLD/Armario/ArmarioStep.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
-import MesaInterface from "../components/Mesa/MesaInterface.jsx";
+import MesaInterface from "../components/OLD/Mesa/MesaInterface.jsx";
 import React from "react";
-import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
+import ArmarioInterface from "../components/OLD/Armario/ArmarioInterface.jsx";
 import Casco from "../components/Casco/Casco.js";
 
 const itemComponents = {

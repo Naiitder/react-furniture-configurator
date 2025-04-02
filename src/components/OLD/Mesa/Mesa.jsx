@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { useGLTF, Box } from '@react-three/drei'
-import { useConfigurator } from '../../contexts/Configurator.jsx';
+import { useConfigurator } from '../../../contexts/Configurator.jsx';
 import * as Three from 'three'
 import { useFrame } from '@react-three/fiber'
 import MesaInterface from "./MesaInterface.jsx";

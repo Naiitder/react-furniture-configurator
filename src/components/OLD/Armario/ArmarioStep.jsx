@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useGLTF } from '@react-three/drei'
-import { useArmarioConfigurator } from '../../contexts/ArmarioConfigurator';
+import { useArmarioConfigurator } from '../../../contexts/ArmarioConfigurator.jsx';
 import * as Three from 'three'
 import { BoxHelper } from 'three';
 import { useFrame } from '@react-three/fiber';
