@@ -10,17 +10,35 @@ import MesaInterface from "../components/OLD/Mesa/MesaInterface.jsx";
 import React from "react";
 import ArmarioInterface from "../components/OLD/Armario/ArmarioInterface.jsx";
 import Casco from "../components/Casco/Casco.js";
+import Pata from "../components/Casco/Pata.js";
+import Puerta from "../components/Casco/Puerta.js";
 
 const itemComponents = {
     "Mesa de centro": <Mesa rotation={[0, Math.PI, 0]}/>,
     "Armario": <Armario rotation={[0, Math.PI, 0]}/>,
-    "Armario Step": <ArmarioStep rotation={[0, Math.PI, 0]}/>
+    "Armario Step": <ArmarioStep rotation={[0, Math.PI, 0]}/>,
+    "Casco": <Casco
+        width={dimensions.width}
+        height={dimensions.height}
+        depth={dimensions.depth}
+        esquinaXTriangulada={options.ejeXTriangulado}
+        esquinaZTriangulada={options.ejeZTriangulado}
+        espesor={0.1}
+        position={[0, 0, 0]}
+        rotation={[0, Math.PI / 6, 0]}
+        sueloDentro={options.sueloDentro}
+        techoDentro={options.techoDentro}
+        traseroDentro={options.traseroDentro}
+        pata={<Pata height={dimensions.stepHeight}/>}
+        puerta={<Puerta />}
+    />,
 };
 
 const interfaceComponents = {
     "Mesa de centro": <MesaInterface/>,
     "Armario": <ArmarioInterface/>,
     "Armario Step": <ArmarioInterface/>
+
 };
 
 export const Experience = () => {
