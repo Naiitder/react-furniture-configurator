@@ -202,13 +202,34 @@ const Casco: React.FC<CascoProps> = ({
             {/* Renderizar puerta en la parte frontal */}
             {puerta && (
                 <>
-                    {React.cloneElement(puerta, {
-                        position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                        width: width,
-                        height: height,
-                        depth: espesor,
-                        pivot: "right" // Define el pivote en el borde derecho
-                    })}
+                    {width > 2 ? (
+                        <>
+                            {React.cloneElement(puerta, {
+                                position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                                width: width/2,
+                                height: height,
+                                depth: espesor,
+                                pivot: "left" // Define el pivote en el borde derecho
+                            })}
+                            {React.cloneElement(puerta, {
+                                position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                                width: width/2,
+                                height: height,
+                                depth: espesor,
+                                pivot: "right" // Define el pivote en el borde derecho
+                            })}
+                        </>
+                    ): (
+                        <>
+                            {React.cloneElement(puerta, {
+                                position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                                width: width,
+                                height: height,
+                                depth: espesor,
+                                pivot: "right" // Define el pivote en el borde derecho
+                            })}
+                        </>
+                    )}
                 </>
             )}
         </group>
