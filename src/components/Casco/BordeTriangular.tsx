@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { useMemo } from "react";
 import * as React from "react";
+import "@react-three/fiber";
 
 type TrianguloProps = {
     position: [number, number, number];
