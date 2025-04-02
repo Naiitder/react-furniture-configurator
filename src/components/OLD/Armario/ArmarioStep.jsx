@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useGLTF } from '@react-three/drei'
-import { useArmarioConfigurator } from '../../contexts/ArmarioConfigurator';
+import { useArmarioConfigurator } from '../../../contexts/ArmarioConfigurator.jsx';
 import * as Three from 'three'
+import { BoxHelper } from 'three';
 import { useFrame } from '@react-three/fiber';
+
+
+
 
 export function ArmarioStep(props) {
       const { nodes, materials } = useGLTF('./models/ArmarioStep.glb');
@@ -13,12 +17,18 @@ export function ArmarioStep(props) {
 
       const [sizeX, setSizeX] = useState(0);
 
+      const [sizeInterior, setSizeInterior] = useState(0);
 
       useEffect(() => {
+            if (connectorWalls.current[4]) {
+                const box = new Three.Box3().setFromObject(connectorWalls.current[4]);
+                const size = new Three.Vector3();
+                box.getSize(size);
+                setSizeX(size.x);
+            }
             const nuevasSecciones = Math.ceil(closetWidth / 60);
             setSecciones(nuevasSecciones);
-      }, [closetWidth]);
-
+        }, [closetWidth]);
 
       useFrame((state, delta) => {
             const closetWidthScale = closetWidth / 100;
@@ -120,10 +130,9 @@ export function ArmarioStep(props) {
                         {Array.from({ length: secciones }, (_, i) => {
                               const sectionWidth = sizeX / secciones;
                               const startX = -sizeX / 2 + sectionWidth / 2; // Left edge + half section width
-                              const xOffset = startX + (i * sectionWidth);
+                              const xOffset = (-sizeX/2) + (i + 0.5) * sectionWidth;
 
-                              console.log("xOffset", xOffset, "Width Seccion", sectionWidth, "Width Closet", closetWidth);
-                              console.log("sizeX", sizeX)
+                              console.log("sizeInterior", sizeInterior);
 
                               return (
                                     <SeccionArmario
@@ -132,8 +141,9 @@ export function ArmarioStep(props) {
                                           materials={materials}
                                           variacion={i % 2 + 1}
                                           centerPoint={[xOffset, 0, 0]}
-                                          sectionWidth={closetWidth / 50 /secciones}
                                           paredIntermedia={i !== secciones - 1}
+                                          sizeX = {sizeX}
+                                          secciones={secciones}
                                     />
                               );
                         })}
@@ -144,8 +154,9 @@ export function ArmarioStep(props) {
       )
 }
 
-function SeccionArmario({ nodes, materials, variacion, centerPoint, sectionWidth, paredIntermedia = true }) {
-      // Calcula la posición relativa de los elementos dentro de la sección
+function SeccionArmario({ nodes, materials, variacion, centerPoint, paredIntermedia = true , sizeX, secciones}) {
+
+
       const getRelativePosition = (position) => {
             return [
                   position[0] - centerPoint[0],
@@ -167,8 +178,32 @@ function SeccionArmario({ nodes, materials, variacion, centerPoint, sectionWidth
             );
       };
 
+      const interiorGroup = useRef();
+      const widthToScale = sizeX/secciones;
+
+      useFrame((state, delta) => {
+            if (interiorGroup.current) {
+                  const box = new Three.Box3().setFromObject(interiorGroup.current)
+                  const size = new Three.Vector3()
+                  box.getSize(size)
+
+                  console.log("sizeX", sizeX);
+                  console.log("secciones", secciones);
+                  console.log("size", size);
+                  console.log("widthToScale", widthToScale);
+
+                  if (size.x < widthToScale) {
+                        interiorGroup.current.scale.set += (0.1,0,0);
+                  }
+                  else if (size.x > widthToScale){
+                        interiorGroup.current.scale.set -= (0.1,0,0);
+                  }
+            }
+
+      })
+
       return (
-            <group scale={[sectionWidth, 1, 1]} dispose={null}>
+            <group dispose={null} ref={interiorGroup}>
                   {paredIntermedia &&
                         <RelativeMesh
                               geometry={nodes.nodes4.geometry}

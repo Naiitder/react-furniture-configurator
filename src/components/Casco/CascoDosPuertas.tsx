@@ -21,7 +21,7 @@ type CascoProps = {
 }
 
 // Componente principal Casco
-const Casco: React.FC<CascoProps> = ({
+const CascoDosPuertas: React.FC<CascoProps> = ({
                                          width = 2,
                                          height = 2,
                                          depth = 2,
@@ -192,8 +192,15 @@ const Casco: React.FC<CascoProps> = ({
             {puerta && (
                 <>
                     {React.cloneElement(puerta, {
+                        position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                        width: width/2,
+                        height: height,
+                        depth: espesor,
+                        pivot: "left" // Define el pivote en el borde derecho
+                    })}
+                    {React.cloneElement(puerta, {
                         position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                        width: width,
+                        width: width/2,
                         height: height,
                         depth: espesor,
                         pivot: "right" // Define el pivote en el borde derecho
@@ -204,4 +211,4 @@ const Casco: React.FC<CascoProps> = ({
     );
 };
 
-export default Casco;
+export default CascoDosPuertas;

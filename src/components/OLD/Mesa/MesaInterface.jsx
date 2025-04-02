@@ -1,8 +1,8 @@
 import { Slider, Form, Select } from "antd";
-import { useConfigurator } from "../../contexts/Configurator.jsx";
-import BaseConfiguratorInterface from "../BaseConfiguratorInterface";
-import TextureUploader from "../TextureUploader";
-import ItemSelector from "../ItemSelector.jsx";
+import { useConfigurator } from "../../../contexts/Configurator.jsx";
+import BaseConfiguratorInterface from "../../BaseConfiguratorInterface.jsx";
+import TextureUploader from "../../TextureUploader.jsx";
+import ItemSelector from "../../ItemSelector.jsx";
 
 const MesaInterface = () => {
     const {
