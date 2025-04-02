@@ -5,7 +5,6 @@ import { Stage, Environment, OrbitControls } from '@react-three/drei';
 import Casco from './components/Casco/Casco.js';
 import Pata from "./components/Casco/Pata.js";
 import Puerta from "./components/Casco/Puerta.js";
-import CascoDosPuertas from "./components/Casco/CascoDosPuertas.js";
 
 const App = () => {
     const [dimensions, setDimensions] = useState({
@@ -23,8 +22,13 @@ const App = () => {
         ejeZTriangulado: false,
     });
 
+    const [disabledOptions, setDiabledOptions] = useState(false)
+
     useEffect(() => {
-        console.log("Nuevas opciones:", options);
+        const canUseOptions = (!options.ejeXTriangulado && !options.ejeZTriangulado);
+        setDiabledOptions(!canUseOptions);
+        if (!canUseOptions) setOptions({...options, sueloDentro: false, techoDentro: false, traseroDentro: true});
+        if (options.ejeZTriangulado) setOptions({...options, sueloDentro: false, techoDentro: true});
     }, [options]);
 
     return (
@@ -85,6 +89,7 @@ const App = () => {
                     <label>
                         <input
                             type="checkbox"
+                            disabled={disabledOptions}
                             checked={options.sueloDentro}
                             onChange={() => setOptions({...options, sueloDentro: !options.sueloDentro})}
                         />
@@ -95,6 +100,7 @@ const App = () => {
                     <label>
                         <input
                             type="checkbox"
+                            disabled={disabledOptions}
                             checked={options.techoDentro}
                             onChange={() => setOptions({...options, techoDentro: !options.techoDentro})}
                         />
@@ -105,6 +111,7 @@ const App = () => {
                     <label>
                         <input
                             type="checkbox"
+                            disabled={disabledOptions}
                             checked={options.traseroDentro}
                             onChange={() => setOptions({...options, traseroDentro: !options.traseroDentro})}
                         />
@@ -136,7 +143,7 @@ const App = () => {
             <Canvas shadows>
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
                     <Environment files={"/images/poly_haven_studio_4k.hdr"} />
-                    <CascoDosPuertas
+                    <Casco
                         width={dimensions.width}
                         height={dimensions.height}
                         depth={dimensions.depth}
