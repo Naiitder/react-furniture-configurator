@@ -14,6 +14,10 @@ type CascoProps = {
     sueloDentro?: boolean;
     techoDentro?: boolean;
     traseroDentro?: boolean;
+    esquinaXTriangulada?: boolean;
+    esquinaZTriangulada?: boolean;
+    pata?: React.ReactNode;
+    puerta?: React.ReactNode;
 }
 
 // Componente principal Casco
@@ -26,7 +30,11 @@ const Casco: React.FC<CascoProps> = ({
                                          rotation = [0, 0, 0],
                                          sueloDentro = false,
                                          techoDentro = false,
-                                         traseroDentro = false
+                                         traseroDentro = false,
+                                         esquinaXTriangulada = false,
+                                         esquinaZTriangulada = false,
+                                         pata,
+                                         puerta
                                      }) => {
     const groupRef = useRef<THREE.Group>(null);
 
@@ -54,7 +62,7 @@ const Casco: React.FC<CascoProps> = ({
                 // Si trasero no está dentro, se expande completamente en ancho
                 width: traseroDentro ? width - (espesor * 2) : width,
                 // Si el suelo está fuera, no expandir hacia abajo; si el techo está fuera, no expandir hacia arriba
-                height: height - (sueloDentro ? (sueloDentro && !traseroDentro) ? 0  : espesor : espesor) - (techoDentro ? (techoDentro && !traseroDentro) ? 0  : espesor : espesor),
+                height: height - (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) - (techoDentro ? (techoDentro && !traseroDentro) ? 0 : espesor : espesor),
                 depth: espesor
             }
         };
@@ -65,34 +73,37 @@ const Casco: React.FC<CascoProps> = ({
         const mitadAncho = width / 2;
         const mitadProfundidad = depth / 2;
 
+        const extraAltura = pata ? pata.props.height - espesor * 5 : 0;
+        console.log(pata.props.height)
+
         return {
             suelo: [
                 0,
-                espesor / 2,
+                (espesor / 2) + extraAltura,
                 sueloDentro && !traseroDentro ? espesor / 2 : 0
             ] as [number, number, number],
 
             techo: [
                 0,
-                height - espesor / 2,
+                (height - espesor / 2) + extraAltura,
                 techoDentro && !traseroDentro ? espesor / 2 : 0
             ] as [number, number, number],
 
             izquierda: [
                 -mitadAncho + espesor / 2,
-                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor),
+                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor) + extraAltura,
                 !traseroDentro ? espesor / 2 : 0
             ] as [number, number, number],
 
             derecha: [
                 mitadAncho - espesor / 2,
-                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor),
+                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor) + extraAltura,
                 !traseroDentro ? espesor / 2 : 0
             ] as [number, number, number],
 
             trasero: [
                 0,
-                (height - (sueloDentro ? (sueloDentro && !traseroDentro) ? 0  : espesor : espesor) - (techoDentro ? (techoDentro && !traseroDentro) ? 0  : espesor : espesor)) / 2 + (sueloDentro ? (sueloDentro && !traseroDentro) ? 0  : espesor : espesor),
+                (height - (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) - (techoDentro ? (techoDentro && !traseroDentro) ? 0 : espesor : espesor)) / 2 + (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) + extraAltura,
                 -mitadProfundidad + espesor / 2
             ] as [number, number, number]
         };
@@ -117,6 +128,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.suelo.height}
                 depth={dimensiones.suelo.depth}
                 color="#ff0000"
+                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja lado izquierdo */}
@@ -126,6 +138,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
+                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja lado derecho */}
@@ -135,6 +148,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
+                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja detrás */}
@@ -144,6 +158,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.trasero.height}
                 depth={dimensiones.trasero.depth}
                 color="#ffff00"
+                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja arriba (techo) */}
@@ -153,7 +168,34 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.techo.height}
                 depth={dimensiones.techo.depth}
                 color="#ff0000"
+                ejeZTriangulado={esquinaZTriangulada}
+                ejeXTriangulado={esquinaXTriangulada}
             />
+
+            {/* Renderizar 4 patas en las esquinas */}
+            {pata &&
+                <>
+                    {React.cloneElement(pata, {position: [-width / 2 + 0.1, -0.5, -depth / 2 + 0.1]})}
+                    {React.cloneElement(pata, {position: [width / 2 - 0.1, -0.5, -depth / 2 + 0.1]})}
+                    {React.cloneElement(pata, {position: [-width / 2 + 0.1, -0.5, depth / 2 - 0.1]})}
+                    {React.cloneElement(pata, {position: [width / 2 - 0.1, -0.5, depth / 2 - 0.1]})}
+                </>
+            }
+
+
+            {/* TODO ARREGLAR OFFSET POR PATAS */}
+            {/* Renderizar puerta en la parte frontal */}
+            {puerta && (
+                <group
+                    position={[width, (posiciones.techo[1] * (height / 4) + espesor * 2.5) + espesor / 3, (depth / 2) + espesor / 2]}>
+                    {React.cloneElement(puerta, {
+                        width: width,
+                        height: height,
+                        depth: espesor,
+                        pivot: "left" // Define el pivote en el borde derecho
+                    })}
+                </group>
+            )}
         </group>
     );
 };

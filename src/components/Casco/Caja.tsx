@@ -14,7 +14,7 @@ type CajaProps = {
 
 const Caja: React.FC<CajaProps> = ({ position, rotation = [0,0,0], width, height, depth, color }) => {
     return (
-        <mesh position={position} rotation={rotation}>
+        <mesh position={position} rotation={rotation} onClick={(event) => event.stopPropagation()}>
             <boxGeometry args={[width, height, depth]} />
             <meshStandardMaterial color={color} />
         </mesh>
