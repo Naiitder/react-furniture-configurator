@@ -5,8 +5,6 @@ import { Stage, Environment, OrbitControls } from '@react-three/drei';
 import Casco from './components/Casco/Casco.js';
 import Pata from "./components/Casco/Pata.js";
 import Puerta from "./components/Casco/Puerta.js";
-import BordeTriangular from "./components/Casco/BordeTriangular.js";
-import CascoDosPuertas from "./components/Casco/CascoDosPuertas.js";
 
 const App = () => {
     const [dimensions, setDimensions] = useState({
@@ -145,7 +143,7 @@ const App = () => {
             <Canvas shadows>
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
                     <Environment files={"/images/poly_haven_studio_4k.hdr"} />
-                    <CascoDosPuertas
+                    <Casco
                         width={dimensions.width}
                         height={dimensions.height}
                         depth={dimensions.depth}

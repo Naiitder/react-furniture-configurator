@@ -53,7 +53,7 @@ const Caja: React.FC<CajaProps> = ({
                 <boxGeometry args={[adjustedWidth, adjustedHeight, adjustedDepth]}/>
                 <meshStandardMaterial color={color}/>
             </mesh>
-            {bordesTriangulados && (
+            {(bordesTriangulados && !bordeEjeZ) && (
                 <>
                     <BordeTriangular position={[position[0] - width / 2, triangleY, triangleZ]}
                                      rotation={[0, 0, 0]} espesor={espesorBase} depth={depth} color={color}

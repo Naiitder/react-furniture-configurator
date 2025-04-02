@@ -54,7 +54,7 @@ const Casco: React.FC<CascoProps> = ({
             lateral: {
                 width: espesor,
                 // Si el suelo está fuera, no expandir hacia abajo; si el techo está fuera, no expandir hacia arriba
-                height: height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor),
+                height: height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor) - (esquinaZTriangulada && esquinaXTriangulada ? espesor : 0),
                 // Si trasero no está dentro, se expande completamente en profundidad
                 depth: !traseroDentro ? depth - (espesor) : depth
             },
@@ -91,13 +91,13 @@ const Casco: React.FC<CascoProps> = ({
 
             izquierda: [
                 -mitadAncho + espesor / 2,
-                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor) + extraAltura,
+                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor) - (esquinaZTriangulada && esquinaXTriangulada ? espesor / 2 : 0) + extraAltura,
                 !traseroDentro ? espesor / 2 : 0
             ] as [number, number, number],
 
             derecha: [
                 mitadAncho - espesor / 2,
-                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor) + extraAltura,
+                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor) - (esquinaZTriangulada && esquinaXTriangulada ? espesor / 2 : 0) + extraAltura,
                 !traseroDentro ? espesor / 2 : 0
             ] as [number, number, number],
 
@@ -108,7 +108,7 @@ const Casco: React.FC<CascoProps> = ({
             ] as [number, number, number],
 
             puerta: [
-                width/2,
+                width / 2,
                 (height - espesor - espesor) / 2 + espesor + extraAltura,
                 (depth / 2) + espesor / 2] as [number, number, number]
         };
@@ -186,7 +186,7 @@ const Casco: React.FC<CascoProps> = ({
                 bordesTriangulados={esquinaXTriangulada || esquinaZTriangulada}
                 bordeEjeY={false}
                 bordeEjeZ={esquinaZTriangulada}
-                disableAdjustedWidth={esquinaZTriangulada}
+                disableAdjustedWidth={esquinaZTriangulada && esquinaXTriangulada}
             />
 
             {/* Renderizar 4 patas en las esquinas */}
@@ -199,7 +199,6 @@ const Casco: React.FC<CascoProps> = ({
                 </>
             }
 
-            {/* TODO ARREGLAR OFFSET POR PATAS */}
             {/* Renderizar puerta en la parte frontal */}
             {puerta && (
                 <>
