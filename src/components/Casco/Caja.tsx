@@ -10,13 +10,31 @@ type CajaProps = {
     height: number;
     depth: number;
     color: string;
+
+    espesorBase: number;
+    orientacionBordes?: "top" | "bottom" | "left" | "right";
+    bordeEjeX?: boolean;
+    bordeEjeZ?: boolean;
+    orientacionBordeZ?: "vertical" | "front";
 }
 
-const Caja: React.FC<CajaProps> = ({ position, rotation = [0,0,0], width, height, depth, color }) => {
+const Caja: React.FC<CajaProps> = ({
+                                       position,
+                                       rotation = [0, 0, 0],
+                                       espesorBase,
+                                       width,
+                                       height,
+                                       depth,
+                                       color,
+                                       bordeEjeX = false,
+                                       bordeEjeZ = false,
+                                       orientacionBordes = "top",
+                                       orientacionBordeZ = "front",
+                                   }) => {
     return (
         <mesh position={position} rotation={rotation} onClick={(event) => event.stopPropagation()}>
-            <boxGeometry args={[width, height, depth]} />
-            <meshStandardMaterial color={color} />
+            <boxGeometry args={[width, height, depth]}/>
+            <meshStandardMaterial color={color}/>
         </mesh>
     );
 };

@@ -123,53 +123,52 @@ const Casco: React.FC<CascoProps> = ({
         <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
             {/* Caja inferior (suelo) */}
             <Caja
+                espesorBase={espesor}
                 position={posiciones.suelo}
                 width={dimensiones.suelo.width}
                 height={dimensiones.suelo.height}
                 depth={dimensiones.suelo.depth}
                 color="#ff0000"
-                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja lado izquierdo */}
             <Caja
+                espesorBase={espesor}
                 position={posiciones.izquierda}
                 width={dimensiones.lateral.width}
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
-                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja lado derecho */}
             <Caja
+                espesorBase={espesor}
                 position={posiciones.derecha}
                 width={dimensiones.lateral.width}
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
-                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja detrás */}
             <Caja
+                espesorBase={espesor}
                 position={posiciones.trasero}
                 width={dimensiones.trasero.width}
                 height={dimensiones.trasero.height}
                 depth={dimensiones.trasero.depth}
                 color="#ffff00"
-                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja arriba (techo) */}
             <Caja
+                espesorBase={espesor}
                 position={posiciones.techo}
                 width={dimensiones.techo.width}
                 height={dimensiones.techo.height}
                 depth={dimensiones.techo.depth}
                 color="#ff0000"
-                ejeZTriangulado={esquinaZTriangulada}
-                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Renderizar 4 patas en las esquinas */}
