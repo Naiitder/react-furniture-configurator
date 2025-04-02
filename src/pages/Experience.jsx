@@ -29,6 +29,7 @@ const itemComponents = {
         sueloDentro={options.sueloDentro}
         techoDentro={options.techoDentro}
         traseroDentro={options.traseroDentro}
+        offsetTrasero={dimensions.backWallOffset}
         pata={<Pata height={dimensions.stepHeight}/>}
         puerta={<Puerta />}
     />,

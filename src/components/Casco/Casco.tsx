@@ -2,6 +2,15 @@ import * as React from "react";
 import {useRef} from "react";
 import * as THREE from 'three';
 import Caja from "./Caja";
+import {useCascoConfigurator} from '../../contexts/useCascoConfigurator.jsx';
+
+
+const {width, height, depth, texture, esquinaXTriangulada, esquinaZTriangulada, espesor,
+    sueloDentro,
+    techoDentro,
+    traseroDentro,
+    offsetTrasero,
+    pataHeight} = useCascoConfigurator();
 
 // Props para el componente Casco
 type CascoProps = {
