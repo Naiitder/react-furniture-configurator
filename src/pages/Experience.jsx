@@ -49,7 +49,7 @@ export const Experience = () => {
             esquinaZTriangulada={esquinaZTriangulada}
             espesor={espesor}
             position={[0, 0, 0]}
-            rotation={[0, Math.PI / 6, 0]}
+            rotation={[0, Math.PI , 0]}
             sueloDentro={sueloDentro}
             techoDentro={techoDentro}
             traseroDentro={traseroDentro}
