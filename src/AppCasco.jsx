@@ -22,8 +22,13 @@ const App = () => {
         ejeZTriangulado: false,
     });
 
+    const [disabledOptions, setDiabledOptions] = useState(false)
+
     useEffect(() => {
-        console.log("Nuevas opciones:", options);
+        const canUseOptions = (!options.ejeXTriangulado && !options.ejeZTriangulado);
+        setDiabledOptions(!canUseOptions);
+        if (!canUseOptions) setOptions({...options, sueloDentro: false, techoDentro: false, traseroDentro: true});
+        if (options.ejeZTriangulado) setOptions({...options, sueloDentro: false, techoDentro: true});
     }, [options]);
 
     return (
@@ -84,6 +89,7 @@ const App = () => {
                     <label>
                         <input
                             type="checkbox"
+                            disabled={disabledOptions}
                             checked={options.sueloDentro}
                             onChange={() => setOptions({...options, sueloDentro: !options.sueloDentro})}
                         />
@@ -94,6 +100,7 @@ const App = () => {
                     <label>
                         <input
                             type="checkbox"
+                            disabled={disabledOptions}
                             checked={options.techoDentro}
                             onChange={() => setOptions({...options, techoDentro: !options.techoDentro})}
                         />
@@ -104,6 +111,7 @@ const App = () => {
                     <label>
                         <input
                             type="checkbox"
+                            disabled={disabledOptions}
                             checked={options.traseroDentro}
                             onChange={() => setOptions({...options, traseroDentro: !options.traseroDentro})}
                         />

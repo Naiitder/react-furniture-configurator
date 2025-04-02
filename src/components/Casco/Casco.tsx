@@ -86,7 +86,7 @@ const Casco: React.FC<CascoProps> = ({
             techo: [
                 0,
                 (height - espesor / 2) + extraAltura,
-                techoDentro && !traseroDentro ? espesor / 2 : 0
+                (techoDentro && esquinaZTriangulada ? 0 : (techoDentro && !traseroDentro) ? espesor / 2 : 0) - (esquinaZTriangulada && traseroDentro ? espesor / 2 : 0)
             ] as [number, number, number],
 
             izquierda: [
@@ -129,6 +129,8 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.suelo.height}
                 depth={dimensiones.suelo.depth}
                 color="#ff0000"
+                bordesTriangulados={esquinaXTriangulada}
+                bordeEjeY={false}
             />
 
             {/* Caja lado izquierdo */}
@@ -139,6 +141,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
+                bordesTriangulados={esquinaXTriangulada}
             />
 
             {/* Caja lado derecho */}
@@ -149,6 +152,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
+                bordesTriangulados={esquinaXTriangulada}
             />
 
             {/* Caja detrás */}
@@ -159,6 +163,7 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.trasero.height}
                 depth={dimensiones.trasero.depth}
                 color="#ffff00"
+                bordesTriangulados={false}
             />
 
             {/* Caja arriba (techo) */}
@@ -169,6 +174,10 @@ const Casco: React.FC<CascoProps> = ({
                 height={dimensiones.techo.height}
                 depth={dimensiones.techo.depth}
                 color="#ff0000"
+                bordesTriangulados={esquinaXTriangulada || esquinaZTriangulada}
+                bordeEjeY={false}
+                bordeEjeZ={esquinaZTriangulada}
+                disableAdjustedWidth={esquinaZTriangulada}
             />
 
             {/* Renderizar 4 patas en las esquinas */}
