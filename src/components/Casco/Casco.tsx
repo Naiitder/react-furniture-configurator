@@ -188,7 +188,7 @@ const Casco: React.FC<CascoProps> = ({
                 bordesTriangulados={esquinaXTriangulada || esquinaZTriangulada}
                 bordeEjeY={false}
                 bordeEjeZ={esquinaZTriangulada}
-                disableAdjustedWidth={esquinaZTriangulada && esquinaXTriangulada}
+                disableAdjustedWidth={esquinaZTriangulada || (esquinaZTriangulada && esquinaXTriangulada)}
             />
 
             {/* Renderizar 4 patas en las esquinas */}
