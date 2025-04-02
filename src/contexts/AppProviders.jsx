@@ -1,10 +1,12 @@
 import {RoomConfiguratorProvider} from "./RoomConfigurator.jsx";
 import {ConfiguratorProvider} from "./Configurator.jsx";
 import {ArmarioConfiguratorProvider} from "./ArmarioConfigurator.jsx";
+import {CascoConfiguratorProvider} from "./useCascoConfigurator.jsx";
 
 export const AppProviders = ({...props}) => {
     return (
         <>
+            <CascoConfiguratorProvider>
             <ConfiguratorProvider>
                 <RoomConfiguratorProvider>
                     <ArmarioConfiguratorProvider>
@@ -12,6 +14,7 @@ export const AppProviders = ({...props}) => {
                     </ArmarioConfiguratorProvider>
                 </RoomConfiguratorProvider>
             </ConfiguratorProvider>
+            </CascoConfiguratorProvider>
         </>
     )
 }

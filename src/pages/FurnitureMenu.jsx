@@ -11,6 +11,7 @@ const furnitureCategories = [
     {key: "chairs", name: "Sillas"},
     {key: "tables", name: "Mesas"},
     {key: "wardrobes", name: "Armarios"},
+    {key: "cascos", name: "Cascos"},
     {key: "beds", name: "Camas"},
 ];
 

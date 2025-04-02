@@ -15,7 +15,7 @@ export const CascoConfiguratorProvider = ({children}) => {
     const [techoDentro, setTechoDentro] = useState(false);
     const [traseroDentro, setTraseroDentro] = useState(false);
     const [offsetTrasero, setOffsetTrasero] = useState(0);
-    const [pataHeight, setPataHeight] = useState(0);
+    const [pataHeight, setPataHeight] = useState(10);
 
     return <CascoConfiguratorContext.Provider value={{
         width,

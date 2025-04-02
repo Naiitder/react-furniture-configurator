@@ -2,15 +2,7 @@ import * as React from "react";
 import {useRef} from "react";
 import * as THREE from 'three';
 import Caja from "./Caja";
-import {useCascoConfigurator} from '../../contexts/useCascoConfigurator.jsx';
 
-
-const {width, height, depth, texture, esquinaXTriangulada, esquinaZTriangulada, espesor,
-    sueloDentro,
-    techoDentro,
-    traseroDentro,
-    offsetTrasero,
-    pataHeight} = useCascoConfigurator();
 
 // Props para el componente Casco
 type CascoProps = {
@@ -85,7 +77,7 @@ const Casco: React.FC<CascoProps> = ({
         const mitadProfundidad = depth / 2;
 
         const extraAltura = pata ? pata.props.height - espesor * 5 : 0;
-        console.log(pata.props.height)
+//        console.log(pata.props.height)
 
         return {
             suelo: [
