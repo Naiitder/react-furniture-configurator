@@ -21,7 +21,7 @@ type CascoProps = {
 }
 
 // Componente principal Casco
-const Casco: React.FC<CascoProps> = ({
+const CascoDosPuertas: React.FC<CascoProps> = ({
                                          width = 2,
                                          height = 2,
                                          depth = 2,
@@ -86,7 +86,7 @@ const Casco: React.FC<CascoProps> = ({
             techo: [
                 0,
                 (height - espesor / 2) + extraAltura,
-                (techoDentro && esquinaZTriangulada ? 0 : (techoDentro && !traseroDentro) ? espesor / 2 : 0) - (esquinaZTriangulada && traseroDentro ? espesor / 2 : 0)
+                techoDentro && !traseroDentro ? espesor / 2 : 0
             ] as [number, number, number],
 
             izquierda: [
@@ -128,65 +128,53 @@ const Casco: React.FC<CascoProps> = ({
         <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
             {/* Caja inferior (suelo) */}
             <Caja
-                espesorBase={espesor}
                 position={posiciones.suelo}
                 width={dimensiones.suelo.width}
                 height={dimensiones.suelo.height}
                 depth={dimensiones.suelo.depth}
                 color="#ff0000"
-                posicionCaja={"bottom"}
-                bordesTriangulados={esquinaXTriangulada}
-                bordeEjeY={false}
+                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja lado izquierdo */}
             <Caja
-                espesorBase={espesor}
                 position={posiciones.izquierda}
                 width={dimensiones.lateral.width}
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
-                posicionCaja={"left"}
-                bordesTriangulados={esquinaXTriangulada}
+                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja lado derecho */}
             <Caja
-                espesorBase={espesor}
                 position={posiciones.derecha}
                 width={dimensiones.lateral.width}
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
-                posicionCaja={"right"}
-                bordesTriangulados={esquinaXTriangulada}
+                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja detrás */}
             <Caja
-                espesorBase={espesor}
                 position={posiciones.trasero}
                 width={dimensiones.trasero.width}
                 height={dimensiones.trasero.height}
                 depth={dimensiones.trasero.depth}
                 color="#ffff00"
-                bordesTriangulados={false}
+                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Caja arriba (techo) */}
             <Caja
-                espesorBase={espesor}
                 position={posiciones.techo}
                 width={dimensiones.techo.width}
                 height={dimensiones.techo.height}
                 depth={dimensiones.techo.depth}
                 color="#ff0000"
-                posicionCaja={"top"}
-                bordesTriangulados={esquinaXTriangulada || esquinaZTriangulada}
-                bordeEjeY={false}
-                bordeEjeZ={esquinaZTriangulada}
-                disableAdjustedWidth={esquinaZTriangulada}
+                ejeZTriangulado={esquinaZTriangulada}
+                ejeXTriangulado={esquinaXTriangulada}
             />
 
             {/* Renderizar 4 patas en las esquinas */}
@@ -204,8 +192,15 @@ const Casco: React.FC<CascoProps> = ({
             {puerta && (
                 <>
                     {React.cloneElement(puerta, {
+                        position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                        width: width/2,
+                        height: height,
+                        depth: espesor,
+                        pivot: "left" // Define el pivote en el borde derecho
+                    })}
+                    {React.cloneElement(puerta, {
                         position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                        width: width,
+                        width: width/2,
                         height: height,
                         depth: espesor,
                         pivot: "right" // Define el pivote en el borde derecho
@@ -216,4 +211,4 @@ const Casco: React.FC<CascoProps> = ({
     );
 };
 
-export default Casco;
+export default CascoDosPuertas;
