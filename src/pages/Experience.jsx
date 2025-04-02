@@ -12,9 +12,6 @@ import ArmarioInterface from "../components/OLD/Armario/ArmarioInterface.jsx";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
-
-
-import {useCascoConfigurator} from '../contexts/useCascoConfigurator.jsx';
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
 
 
@@ -29,12 +26,6 @@ const interfaceComponents = {
 
 export const Experience = () => {
     
-    const {width, height, depth, texture, esquinaXTriangulada, esquinaZTriangulada, espesor,
-        sueloDentro,
-        techoDentro,
-        traseroDentro,
-        offsetTrasero,
-        pataHeight} = useCascoConfigurator();
 
     const itemComponents = {
         "Mesa de centro": <Mesa rotation={[0, Math.PI, 0]}/>,
@@ -42,19 +33,7 @@ export const Experience = () => {
         "Armario Step": <ArmarioStep rotation={[0, Math.PI, 0]}/>,
 
         "Casco": <Casco
-            width={width/100}
-            height={height/100}
-            depth={depth/100}
-            esquinaXTriangulada={esquinaXTriangulada}
-            esquinaZTriangulada={esquinaZTriangulada}
-            espesor={espesor}
-            position={[0, 0, 0]}
-            rotation={[0, Math.PI , 0]}
-            sueloDentro={sueloDentro}
-            techoDentro={techoDentro}
-            traseroDentro={traseroDentro}
-            offsetTrasero={offsetTrasero/100}
-            pata={<Pata height={pataHeight/100}/>}
+            pata={<Pata height={1}/>}
             puerta={<Puerta />}
         />,
     };
