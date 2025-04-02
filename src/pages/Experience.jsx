@@ -13,41 +13,59 @@ import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
 
-const itemComponents = {
-    "Mesa de centro": <Mesa rotation={[0, Math.PI, 0]}/>,
-    "Armario": <Armario rotation={[0, Math.PI, 0]}/>,
-    "Armario Step": <ArmarioStep rotation={[0, Math.PI, 0]}/>,
-    "Casco": <Casco
-        width={dimensions.width}
-        height={dimensions.height}
-        depth={dimensions.depth}
-        esquinaXTriangulada={options.ejeXTriangulado}
-        esquinaZTriangulada={options.ejeZTriangulado}
-        espesor={0.1}
-        position={[0, 0, 0]}
-        rotation={[0, Math.PI / 6, 0]}
-        sueloDentro={options.sueloDentro}
-        techoDentro={options.techoDentro}
-        traseroDentro={options.traseroDentro}
-        offsetTrasero={dimensions.backWallOffset}
-        pata={<Pata height={dimensions.stepHeight}/>}
-        puerta={<Puerta />}
-    />,
-};
+
+import {useCascoConfigurator} from '../contexts/useCascoConfigurator.jsx';
+import CascoInterface from "../components/Casco/CascoInterface.jsx";
+
+
 
 const interfaceComponents = {
     "Mesa de centro": <MesaInterface/>,
     "Armario": <ArmarioInterface/>,
-    "Armario Step": <ArmarioInterface/>
+    "Armario Step": <ArmarioInterface/>,
+    "Casco": <CascoInterface/>,
 
 };
 
 export const Experience = () => {
+    
+    const {width, height, depth, texture, esquinaXTriangulada, esquinaZTriangulada, espesor,
+        sueloDentro,
+        techoDentro,
+        traseroDentro,
+        offsetTrasero,
+        pataHeight} = useCascoConfigurator();
+
+    const itemComponents = {
+        "Mesa de centro": <Mesa rotation={[0, Math.PI, 0]}/>,
+        "Armario": <Armario rotation={[0, Math.PI, 0]}/>,
+        "Armario Step": <ArmarioStep rotation={[0, Math.PI, 0]}/>,
+
+        "Casco": <Casco
+            width={width/100}
+            height={height/100}
+            depth={depth/100}
+            esquinaXTriangulada={esquinaXTriangulada}
+            esquinaZTriangulada={esquinaZTriangulada}
+            espesor={espesor}
+            position={[0, 0, 0]}
+            rotation={[0, Math.PI , 0]}
+            sueloDentro={sueloDentro}
+            techoDentro={techoDentro}
+            traseroDentro={traseroDentro}
+            offsetTrasero={offsetTrasero/100}
+            pata={<Pata height={pataHeight/100}/>}
+            puerta={<Puerta />}
+        />,
+    };
+
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const selectedItem = params.get("item"); // Obtiene el valor de "item" en la URL
     const selectedComponent = itemComponents[selectedItem] || null;
     const selectedInterface = interfaceComponents[selectedItem] || null;
+
+    
 
     return (
         <>
