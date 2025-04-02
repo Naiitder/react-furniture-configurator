@@ -105,7 +105,12 @@ const Casco: React.FC<CascoProps> = ({
                 0,
                 (height - (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) - (techoDentro ? (techoDentro && !traseroDentro) ? 0 : espesor : espesor)) / 2 + (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) + extraAltura,
                 -mitadProfundidad + espesor / 2
-            ] as [number, number, number]
+            ] as [number, number, number],
+
+            puerta: [
+                width/2,
+                (height - espesor - espesor) / 2 + espesor + extraAltura,
+                (depth / 2) + espesor / 2] as [number, number, number]
         };
     };
 
@@ -182,19 +187,18 @@ const Casco: React.FC<CascoProps> = ({
                 </>
             }
 
-
             {/* TODO ARREGLAR OFFSET POR PATAS */}
             {/* Renderizar puerta en la parte frontal */}
             {puerta && (
-                <group
-                    position={[width, (posiciones.techo[1] * (height / 4) + espesor * 2.5) + espesor / 3, (depth / 2) + espesor / 2]}>
+                <>
                     {React.cloneElement(puerta, {
+                        position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
                         width: width,
                         height: height,
                         depth: espesor,
-                        pivot: "left" // Define el pivote en el borde derecho
+                        pivot: "right" // Define el pivote en el borde derecho
                     })}
-                </group>
+                </>
             )}
         </group>
     );

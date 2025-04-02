@@ -1,6 +1,7 @@
 import * as React from "react";
 import '@react-three/fiber';
 import { useRef, useEffect } from "react";
+import * as THREE from "three";
 
 type PuertaProps = {
     position?: [number, number, number];
@@ -37,20 +38,35 @@ const Puerta: React.FC<PuertaProps> = ({
     }, [targetRotation]);
 
     const handleClick = (event) => {
-        setTargetRotation(targetRotation === 0 ? Math.PI / 2 : 0);
+        const angle = Math.PI / 2;
+        const direction = pivot === "left" ? -1 : 1;
+        setTargetRotation(targetRotation === 0 ? direction * angle : 0);
         event.stopPropagation();
     };
+
+    const geometry = new THREE.BoxGeometry(width, height, depth);
+    geometry.translate(width / 2 * (pivot === "right" ? -1 : 1), 0, 0);
+
+    const offset = Math.sin(doorRotation) * 0.05; // Desplazamiento lateral
+    const direction = pivot === "right" ? -1 : 1;
+    const doorX = (pivot === "right" ? direction : -direction) * offset;
+    const doorZ = direction * offset;
 
     // Ajustar la posición del pivote
     const pivotOffset = pivot === "right" ? width / 2 : -width / 2;
 
     return (
-        <group position={[position[0] + pivotOffset, position[1], position[2]]}>
-            <mesh position={[-pivotOffset, 0, 0]} rotation={[0, doorRotation, 0]} onClick={handleClick}>
-                <boxGeometry args={[width, height, depth]} />
-                <meshStandardMaterial color={color} />
+        <group position={position} onClick={handleClick}>
+
+                <mesh geometry={geometry}  rotation={[0, doorRotation, 0]}
+                      position={[doorX, 0, doorZ]}>
+                    <meshStandardMaterial color={color} />
+                </mesh>
+            <mesh position={[0, 0, 0]}>
+                <boxGeometry args={[.1, .1, .1]} />
+                <meshStandardMaterial color="red" />
             </mesh>
-        </group>
+            </group>
     );
 };
 
