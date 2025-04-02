@@ -14,6 +14,7 @@ type CascoProps = {
     sueloDentro?: boolean;
     techoDentro?: boolean;
     traseroDentro?: boolean;
+    offsetTrasero?: number;
     esquinaXTriangulada?: boolean;
     esquinaZTriangulada?: boolean;
     pata?: React.ReactNode;
@@ -28,6 +29,7 @@ const Casco: React.FC<CascoProps> = ({
                                          espesor = 0.1,
                                          position = [0, 0, 0],
                                          rotation = [0, 0, 0],
+                                         offsetTrasero = 0,
                                          sueloDentro = false,
                                          techoDentro = false,
                                          traseroDentro = false,
@@ -104,7 +106,7 @@ const Casco: React.FC<CascoProps> = ({
             trasero: [
                 0,
                 (height - (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) - (techoDentro ? (techoDentro && !traseroDentro) ? 0 : espesor : espesor)) / 2 + (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) + extraAltura,
-                -mitadProfundidad + espesor / 2
+                (-mitadProfundidad + espesor / 2) + (traseroDentro ? offsetTrasero : 0)
             ] as [number, number, number],
 
             puerta: [
@@ -202,31 +204,22 @@ const Casco: React.FC<CascoProps> = ({
             {/* Renderizar puerta en la parte frontal */}
             {puerta && (
                 <>
-                    {width > 2 ? (
+                    {React.cloneElement(puerta, {
+                        position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                        width: width > 2 ? width / 2 : width,
+                        height: height,
+                        depth: espesor,
+                        pivot: "right" // Define el pivote en el borde derecho
+                    })}
+
+                    {width > 2 && (
                         <>
                             {React.cloneElement(puerta, {
                                 position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                                width: width/2,
+                                width: width / 2,
                                 height: height,
                                 depth: espesor,
                                 pivot: "left" // Define el pivote en el borde derecho
-                            })}
-                            {React.cloneElement(puerta, {
-                                position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                                width: width/2,
-                                height: height,
-                                depth: espesor,
-                                pivot: "right" // Define el pivote en el borde derecho
-                            })}
-                        </>
-                    ): (
-                        <>
-                            {React.cloneElement(puerta, {
-                                position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                                width: width,
-                                height: height,
-                                depth: espesor,
-                                pivot: "right" // Define el pivote en el borde derecho
                             })}
                         </>
                     )}
