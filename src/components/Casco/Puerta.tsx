@@ -58,13 +58,12 @@ const Puerta: React.FC<PuertaProps> = ({
     const pivotOffset = pivot === "right" ? width / 2 : -width / 2;
 
     const materials = useWoodMaterial()
-    console.log(materials)
 
     return (
         <group position={position} onClick={handleClick}>
 
                 <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
-                    <mesh geometry={geometry} material={materials.DarkWood}>
+                    <mesh geometry={geometry} material={materials.WoodWorn}>
                     </mesh>
 
                     <group position={[(pivot === "right" ? (-width+(width*10/100)) : (width -(width*10/100))), 0, depth/2]}>
