@@ -6,7 +6,6 @@ import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import React from "react";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
-import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
 
 
@@ -20,7 +19,7 @@ export const Experience = () => {
     const itemComponents = {
         "Casco": <Casco
             rotation={[0, Math.PI, 0]}
-            pata={<Pata height={1}/>}
+            patas={[<Pata height={1}/>]}
             puerta={<Puerta />}
         />,
     };
@@ -36,9 +35,10 @@ export const Experience = () => {
     return (
         <>
             <Canvas shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
-                <Room positionY={1}/>
-                <Stage intensity={5} environment={"city"}
+                <Room positionY={3.5}/>
+                <Stage intensity={5} environment={null}
                        shadows="contact" adjustCamera={false}>
+                        <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
                     {selectedComponent}
                     </Stage>
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
