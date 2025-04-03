@@ -6,6 +6,7 @@ import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import React from "react";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
+import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
 
 
@@ -20,6 +21,7 @@ export const Experience = () => {
         "Casco": <Casco
             rotation={[0, Math.PI, 0]}
             patas={[<Pata height={1}/>]}
+            puerta={<Puerta />}
         />,
     };
 
