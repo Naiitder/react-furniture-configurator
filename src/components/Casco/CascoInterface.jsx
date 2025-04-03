@@ -4,6 +4,7 @@ import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
 import {useEffect, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import Pata from "./Pata.js";
 const {Title} = Typography;
 
 const CascoInterface = () => {
@@ -46,7 +47,7 @@ const CascoInterface = () => {
     const cambiarPata = (valor) => {
         setEstadoPata(() => ({
             pataUI: valor,
-            pataComponente: valor === "default" ? "Patita" : null
+            pataComponente: valor === "default" ? (<Pata height={alturaPatas}></Pata>) : null
         }));
     };
 
@@ -80,7 +81,6 @@ const CascoInterface = () => {
             width,
             height,
             depth,
-            alturaPatas,
             espesor,
             esquinaXTriangulada,
             esquinaZTriangulada,
@@ -137,7 +137,6 @@ const CascoInterface = () => {
             width,
             height,
             depth,
-            alturaPatas,
             espesor,
             esquinaXTriangulada,
             esquinaZTriangulada,
@@ -145,7 +144,7 @@ const CascoInterface = () => {
             techoDentro,
             traseroDentro,
             offsetTrasero,
-            texture
+            texture,
         };
 
         if (JSON.stringify(ref) !== JSON.stringify(updatedConfig)) {
@@ -154,7 +153,7 @@ const CascoInterface = () => {
     }, [
         width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
-        sueloDentro, techoDentro, traseroDentro, offsetTrasero, texture
+        sueloDentro, techoDentro, traseroDentro, offsetTrasero, texture, estadoPata,
     ]);
 
     // Logica para deshabilitar opciones

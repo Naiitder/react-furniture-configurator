@@ -19,7 +19,6 @@ type CascoProps = {
     esquinaXTriangulada?: boolean;
     esquinaZTriangulada?: boolean;
     pata?: React.ReactNode;
-    alturaPatas?: number;
     puerta?: React.ReactNode;
 }
 
@@ -38,7 +37,6 @@ const Casco: React.FC<CascoProps> = ({
                                          esquinaXTriangulada = false,
                                          esquinaZTriangulada = false,
                                          pata,
-                                         alturaPatas = 1,
                                          puerta
                                      }) => {
     const groupRef = useRef<THREE.Group>(null);
@@ -57,6 +55,7 @@ const Casco: React.FC<CascoProps> = ({
 
     // Obtenemos las propiedades desde el contexto si están disponibles
     const actualWidth = ref?.width || width;
+    const actualPata = ref?.pata || pata;
     const actualHeight = ref?.height || height;
     const actualDepth = ref?.depth || depth;
     const actualEspesor = ref?.espesor || espesor;
@@ -98,7 +97,7 @@ const Casco: React.FC<CascoProps> = ({
         const mitadAncho = actualWidth / 2;
         const mitadProfundidad = actualDepth / 2;
 
-        const extraAltura = pata ? (pata.props.height / 2.3) : 0;
+        const extraAltura = actualPata ? (actualPata.props.height / 2.3) : 0;
 
         const alturaLaterales = (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0)
 
@@ -217,12 +216,12 @@ const Casco: React.FC<CascoProps> = ({
             />
 
             {/* Renderizar 4 patas en las esquinas */}
-            {pata &&
+            {actualPata &&
                 <>
-                    {React.cloneElement(pata, {position: [-actualWidth / 2 + 0.1, -0.5, -actualDepth / 2 + 0.1]})}
-                    {React.cloneElement(pata, {position: [actualWidth / 2 - 0.1, -0.5, -actualDepth / 2 + 0.1]})}
-                    {React.cloneElement(pata, {position: [-actualWidth / 2 + 0.1, -0.5, actualDepth / 2 - 0.1]})}
-                    {React.cloneElement(pata, {position: [actualWidth / 2 - 0.1, -0.5, actualDepth / 2 - 0.1]})}
+                    {React.cloneElement(actualPata, {position: [-actualWidth / 2 + 0.1, -0.5, -actualDepth / 2 + 0.1]})}
+                    {React.cloneElement(actualPata, {position: [actualWidth / 2 - 0.1, -0.5, -actualDepth / 2 + 0.1]})}
+                    {React.cloneElement(actualPata, {position: [-actualWidth / 2 + 0.1, -0.5, actualDepth / 2 - 0.1]})}
+                    {React.cloneElement(actualPata, {position: [actualWidth / 2 - 0.1, -0.5, actualDepth / 2 - 0.1]})}
                 </>
             }
 
