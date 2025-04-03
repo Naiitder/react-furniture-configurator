@@ -129,7 +129,6 @@ const CascoInterface = () => {
         }
     }, []);
 
-    // Actualizamos el estado global cuando cambia cualquier valor local
     useEffect(() => {
         if (!ref) return;
 
@@ -145,15 +144,14 @@ const CascoInterface = () => {
             traseroDentro,
             offsetTrasero,
             texture,
+            pata: estadoPata["pataUI"], // Only store value or ID, not component
         };
 
-        if (JSON.stringify(ref) !== JSON.stringify(updatedConfig)) {
-            setRef(updatedConfig);
-        }
+        setRef(updatedConfig);
     }, [
         width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
-        sueloDentro, techoDentro, traseroDentro, offsetTrasero, texture, estadoPata,
+        sueloDentro, techoDentro, traseroDentro, offsetTrasero, texture, estadoPata["pataUI"],
     ]);
 
     // Logica para deshabilitar opciones
