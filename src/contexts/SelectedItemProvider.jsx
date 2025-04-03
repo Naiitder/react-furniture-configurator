@@ -1,38 +1,40 @@
-import { createContext, useState, useContext, useCallback } from "react";
+// En tu SelectedItemProvider.jsx
+import React, { createContext, useContext, useState, useRef } from 'react';
 
-const SelectedItemContext = createContext();
+export const SelectedItemContext = createContext();
 
-export const SelectedItemProvider = ({ children }) => {
-    const [selectedItem, setSelectedItem] = useState(null);
+export function SelectedItemProvider({ children }) {
+    const [ref, setRefInternal] = useState(null);
+    const componentRefs = useRef({});
 
-    // Wrapper para setSelectedItem que asegura que siempre creamos un nuevo objeto
-    const updateSelectedItem = useCallback((newValue) => {
-        if (typeof newValue === 'function') {
-            setSelectedItem(prev => {
-                const updatedValue = newValue(prev);
-                // Aseguramos que retornamos un nuevo objeto
-                return {...updatedValue};
-            });
-        } else {
-            // Aseguramos que asignamos un nuevo objeto
-            setSelectedItem({...newValue});
+    const setRef = (newRef) => {
+        // Extrae cualquier componente React antes de guardarlo en el estado
+        const { pata, ...serializableProps } = newRef;
+
+        // Guarda el componente en una referencia separada
+        if (pata) {
+            componentRefs.current.pata = pata;
         }
-    }, []);
+
+        // Guarda las propiedades serializables en el estado
+        setRefInternal(serializableProps);
+    };
+
+    // Función para obtener tanto props serializables como componentes
+    const getFullRef = () => {
+        return {
+            ...ref,
+            pata: componentRefs.current.pata
+        };
+    };
 
     return (
-        <SelectedItemContext.Provider value={{
-            ref: selectedItem,
-            setRef: updateSelectedItem
-        }}>
+        <SelectedItemContext.Provider value={{ ref, setRef, getFullRef }}>
             {children}
         </SelectedItemContext.Provider>
     );
-};
+}
 
-export const useSelectedItemProvider = () => {
-    const context = useContext(SelectedItemContext);
-    if (context === undefined) {
-        throw new Error('useSelectedItemProvider debe usarse dentro de un SelectedItemProvider');
-    }
-    return context;
-};
+export function useSelectedItemProvider() {
+    return useContext(SelectedItemContext);
+}
