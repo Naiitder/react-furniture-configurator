@@ -2,6 +2,7 @@ import * as React from "react";
 import '@react-three/fiber';
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
+import {Pomo} from "./Pomo";
 
 type PuertaProps = {
     position?: [number, number, number];
@@ -63,10 +64,9 @@ const Puerta: React.FC<PuertaProps> = ({
                         <meshStandardMaterial color={color} />
                     </mesh>
 
-                    <mesh position={[(pivot === "right" ? (-width+(width*10/100)) : (width -(width*10/100))), 0, depth/2]}>
-                        <boxGeometry args={[0.1, 0.1, 0.1]}/>
-                        <meshStandardMaterial color={"red"} />
-                    </mesh>
+                    <group position={[(pivot === "right" ? (-width+(width*10/100)) : (width -(width*10/100))), 0, depth/2]}>
+                        <Pomo scale={[0.2, 0.2, 0.2]}/>
+                    </group>
                 </group>
             </group>
     );
