@@ -4,15 +4,6 @@ import {FurnitureMenu} from "./pages/FurnitureMenu.jsx";
 
 function App() {
 
-
-    /*return (
-        <>
-            <Experience/>
-            <ArmarioInterface/>
-            <RoomConfigPanel/>
-
-        </>
-    )*/
     return (
         <BrowserRouter>
             <Routes>
