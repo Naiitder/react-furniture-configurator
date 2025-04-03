@@ -64,7 +64,7 @@ const Puerta: React.FC<PuertaProps> = ({
         <group position={position} onClick={handleClick}>
 
                 <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
-                    <mesh geometry={geometry} material={materials.OakWood}>
+                    <mesh geometry={geometry} material={materials.DarkWood}>
                     </mesh>
 
                     <group position={[(pivot === "right" ? (-width+(width*10/100)) : (width -(width*10/100))), 0, depth/2]}>
