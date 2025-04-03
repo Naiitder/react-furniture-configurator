@@ -19,8 +19,7 @@ export const Experience = () => {
 
     const itemComponents = {
         "Casco": <Casco
-            pata={<Pata height={1}/>}
-            puerta={<Puerta />}
+            rotation={[0, Math.PI, 0]}
         />,
     };
 
@@ -35,7 +34,7 @@ export const Experience = () => {
     return (
         <>
             <Canvas shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
-                <Room positionY={1}/>
+                <Room positionY={3.5}/>
                 <Stage intensity={5} environment={null}
                        shadows="contact" adjustCamera={false}>
                         <Environment files={"/images/poly_haven_studio_4k.hdr"}/>

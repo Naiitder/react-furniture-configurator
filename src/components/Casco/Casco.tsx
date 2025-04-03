@@ -19,6 +19,7 @@ type CascoProps = {
     esquinaXTriangulada?: boolean;
     esquinaZTriangulada?: boolean;
     pata?: React.ReactNode;
+    alturaPatas?: number;
     puerta?: React.ReactNode;
 }
 
@@ -37,10 +38,11 @@ const Casco: React.FC<CascoProps> = ({
                                          esquinaXTriangulada = false,
                                          esquinaZTriangulada = false,
                                          pata,
+                                         alturaPatas = 1,
                                          puerta
                                      }) => {
     const groupRef = useRef<THREE.Group>(null);
-    const { ref, setRef } = useSelectedItemProvider();
+    const {ref, setRef} = useSelectedItemProvider();
 
     // Guardamos una referencia al elemento threejs
     useEffect(() => {
@@ -96,7 +98,7 @@ const Casco: React.FC<CascoProps> = ({
         const mitadAncho = actualWidth / 2;
         const mitadProfundidad = actualDepth / 2;
 
-        const extraAltura = pata ? (pata.props.height / 2.3): 0;
+        const extraAltura = pata ? (pata.props.height / 2.3) : 0;
 
         const alturaLaterales = (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0)
 

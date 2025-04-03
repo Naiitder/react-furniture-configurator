@@ -1,9 +1,10 @@
-import {Slider, Form, Space, Checkbox} from "antd";
+import {Slider, Form, Space, Checkbox, Typography} from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
 import {useEffect, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+const {Title} = Typography;
 
 const CascoInterface = () => {
     const { ref, setRef } = useSelectedItemProvider();
@@ -12,7 +13,7 @@ const CascoInterface = () => {
     const [width, setWidth] = useState(2);
     const [height, setHeight] = useState(2);
     const [depth, setDepth] = useState(2);
-    const [pataHeight, setPataHeight] = useState(1);
+    const [alturaPatas, setAlturaPatas] = useState(1);
     const [espesor, setEspesor] = useState(0.1);
 
     // Estados para los sliders UI
@@ -37,13 +38,49 @@ const CascoInterface = () => {
         {image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg"},
     ];
 
+    const [estadoPata, setEstadoPata] = useState({
+        pataUI: "white",
+        pataComponente: null
+    });
+
+    const cambiarPata = (valor) => {
+        setEstadoPata(() => ({
+            pataUI: valor,
+            pataComponente: valor === "default" ? "Patita" : null
+        }));
+    };
+
+
+    const patasOptions = [
+        {label: "Ninguna", value: "white"},
+        {image: "./textures/dark.jpg", label: "Default", value: "default"},
+    ];
+
+    const [estadoPuerta, setEstadoPuerta] = useState({
+        puertaUI: "white",
+        puertaComponente: null
+    });
+
+    const cambiarPuerta = (valor) => {
+        setEstadoPuerta(() => ({
+            puertaUI: valor,
+            puertaComponente: valor === "default" ? "Puertita" : null
+        }));
+    };
+
+
+    const puertaOptions = [
+        {label: "Ninguna", value: "white"},
+        {image: "./textures/dark.jpg", label: "Default", value: "default"},
+    ];
+
     // Inicializar el estado compartido al cargar la interfaz
     useEffect(() => {
         const initialConfig = {
             width,
             height,
             depth,
-            pataHeight,
+            alturaPatas,
             espesor,
             esquinaXTriangulada,
             esquinaZTriangulada,
@@ -62,13 +99,13 @@ const CascoInterface = () => {
             const newWidth = ref.width || width;
             const newHeight = ref.height || height;
             const newDepth = ref.depth || depth;
-            const newPataHeight = ref.pataHeight || pataHeight;
+            const newPataHeight = ref.alturaPatas || alturaPatas;
             const newEspesor = ref.espesor || espesor;
 
             setWidth(newWidth);
             setHeight(newHeight);
             setDepth(newDepth);
-            setPataHeight(newPataHeight);
+            setAlturaPatas(newPataHeight);
             setEspesor(newEspesor);
 
             // Actualizar también los valores de los sliders
@@ -100,7 +137,7 @@ const CascoInterface = () => {
             width,
             height,
             depth,
-            pataHeight,
+            alturaPatas,
             espesor,
             esquinaXTriangulada,
             esquinaZTriangulada,
@@ -115,7 +152,7 @@ const CascoInterface = () => {
             setRef(updatedConfig);
         }
     }, [
-        width, height, depth, pataHeight, espesor,
+        width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
         sueloDentro, techoDentro, traseroDentro, offsetTrasero, texture
     ]);
@@ -186,26 +223,15 @@ const CascoInterface = () => {
                             }}
                         />
                     </Form.Item>
-                    <Form.Item label="Patas Height">
-                        <Slider
-                            min={1}
-                            max={30}
-                            value={pataHeightSliderValue}
-                            onChange={(v) => {
-                                setPataHeightSliderValue(v);
-                                setPataHeight(v);
-                            }}
-                        />
-                    </Form.Item>
                     <Form.Item label="Espesor">
                         <Slider
-                            min={1}
-                            max={3}
+                            min={2}
+                            max={20}
                             step={0.1}
                             value={espesorSliderValue}
                             onChange={(v) => {
                                 setEspesorSliderValue(v);
-                                setEspesor(v / 10);
+                                setEspesor(v / 100);
                             }}
                         />
                     </Form.Item>
@@ -285,6 +311,36 @@ const CascoInterface = () => {
                     </div>
                 </Form.Item>
             </div>
+
+            {/* Configuración de componentes */}
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+                <Form>
+                    <Title level={4}>Componentes</Title>
+
+                    <Title level={5}>Patas</Title>
+                    <Form.Item>
+                        <ItemSelector options={patasOptions} currentValue={estadoPata["pataUI"]} onValueChange={cambiarPata} />
+                        <Form.Item label="Patas Height">
+                            <Slider
+                                disabled={estadoPata["pataComponente"] === null}
+                                min={1}
+                                max={30}
+                                value={pataHeightSliderValue}
+                                onChange={(v) => {
+                                    setPataHeightSliderValue(v);
+                                    setAlturaPatas(v);
+                                }}
+                            />
+                        </Form.Item>
+                    </Form.Item>
+
+                    <Title level={5}>Puertas</Title>
+                    <Form.Item>
+                        <ItemSelector options={puertaOptions} currentValue={estadoPuerta["puertaUI"]} onValueChange={cambiarPuerta} />
+                    </Form.Item>
+                </Form>
+            </div>
+
         </BaseConfiguratorInterface>
     );
 };
