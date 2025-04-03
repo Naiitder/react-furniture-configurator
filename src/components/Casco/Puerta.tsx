@@ -3,7 +3,7 @@ import '@react-three/fiber';
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import {Pomo} from "./Pomo";
-import {useWoodMaterial} from "../../assets/materials";
+import {useMaterial} from "../../assets/materials";
 
 type PuertaProps = {
     position?: [number, number, number];
@@ -57,7 +57,7 @@ const Puerta: React.FC<PuertaProps> = ({
     // Ajustar la posición del pivote
     const pivotOffset = pivot === "right" ? width / 2 : -width / 2;
 
-    const materials = useWoodMaterial()
+    const materials = useMaterial()
 
     return (
         <group position={position} onClick={handleClick}>

@@ -1,7 +1,7 @@
 // hooks/useWoodMaterial.ts
 import { useGLTF } from '@react-three/drei'
 
-export const useWoodMaterial = () => {
+export const useMaterial = () => {
     const { materials } = useGLTF('./models/Materials.glb')
     return materials
 }

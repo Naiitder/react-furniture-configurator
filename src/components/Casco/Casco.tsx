@@ -3,7 +3,7 @@ import {useRef, useEffect} from "react";
 import * as THREE from 'three';
 import Caja from "./Caja";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
-import {useWoodMaterial} from "../../assets/materials";
+import {useMaterial} from "../../assets/materials";
 
 // Props para el componente Casco
 type CascoProps = {
@@ -161,7 +161,7 @@ const Casco: React.FC<CascoProps> = ({
         position[2]
     ];
 
-    const materiales = useWoodMaterial();
+    const materiales = useMaterial();
     console.log(materiales)
 
     return (
