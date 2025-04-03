@@ -1,14 +1,14 @@
 import {RoomConfiguratorProvider} from "./RoomConfigurator.jsx";
-import {CascoConfiguratorProvider} from "./useCascoConfigurator.jsx";
+import {SelectedItemProvider} from "./SelectedItemProvider.jsx";
 
 export const AppProviders = ({...props}) => {
     return (
         <>
-            <CascoConfiguratorProvider>
-                <RoomConfiguratorProvider>
-                        {props.children}
-                </RoomConfiguratorProvider>
-            </CascoConfiguratorProvider>
+            <SelectedItemProvider>
+                    <RoomConfiguratorProvider>
+                            {props.children}
+                    </RoomConfiguratorProvider>
+            </SelectedItemProvider>
         </>
     )
 }

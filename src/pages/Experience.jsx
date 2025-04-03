@@ -18,29 +18,10 @@ const interfaceComponents = {
 };
 
 export const Experience = () => {
-    
-    const {width, height, depth, texture, esquinaXTriangulada, esquinaZTriangulada, espesor,
-        sueloDentro,
-        techoDentro,
-        traseroDentro,
-        offsetTrasero,
-        pataHeight} = useCascoConfigurator();
 
     const itemComponents = {
         "Casco": <Casco
-            width={width/100}
-            height={height/100}
-            depth={depth/100}
-            esquinaXTriangulada={esquinaXTriangulada}
-            esquinaZTriangulada={esquinaZTriangulada}
-            espesor={espesor}
-            position={[0, 0, 0]}
-            rotation={[0, Math.PI , 0]}
-            sueloDentro={sueloDentro}
-            techoDentro={techoDentro}
-            traseroDentro={traseroDentro}
-            offsetTrasero={offsetTrasero/100}
-            pata={<Pata height={pataHeight/100}/>}
+            pata={<Pata height={1}/>}
             puerta={<Puerta />}
         />,
     };
@@ -65,7 +46,6 @@ export const Experience = () => {
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
             {selectedInterface}
-
             <RoomConfigPanel/>
         </>
     );
