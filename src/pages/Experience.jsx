@@ -10,25 +10,41 @@ import MesaInterface from "../components/OLD/Mesa/MesaInterface.jsx";
 import React from "react";
 import ArmarioInterface from "../components/OLD/Armario/ArmarioInterface.jsx";
 import Casco from "../components/Casco/Casco.js";
+import Pata from "../components/Casco/Pata.js";
+import Puerta from "../components/Casco/Puerta.js";
+import CascoInterface from "../components/Casco/CascoInterface.jsx";
 
-const itemComponents = {
-    "Mesa de centro": <Mesa rotation={[0, Math.PI, 0]}/>,
-    "Armario": <Armario rotation={[0, Math.PI, 0]}/>,
-    "Armario Step": <ArmarioStep rotation={[0, Math.PI, 0]}/>
-};
+
 
 const interfaceComponents = {
     "Mesa de centro": <MesaInterface/>,
     "Armario": <ArmarioInterface/>,
-    "Armario Step": <ArmarioInterface/>
+    "Armario Step": <ArmarioInterface/>,
+    "Casco": <CascoInterface/>,
+
 };
 
 export const Experience = () => {
+    
+
+    const itemComponents = {
+        "Mesa de centro": <Mesa rotation={[0, Math.PI, 0]}/>,
+        "Armario": <Armario rotation={[0, Math.PI, 0]}/>,
+        "Armario Step": <ArmarioStep rotation={[0, Math.PI, 0]}/>,
+
+        "Casco": <Casco
+            pata={<Pata height={1}/>}
+            puerta={<Puerta />}
+        />,
+    };
+
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const selectedItem = params.get("item"); // Obtiene el valor de "item" en la URL
     const selectedComponent = itemComponents[selectedItem] || null;
     const selectedInterface = interfaceComponents[selectedItem] || null;
+
+    
 
     return (
         <>

@@ -1,7 +1,8 @@
 import * as React from "react";
-import {useRef} from "react";
+import {useRef, useEffect} from "react";
 import * as THREE from 'three';
 import Caja from "./Caja";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
 
 // Props para el componente Casco
 type CascoProps = {
@@ -39,80 +40,102 @@ const Casco: React.FC<CascoProps> = ({
                                          puerta
                                      }) => {
     const groupRef = useRef<THREE.Group>(null);
+    const { ref, setRef } = useSelectedItemProvider();
+
+    // Guardamos una referencia al elemento threejs
+    useEffect(() => {
+        if (groupRef.current && ref) {
+            // Solo actualizamos la referencia al grupo, manteniendo todas las demás propiedades
+            setRef({
+                ...ref,
+                groupRef: groupRef.current
+            });
+        }
+    }, [groupRef.current]);
+
+    // Obtenemos las propiedades desde el contexto si están disponibles
+    const actualWidth = ref?.width || width;
+    const actualHeight = ref?.height || height;
+    const actualDepth = ref?.depth || depth;
+    const actualEspesor = ref?.espesor || espesor;
+    const actualOffsetTrasero = ref?.offsetTrasero ?? offsetTrasero;
+    const actualSueloDentro = ref?.sueloDentro ?? sueloDentro;
+    const actualTechoDentro = ref?.techoDentro ?? techoDentro;
+    const actualTraseroDentro = ref?.traseroDentro ?? traseroDentro;
+    const actualEsquinaXTriangulada = ref?.esquinaXTriangulada ?? esquinaXTriangulada;
+    const actualEsquinaZTriangulada = ref?.esquinaZTriangulada ?? esquinaZTriangulada;
 
     // Calcular dimensiones ajustadas para evitar solapamientos
     const calcularDimensiones = () => {
         return {
             suelo: {
-                width: sueloDentro ? width - (espesor * 2) : width,
-                height: espesor,
-                depth: sueloDentro ? traseroDentro ? depth : depth - (espesor) : depth
+                width: actualSueloDentro ? actualWidth - (actualEspesor * 2) : actualWidth,
+                height: actualEspesor,
+                depth: actualSueloDentro ? actualTraseroDentro ? actualDepth : actualDepth - (actualEspesor) : actualDepth
             },
             techo: {
-                width: techoDentro ? width - (espesor * 2) : width,
-                height: espesor,
-                depth: techoDentro ? traseroDentro ? depth : depth - (espesor) : depth
+                width: actualTechoDentro ? actualWidth - (actualEspesor * 2) : actualWidth,
+                height: actualEspesor,
+                depth: actualTechoDentro ? actualTraseroDentro ? actualDepth : actualDepth - (actualEspesor) : actualDepth
             },
             lateral: {
-                width: espesor,
-                // Si el suelo está fuera, no expandir hacia abajo; si el techo está fuera, no expandir hacia arriba
-                height: height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor) - (esquinaZTriangulada && esquinaXTriangulada ? espesor : 0),
-                // Si trasero no está dentro, se expande completamente en profundidad
-                depth: !traseroDentro ? depth - (espesor) : depth
+                width: actualEspesor,
+                height: actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor : 0),
+                depth: !actualTraseroDentro ? actualDepth - (actualEspesor) : actualDepth
             },
             trasero: {
-                // Si trasero no está dentro, se expande completamente en ancho
-                width: traseroDentro ? width - (espesor * 2) : width,
-                // Si el suelo está fuera, no expandir hacia abajo; si el techo está fuera, no expandir hacia arriba
-                height: height - (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) - (techoDentro ? (techoDentro && !traseroDentro) ? 0 : espesor : espesor),
-                depth: espesor
+                width: actualTraseroDentro ? actualWidth - (actualEspesor * 2) : actualWidth,
+                height: actualHeight - (actualSueloDentro ? (actualSueloDentro && !actualTraseroDentro) ? 0 : actualEspesor : actualEspesor) - (actualTechoDentro ? (actualTechoDentro && !actualTraseroDentro) ? 0 : actualEspesor : actualEspesor),
+                depth: actualEspesor
             }
         };
     };
 
     // Calcular posiciones para que el casco crezca hacia arriba
     const calcularPosiciones = () => {
-        const mitadAncho = width / 2;
-        const mitadProfundidad = depth / 2;
+        const mitadAncho = actualWidth / 2;
+        const mitadProfundidad = actualDepth / 2;
 
-        const extraAltura = pata ? pata.props.height - espesor * 5 : 0;
-        console.log(pata.props.height)
+        const extraAltura = pata ? (pata.props.height / 2.3): 0;
+
+        const alturaLaterales = (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0)
 
         return {
             suelo: [
                 0,
-                (espesor / 2) + extraAltura,
-                sueloDentro && !traseroDentro ? espesor / 2 : 0
+                (actualEspesor / 2) + extraAltura,
+                actualSueloDentro && !actualTraseroDentro ? actualEspesor / 2 : 0
             ] as [number, number, number],
 
             techo: [
                 0,
-                (height - espesor / 2) + extraAltura,
-                (techoDentro && esquinaZTriangulada ? 0 : (techoDentro && !traseroDentro) ? espesor / 2 : 0) - (esquinaZTriangulada && traseroDentro ? espesor / 2 : 0)
+                (actualHeight - actualEspesor / 2) + extraAltura,
+                (actualTechoDentro && actualEsquinaZTriangulada ? 0 : (actualTechoDentro && !actualTraseroDentro) ? actualEspesor / 2 : 0) - (actualEsquinaZTriangulada && actualTraseroDentro ? actualEspesor / 2 : 0)
             ] as [number, number, number],
 
             izquierda: [
-                -mitadAncho + espesor / 2,
-                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor) - (esquinaZTriangulada && esquinaXTriangulada ? espesor / 2 : 0) + extraAltura,
-                !traseroDentro ? espesor / 2 : 0
+                -mitadAncho + actualEspesor / 2,
+                alturaLaterales + extraAltura,
+                !actualTraseroDentro ? actualEspesor / 2 : 0
             ] as [number, number, number],
 
             derecha: [
-                mitadAncho - espesor / 2,
-                (height - (sueloDentro ? 0 : espesor) - (techoDentro ? 0 : espesor)) / 2 + (sueloDentro ? 0 : espesor) - (esquinaZTriangulada && esquinaXTriangulada ? espesor / 2 : 0) + extraAltura,
-                !traseroDentro ? espesor / 2 : 0
+                mitadAncho - actualEspesor / 2,
+                alturaLaterales + extraAltura,
+                !actualTraseroDentro ? actualEspesor / 2 : 0
             ] as [number, number, number],
 
             trasero: [
                 0,
-                (height - (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) - (techoDentro ? (techoDentro && !traseroDentro) ? 0 : espesor : espesor)) / 2 + (sueloDentro ? (sueloDentro && !traseroDentro) ? 0 : espesor : espesor) + extraAltura,
-                (-mitadProfundidad + espesor / 2) + (traseroDentro ? offsetTrasero : 0)
+                (actualHeight - (actualSueloDentro ? (actualSueloDentro && !actualTraseroDentro) ? 0 : actualEspesor : actualEspesor) - (actualTechoDentro ? (actualTechoDentro && !actualTraseroDentro) ? 0 : actualEspesor : actualEspesor)) / 2 + (actualSueloDentro ? (actualSueloDentro && !actualTraseroDentro) ? 0 : actualEspesor : actualEspesor) + extraAltura,
+                (-mitadProfundidad + actualEspesor / 2) + (actualTraseroDentro ? actualOffsetTrasero : 0)
             ] as [number, number, number],
 
             puerta: [
-                width / 2,
-                (height - espesor - espesor) / 2 + espesor + extraAltura,
-                (depth / 2) + espesor / 2] as [number, number, number]
+                actualWidth / 2,
+                (actualHeight - actualEspesor - actualEspesor) / 2 + actualEspesor + extraAltura,
+                (actualDepth / 2) + actualEspesor / 2
+            ] as [number, number, number]
         };
     };
 
@@ -122,7 +145,7 @@ const Casco: React.FC<CascoProps> = ({
     // Ajustamos la posición base del grupo para que el fondo esté en la posición Y especificada
     const adjustedPosition: [number, number, number] = [
         position[0],
-        position[1], // Ya no necesitamos restar mitad de altura porque el origen está en la base
+        position[1],
         position[2]
     ];
 
@@ -130,44 +153,44 @@ const Casco: React.FC<CascoProps> = ({
         <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
             {/* Caja inferior (suelo) */}
             <Caja
-                espesorBase={espesor}
+                espesorBase={actualEspesor}
                 position={posiciones.suelo}
                 width={dimensiones.suelo.width}
                 height={dimensiones.suelo.height}
                 depth={dimensiones.suelo.depth}
                 color="#ff0000"
                 posicionCaja={"bottom"}
-                bordesTriangulados={esquinaXTriangulada}
+                bordesTriangulados={actualEsquinaXTriangulada}
                 bordeEjeY={false}
             />
 
             {/* Caja lado izquierdo */}
             <Caja
-                espesorBase={espesor}
+                espesorBase={actualEspesor}
                 position={posiciones.izquierda}
                 width={dimensiones.lateral.width}
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
                 posicionCaja={"left"}
-                bordesTriangulados={esquinaXTriangulada}
+                bordesTriangulados={actualEsquinaXTriangulada}
             />
 
             {/* Caja lado derecho */}
             <Caja
-                espesorBase={espesor}
+                espesorBase={actualEspesor}
                 position={posiciones.derecha}
                 width={dimensiones.lateral.width}
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
                 color="#0000ff"
                 posicionCaja={"right"}
-                bordesTriangulados={esquinaXTriangulada}
+                bordesTriangulados={actualEsquinaXTriangulada}
             />
 
             {/* Caja detrás */}
             <Caja
-                espesorBase={espesor}
+                espesorBase={actualEspesor}
                 position={posiciones.trasero}
                 width={dimensiones.trasero.width}
                 height={dimensiones.trasero.height}
@@ -178,26 +201,26 @@ const Casco: React.FC<CascoProps> = ({
 
             {/* Caja arriba (techo) */}
             <Caja
-                espesorBase={espesor}
+                espesorBase={actualEspesor}
                 position={posiciones.techo}
                 width={dimensiones.techo.width}
                 height={dimensiones.techo.height}
                 depth={dimensiones.techo.depth}
                 color="#ff0000"
                 posicionCaja={"top"}
-                bordesTriangulados={esquinaXTriangulada || esquinaZTriangulada}
+                bordesTriangulados={actualEsquinaXTriangulada || actualEsquinaZTriangulada}
                 bordeEjeY={false}
-                bordeEjeZ={esquinaZTriangulada}
-                disableAdjustedWidth={esquinaZTriangulada && esquinaXTriangulada}
+                bordeEjeZ={actualEsquinaZTriangulada}
+                disableAdjustedWidth={actualEsquinaZTriangulada || (actualEsquinaZTriangulada && actualEsquinaXTriangulada)}
             />
 
             {/* Renderizar 4 patas en las esquinas */}
             {pata &&
                 <>
-                    {React.cloneElement(pata, {position: [-width / 2 + 0.1, -0.5, -depth / 2 + 0.1]})}
-                    {React.cloneElement(pata, {position: [width / 2 - 0.1, -0.5, -depth / 2 + 0.1]})}
-                    {React.cloneElement(pata, {position: [-width / 2 + 0.1, -0.5, depth / 2 - 0.1]})}
-                    {React.cloneElement(pata, {position: [width / 2 - 0.1, -0.5, depth / 2 - 0.1]})}
+                    {React.cloneElement(pata, {position: [-actualWidth / 2 + 0.1, -0.5, -actualDepth / 2 + 0.1]})}
+                    {React.cloneElement(pata, {position: [actualWidth / 2 - 0.1, -0.5, -actualDepth / 2 + 0.1]})}
+                    {React.cloneElement(pata, {position: [-actualWidth / 2 + 0.1, -0.5, actualDepth / 2 - 0.1]})}
+                    {React.cloneElement(pata, {position: [actualWidth / 2 - 0.1, -0.5, actualDepth / 2 - 0.1]})}
                 </>
             }
 
@@ -206,19 +229,19 @@ const Casco: React.FC<CascoProps> = ({
                 <>
                     {React.cloneElement(puerta, {
                         position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                        width: width > 2 ? width / 2 : width,
-                        height: height,
-                        depth: espesor,
+                        width: actualWidth > 2 ? actualWidth / 2 : actualWidth,
+                        height: actualHeight,
+                        depth: actualEspesor,
                         pivot: "right" // Define el pivote en el borde derecho
                     })}
 
-                    {width > 2 && (
+                    {actualWidth > 2 && (
                         <>
                             {React.cloneElement(puerta, {
                                 position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                                width: width / 2,
-                                height: height,
-                                depth: espesor,
+                                width: actualWidth / 2,
+                                height: actualHeight,
+                                depth: actualEspesor,
                                 pivot: "left" // Define el pivote en el borde derecho
                             })}
                         </>
