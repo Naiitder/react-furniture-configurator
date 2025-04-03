@@ -3,6 +3,7 @@ import '@react-three/fiber';
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import {Pomo} from "./Pomo";
+import {useWoodMaterial} from "../../assets/materials";
 
 type PuertaProps = {
     position?: [number, number, number];
@@ -56,12 +57,12 @@ const Puerta: React.FC<PuertaProps> = ({
     // Ajustar la posición del pivote
     const pivotOffset = pivot === "right" ? width / 2 : -width / 2;
 
+    const materials = useWoodMaterial()
+
     return (
         <group position={position} onClick={handleClick}>
-
                 <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
-                    <mesh geometry={geometry} >
-                        <meshStandardMaterial color={color} />
+                    <mesh geometry={geometry} material={materials.WoodWorn}>
                     </mesh>
 
                     <group position={[(pivot === "right" ? (-width+(width*10/100)) : (width -(width*10/100))), 0, depth/2]}>

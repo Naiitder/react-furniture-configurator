@@ -1,6 +1,8 @@
 import * as React from "react";
+import * as THREE from "three";
 import '@react-three/fiber';
 import BordeTriangular from "./BordeTriangular";
+import {useWoodMaterial} from "../../assets/materials";
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
@@ -11,7 +13,7 @@ type CajaProps = {
     width: number;
     height: number;
     depth: number;
-    color: string;
+    color: THREE.Material;
 
     bordesTriangulados: boolean;
     disableAdjustedWidth?: boolean;
@@ -49,9 +51,8 @@ const Caja: React.FC<CajaProps> = ({
     const secondTriangleShape = (posicionCaja === "bottom" ? "topToLeft" : (posicionCaja === "left" ? "bottomToLeft" : (posicionCaja === "right" ? "bottomToRight" : "bottomToLeft")));
 
     return (<>
-            <mesh position={position} rotation={rotation} onClick={(event) => event.stopPropagation()}>
+            <mesh position={position} material={color} rotation={rotation} onClick={(event) => event.stopPropagation()}>
                 <boxGeometry args={[adjustedWidth, adjustedHeight, adjustedDepth]}/>
-                <meshStandardMaterial color={color}/>
             </mesh>
             {(bordesTriangulados && !bordeEjeZ) && (
                 <>
