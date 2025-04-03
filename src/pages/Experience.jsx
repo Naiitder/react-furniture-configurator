@@ -19,6 +19,7 @@ export const Experience = () => {
 
     const itemComponents = {
         "Casco": <Casco
+            rotation={[0, Math.PI, 0]}
             pata={<Pata height={1}/>}
             puerta={<Puerta />}
         />,
