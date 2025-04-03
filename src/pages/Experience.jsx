@@ -37,9 +37,8 @@ export const Experience = () => {
         <>
             <Canvas shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
                 <Room positionY={1}/>
-                <Stage intensity={5} environment={null}
+                <Stage intensity={5} environment={"city"}
                        shadows="contact" adjustCamera={false}>
-                        <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
                     {selectedComponent}
                     </Stage>
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
