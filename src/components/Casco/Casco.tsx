@@ -18,7 +18,9 @@ type CascoProps = {
     offsetTrasero?: number;
     esquinaXTriangulada?: boolean;
     esquinaZTriangulada?: boolean;
-    pata?: React.ReactNode;
+    patas?: React.ReactNode; // Array
+    alturaPatas?: number;
+    indicePata?: number;
     puerta?: React.ReactNode;
 }
 
@@ -36,7 +38,9 @@ const Casco: React.FC<CascoProps> = ({
                                          traseroDentro = false,
                                          esquinaXTriangulada = false,
                                          esquinaZTriangulada = false,
-                                         pata,
+                                         patas = [],
+                                         alturaPatas = 0.5,
+                                         indicePata = -1,
                                          puerta
                                      }) => {
     const groupRef = useRef<THREE.Group>(null);
@@ -55,7 +59,12 @@ const Casco: React.FC<CascoProps> = ({
 
     // Obtenemos las propiedades desde el contexto si están disponibles
     const actualWidth = ref?.width || width;
-    const actualPata = ref?.pata || pata;
+    var indiceActualPata = ref?.indicePata || indicePata;
+
+    if (indiceActualPata > 0) {
+        indiceActualPata--;
+    }
+    const actualAlturaPatas = ref?.alturaPatas || alturaPatas;
     const actualHeight = ref?.height || height;
     const actualDepth = ref?.depth || depth;
     const actualEspesor = ref?.espesor || espesor;
@@ -97,7 +106,8 @@ const Casco: React.FC<CascoProps> = ({
         const mitadAncho = actualWidth / 2;
         const mitadProfundidad = actualDepth / 2;
 
-        const extraAltura = actualPata ? (actualPata.props.height / 2.3) : 0;
+        const extraAltura = patas && indiceActualPata != -1 ? actualAlturaPatas : 0;
+        console.log(extraAltura)
 
         const alturaLaterales = (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0)
 
@@ -216,14 +226,26 @@ const Casco: React.FC<CascoProps> = ({
             />
 
             {/* Renderizar 4 patas en las esquinas */}
-            {actualPata &&
-                <>
-                    {React.cloneElement(actualPata, {position: [-actualWidth / 2 + 0.1, -0.5, -actualDepth / 2 + 0.1]})}
-                    {React.cloneElement(actualPata, {position: [actualWidth / 2 - 0.1, -0.5, -actualDepth / 2 + 0.1]})}
-                    {React.cloneElement(actualPata, {position: [-actualWidth / 2 + 0.1, -0.5, actualDepth / 2 - 0.1]})}
-                    {React.cloneElement(actualPata, {position: [actualWidth / 2 - 0.1, -0.5, actualDepth / 2 - 0.1]})}
-                </>
-            }
+            {(patas && indiceActualPata !== -1) && patas[indiceActualPata] && (
+                <group>
+                    {React.cloneElement(patas[indiceActualPata], {
+                        position: [-actualWidth / 2 + 0.1, position[1], -actualDepth / 2 + 0.1],
+                        height: actualAlturaPatas
+                    })}
+                    {React.cloneElement(patas[indiceActualPata], {
+                        position: [actualWidth / 2 - 0.1, position[1], -actualDepth / 2 + 0.1],
+                        height: actualAlturaPatas
+                    })}
+                    {React.cloneElement(patas[indiceActualPata], {
+                        position: [-actualWidth / 2 + 0.1, position[1], actualDepth / 2 - 0.1],
+                        height: actualAlturaPatas
+                    })}
+                    {React.cloneElement(patas[indiceActualPata], {
+                        position: [actualWidth / 2 - 0.1, position[1], actualDepth / 2 - 0.1],
+                        height: actualAlturaPatas
+                    })}
+                </group>
+            )}
 
             {/* Renderizar puerta en la parte frontal */}
             {puerta && (

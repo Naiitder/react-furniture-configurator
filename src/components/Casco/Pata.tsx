@@ -7,12 +7,15 @@ type PataProps = {
     color?: string;
 };
 
-const Pata: React.FC<PataProps> = ({ position = [0, 0, 0], height, color = "#8B4513", ...props }) => {
+const Pata: React.FC<PataProps> = ({ position = [0, 0, 0], height, color = "#8B4513" }) => {
     return (
-        <mesh position={[position[0], position[1] + height / 2, position[2]]}>
-            <cylinderGeometry args={[0.1, 0.1, height, 16]} />
-            <meshStandardMaterial color={color} />
-        </mesh>
+        <group position={[position[0], position[1] + height / 2, position[2]]}>
+            <mesh>
+                <cylinderGeometry args={[0.1, 0.1, height, 16]} />
+                <meshStandardMaterial color={color} />
+            </mesh>
+        </group>
+
     );
 };
 

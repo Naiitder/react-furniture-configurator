@@ -4,7 +4,6 @@ import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
 import {useEffect, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
-import Pata from "./Pata.js";
 const {Title} = Typography;
 
 const CascoInterface = () => {
@@ -14,15 +13,15 @@ const CascoInterface = () => {
     const [width, setWidth] = useState(2);
     const [height, setHeight] = useState(2);
     const [depth, setDepth] = useState(2);
-    const [alturaPatas, setAlturaPatas] = useState(1);
-    const [espesor, setEspesor] = useState(0.1);
+    const [alturaPatas, setAlturaPatas] = useState(0.01);
+    const [espesor, setEspesor] = useState(0.2);
 
     // Estados para los sliders UI
     const [widthSliderValue, setWidthSliderValue] = useState(200); // width * 100
     const [heightSliderValue, setHeightSliderValue] = useState(200); // height * 100
     const [depthSliderValue, setDepthSliderValue] = useState(200); // depth * 100
     const [pataHeightSliderValue, setPataHeightSliderValue] = useState(1);
-    const [espesorSliderValue, setEspesorSliderValue] = useState(1); // espesor * 10
+    const [espesorSliderValue, setEspesorSliderValue] = useState(20);
     const [offsetTraseroSliderValue, setOffsetTraseroSliderValue] = useState(0);
 
     const [esquinaXTriangulada, setEsquinaXTriangulada] = useState(false);
@@ -39,24 +38,15 @@ const CascoInterface = () => {
         {image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg"},
     ];
 
-    const [estadoPata, setEstadoPata] = useState({
-        pataUI: "white",
-        pataComponente: null
-    });
 
-    const cambiarPata = (valor) => {
-        setEstadoPata(() => ({
-            pataUI: valor,
-            pataComponente: valor === "default" ? (<Pata height={alturaPatas}></Pata>) : null
-        }));
-    };
-
+    const [indicePata, setIndicePata] = useState(-1);
 
     const patasOptions = [
-        {label: "Ninguna", value: "white"},
-        {image: "./textures/dark.jpg", label: "Default", value: "default"},
+        {label: "Ninguna", value: -1},
+        {image: "./textures/dark.jpg", label: "Default", value: 1},
     ];
 
+    //TODO Cambiar por índice igual que las patas
     const [estadoPuerta, setEstadoPuerta] = useState({
         puertaUI: "white",
         puertaComponente: null
@@ -88,7 +78,8 @@ const CascoInterface = () => {
             techoDentro,
             traseroDentro,
             offsetTrasero,
-            texture
+            texture,
+            indicePata,
         };
 
         // Solo inicializamos si no existe o está vacío
@@ -101,12 +92,15 @@ const CascoInterface = () => {
             const newDepth = ref.depth || depth;
             const newPataHeight = ref.alturaPatas || alturaPatas;
             const newEspesor = ref.espesor || espesor;
+            const newIndicePata = ref.indicePata ?? indicePata;
 
             setWidth(newWidth);
             setHeight(newHeight);
             setDepth(newDepth);
             setAlturaPatas(newPataHeight);
             setEspesor(newEspesor);
+
+            setIndicePata(newIndicePata);
 
             // Actualizar también los valores de los sliders
             setWidthSliderValue(newWidth);
@@ -144,14 +138,15 @@ const CascoInterface = () => {
             traseroDentro,
             offsetTrasero,
             texture,
-            pata: estadoPata["pataUI"], // Only store value or ID, not component
+            indicePata,
+            alturaPatas,
         };
 
         setRef(updatedConfig);
     }, [
         width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
-        sueloDentro, techoDentro, traseroDentro, offsetTrasero, texture, estadoPata["pataUI"],
+        sueloDentro, techoDentro, traseroDentro, offsetTrasero, texture, indicePata,
     ]);
 
     // Logica para deshabilitar opciones
@@ -316,16 +311,16 @@ const CascoInterface = () => {
 
                     <Title level={5}>Patas</Title>
                     <Form.Item>
-                        <ItemSelector options={patasOptions} currentValue={estadoPata["pataUI"]} onValueChange={cambiarPata} />
+                        <ItemSelector options={patasOptions} currentValue={indicePata} onValueChange={setIndicePata} />
                         <Form.Item label="Patas Height">
                             <Slider
-                                disabled={estadoPata["pataComponente"] === null}
+                                disabled={indicePata === -1}
                                 min={1}
-                                max={30}
+                                max={15}
                                 value={pataHeightSliderValue}
                                 onChange={(v) => {
                                     setPataHeightSliderValue(v);
-                                    setAlturaPatas(v);
+                                    setAlturaPatas(v / 100);
                                 }}
                             />
                         </Form.Item>
