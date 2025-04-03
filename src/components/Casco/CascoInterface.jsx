@@ -14,6 +14,15 @@ const CascoInterface = () => {
     const [depth, setDepth] = useState(2);
     const [pataHeight, setPataHeight] = useState(1);
     const [espesor, setEspesor] = useState(0.1);
+
+    // Estados para los sliders UI
+    const [widthSliderValue, setWidthSliderValue] = useState(200); // width * 100
+    const [heightSliderValue, setHeightSliderValue] = useState(200); // height * 100
+    const [depthSliderValue, setDepthSliderValue] = useState(200); // depth * 100
+    const [pataHeightSliderValue, setPataHeightSliderValue] = useState(1);
+    const [espesorSliderValue, setEspesorSliderValue] = useState(1); // espesor * 10
+    const [offsetTraseroSliderValue, setOffsetTraseroSliderValue] = useState(0);
+
     const [esquinaXTriangulada, setEsquinaXTriangulada] = useState(false);
     const [esquinaZTriangulada, setEsquinaZTriangulada] = useState(false);
     const [sueloDentro, setSueloDentro] = useState(false);
@@ -50,17 +59,35 @@ const CascoInterface = () => {
             setRef(initialConfig);
         } else {
             // Actualizamos el estado local con los valores del ref
-            setWidth(ref.width || width);
-            setHeight(ref.height || height);
-            setDepth(ref.depth || depth);
-            setPataHeight(ref.pataHeight || pataHeight);
-            setEspesor(ref.espesor || espesor);
+            const newWidth = ref.width || width;
+            const newHeight = ref.height || height;
+            const newDepth = ref.depth || depth;
+            const newPataHeight = ref.pataHeight || pataHeight;
+            const newEspesor = ref.espesor || espesor;
+
+            setWidth(newWidth);
+            setHeight(newHeight);
+            setDepth(newDepth);
+            setPataHeight(newPataHeight);
+            setEspesor(newEspesor);
+
+            // Actualizar también los valores de los sliders
+            setWidthSliderValue(newWidth);
+            setHeightSliderValue(newHeight);
+            setDepthSliderValue(newDepth * 100);
+            setPataHeightSliderValue(newPataHeight);
+            setEspesorSliderValue(newEspesor * 10);
+
             setEsquinaXTriangulada(ref.esquinaXTriangulada || false);
             setEsquinaZTriangulada(ref.esquinaZTriangulada || false);
             setSueloDentro(ref.sueloDentro || false);
             setTechoDentro(ref.techoDentro || false);
             setTraseroDentro(ref.traseroDentro !== undefined ? ref.traseroDentro : true);
-            setOffsetTrasero(ref.offsetTrasero || 0);
+
+            const newOffsetTrasero = ref.offsetTrasero || 0;
+            setOffsetTrasero(newOffsetTrasero);
+            setOffsetTraseroSliderValue(newOffsetTrasero);
+
             setTexture(ref.texture || texture);
         }
     }, []);
@@ -112,10 +139,12 @@ const CascoInterface = () => {
 
     // Limitamos el offset trasero
     useEffect(() => {
-        if (offsetTrasero > depth / 3) {
-            setOffsetTrasero(depth / 3);
+        const maxOffset = depth / 3;
+        if (offsetTrasero > maxOffset) {
+            setOffsetTrasero(maxOffset);
+            setOffsetTraseroSliderValue(maxOffset);
         }
-    }, [depth, offsetTrasero]);
+    }, [depth]);
 
     return (
         <BaseConfiguratorInterface title="Casco Configurator">
@@ -124,46 +153,60 @@ const CascoInterface = () => {
                 <Form>
                     <Form.Item label="Casco Width">
                         <Slider
-                            min={1}
-                            max={5}
-                            step={0.1}
-                            value={width}
-                            onChange={setWidth}
+                            min={100}
+                            max={500}
+                            value={widthSliderValue}
+                            onChange={(v) => {
+                                setWidthSliderValue(v);
+                                setWidth(v / 100);
+                            }}
                         />
                     </Form.Item>
                     <Form.Item label="Casco Height">
                         <Slider
-                            step={0.1}
-                            min={1}
-                            max={6}
-                            value={height}
-                            onChange={setHeight}
+                            step={1}
+                            min={100}
+                            max={600}
+                            value={heightSliderValue}
+                            onChange={(v) => {
+                                setHeightSliderValue(v);
+                                setHeight(v / 100);
+                            }}
                         />
                     </Form.Item>
                     <Form.Item label="Casco Depth">
                         <Slider
-                            step={0.1}
-                            min={1}
-                            max={4}
-                            value={depth}
-                            onChange={setDepth}
+                            step={1}
+                            min={100}
+                            max={400}
+                            value={depthSliderValue}
+                            onChange={(v) => {
+                                setDepthSliderValue(v);
+                                setDepth(v / 100);
+                            }}
                         />
                     </Form.Item>
                     <Form.Item label="Patas Height">
                         <Slider
-                            min={0}
+                            min={1}
                             max={30}
-                            value={pataHeight}
-                            onChange={setPataHeight}
+                            value={pataHeightSliderValue}
+                            onChange={(v) => {
+                                setPataHeightSliderValue(v);
+                                setPataHeight(v);
+                            }}
                         />
                     </Form.Item>
                     <Form.Item label="Espesor">
                         <Slider
-                            min={0.1}
-                            max={0.3}
-                            step={0.01}
-                            value={espesor}
-                            onChange={setEspesor}
+                            min={1}
+                            max={3}
+                            step={0.1}
+                            value={espesorSliderValue}
+                            onChange={(v) => {
+                                setEspesorSliderValue(v);
+                                setEspesor(v / 10);
+                            }}
                         />
                     </Form.Item>
                 </Form>
@@ -206,12 +249,15 @@ const CascoInterface = () => {
                     </Form.Item>
                     <Form.Item label="Offset Trasero">
                         <Slider
-                            step={0.01}
+                            step={0.1}
                             disabled={!traseroDentro}
                             min={0}
-                            max={depth / 3}
-                            value={offsetTrasero}
-                            onChange={setOffsetTrasero}
+                            max={depthSliderValue / 5}
+                            value={offsetTraseroSliderValue}
+                            onChange={(v) => {
+                                setOffsetTraseroSliderValue(v);
+                                setOffsetTrasero(v / 100);
+                            }}
                         />
                     </Form.Item>
                 </Form>
