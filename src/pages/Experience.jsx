@@ -7,9 +7,7 @@ import React from "react";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
-import {useCascoConfigurator} from '../contexts/useCascoConfigurator.jsx';
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
-
 
 
 const interfaceComponents = {
