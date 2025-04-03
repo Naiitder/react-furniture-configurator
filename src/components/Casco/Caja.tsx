@@ -2,7 +2,7 @@ import * as React from "react";
 import * as THREE from "three";
 import '@react-three/fiber';
 import BordeTriangular from "./BordeTriangular";
-import {useWoodMaterial} from "../../assets/materials";
+import {useMaterial} from "../../assets/materials";
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
