@@ -159,8 +159,8 @@ const CascoInterface = () => {
                     </Form.Item>
                     <Form.Item label="Espesor">
                         <Slider
-                            min={0}
-                            max={1}
+                            min={0.1}
+                            max={0.3}
                             step={0.01}
                             value={espesor}
                             onChange={setEspesor}
@@ -210,7 +210,7 @@ const CascoInterface = () => {
                             disabled={!traseroDentro}
                             min={0}
                             max={depth / 3}
-                            value={offsetTrasero.toString(2)}
+                            value={offsetTrasero}
                             onChange={setOffsetTrasero}
                         />
                     </Form.Item>

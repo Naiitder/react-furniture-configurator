@@ -96,7 +96,9 @@ const Casco: React.FC<CascoProps> = ({
         const mitadAncho = actualWidth / 2;
         const mitadProfundidad = actualDepth / 2;
 
-        const extraAltura = pata ? pata.props.height - actualEspesor * 5 : 0;
+        const extraAltura = pata ? (pata.props.height / 2.3): 0;
+
+        const alturaLaterales = (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0)
 
         return {
             suelo: [
@@ -113,13 +115,13 @@ const Casco: React.FC<CascoProps> = ({
 
             izquierda: [
                 -mitadAncho + actualEspesor / 2,
-                (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0) + extraAltura,
+                alturaLaterales + extraAltura,
                 !actualTraseroDentro ? actualEspesor / 2 : 0
             ] as [number, number, number],
 
             derecha: [
                 mitadAncho - actualEspesor / 2,
-                (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0) + extraAltura,
+                alturaLaterales + extraAltura,
                 !actualTraseroDentro ? actualEspesor / 2 : 0
             ] as [number, number, number],
 
