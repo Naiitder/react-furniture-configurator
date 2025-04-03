@@ -61,7 +61,6 @@ const Puerta: React.FC<PuertaProps> = ({
 
     return (
         <group position={position} onClick={handleClick}>
-
                 <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
                     <mesh geometry={geometry} material={materials.WoodWorn}>
                     </mesh>
