@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useRef, useEffect} from "react";
+import {useRef, useEffect, useState} from "react";
 import * as THREE from 'three';
 import Caja from "./Caja";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
@@ -163,6 +163,7 @@ const CascoSecciones: React.FC<CascoProps> = ({
 
     const materiales = useMaterial();
 
+    const [secciones, setSecciones] = useState(2);
 
     return (
         <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
@@ -276,7 +277,10 @@ const CascoSecciones: React.FC<CascoProps> = ({
                 </>
             )}
 
-            
+            {secciones > 0 && (<>
+                <group></group>
+                </>)}
+
 
         </group>
     );
