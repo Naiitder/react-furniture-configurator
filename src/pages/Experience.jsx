@@ -8,10 +8,13 @@ import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js"
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
+import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomaticas.tsx";
+import puerta from "../components/Casco/Puerta.js";
 
 
 const interfaceComponents = {
     "Casco": <CascoInterface/>,
+    "Casco Secciones": <CascoInterface/>,
 
 };
 
@@ -23,6 +26,11 @@ export const Experience = () => {
             patas={[<Pata height={1}/>]}
             puerta={<Puerta />}
         />,
+        "Casco Secciones": <CascoSeccionesAutomaticas
+            rotation={[0, Math.PI, 0]}
+            patas={[<Pata height={1}/>]}
+            puerta={<Puerta />}
+        />
     };
 
     const location = useLocation();
