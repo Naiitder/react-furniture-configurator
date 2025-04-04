@@ -33,7 +33,7 @@ const CascoInterface = () => {
     const [sueloDentro, setSueloDentro] = useState(false);
     const [techoDentro, setTechoDentro] = useState(false);
     const [traseroDentro, setTraseroDentro] = useState(true);
-    const [retranquearSuelo, setRetranquarSuelo] = useState(false);
+    const [retranquearSuelo, setRetranquearSuelo] = useState(false);
     const [retranqueoTrasero, setRetranqueoTrasero] = useState(0);
     const [texture, setTexture] = useState("./textures/oak.jpg");
 
@@ -122,7 +122,7 @@ const CascoInterface = () => {
             setEsquinaZTriangulada(ref.esquinaZTriangulada || false);
             setSueloDentro(ref.sueloDentro || false);
             setTechoDentro(ref.techoDentro || false);
-            setRetranquarSuelo(ref.retranquearSuelo || false);
+            setRetranquearSuelo(ref.retranquearSuelo || false);
             setTraseroDentro(ref.traseroDentro !== undefined ? ref.traseroDentro : true);
 
             const newRetranqueoTrasero = ref.retranqueoTrasero || 0;
@@ -132,6 +132,12 @@ const CascoInterface = () => {
             setTexture(ref.texture || texture);
         }
     }, []);
+
+    useEffect(() => {
+        if (!traseroDentro) {
+            setRetranquearSuelo(false);
+        }
+    }, [traseroDentro])
 
     useEffect(() => {
         if (!ref) return;
@@ -174,7 +180,7 @@ const CascoInterface = () => {
             setSueloDentro(false);
             setTechoDentro(false);
             setTraseroDentro(true);
-            setRetranquarSuelo(false);
+            setRetranquearSuelo(false);
         }
 
         if (esquinaZTriangulada) {
@@ -296,9 +302,9 @@ const CascoInterface = () => {
                     </Form.Item>
                     <Form.Item label="Retranquear suelo">
                         <Checkbox
-                            disabled={disabledOptions}
+                            disabled={!traseroDentro}
                             checked={retranquearSuelo}
-                            onChange={(e) => setRetranquarSuelo(e.target.checked)}
+                            onChange={(e) => setRetranquearSuelo(e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Retranqueo Trasero">
@@ -395,7 +401,7 @@ const CascoInterface = () => {
 
                     <Row gutter={16} justify="center">
                         <Col>
-                            <Card title="Conectores arrastrables" bordered={false}>
+                            <Card title="Conectores arrastrables" variant={"borderless"}>
                                 <p>Arrastra un conector al mueble para añadir una intersección:</p>
                                 <div style={{display: 'flex', justifyContent: 'center'}}>
                                     <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL}/>
