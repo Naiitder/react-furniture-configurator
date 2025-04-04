@@ -24,7 +24,7 @@ export const Experience = () => {
         "Casco": <Casco
             rotation={[0, Math.PI, 0]}
             patas={[<Pata height={1}/>]}
-            puerta={<Puerta />}
+            puertas={[<Puerta />]}
         />,
         "Casco Secciones": <CascoSeccionesAutomaticas
             rotation={[0, Math.PI, 0]}
@@ -44,7 +44,7 @@ export const Experience = () => {
     return (
         <>
             <Canvas shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
-                <Room positionY={3.5}/>
+                <Room positionY={3.89}/>
                 <Stage intensity={5} environment={null}
                        shadows="contact" adjustCamera={false}>
                         <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
