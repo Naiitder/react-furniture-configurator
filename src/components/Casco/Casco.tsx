@@ -113,7 +113,6 @@ const Casco: React.FC<CascoProps> = ({
         const mitadProfundidad = actualDepth / 2;
 
         const extraAltura = patas && indiceActualPata != -1 ? actualAlturaPatas : 0;
-        console.log(extraAltura)
 
         const alturaLaterales = (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0)
 
@@ -167,7 +166,6 @@ const Casco: React.FC<CascoProps> = ({
     ];
 
     const materiales = useMaterial();
-    console.log(materiales)
 
     return (
         <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
