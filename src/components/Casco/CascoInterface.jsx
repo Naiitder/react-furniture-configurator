@@ -1,4 +1,4 @@
-import {Slider, Form, Space, Checkbox, Typography, Card, Col, Divider, Row} from "antd";
+import {Slider, Form, Space, Checkbox, Typography, Divider, Row, Col, Card} from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
@@ -9,9 +9,10 @@ import {DndProvider} from "react-dnd";
 import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection.js";
 
 const {Title} = Typography;
+import TransformControlPanel from "../../pages/TransformControlPanel.js";
 
-const CascoInterface = () => {
-    const {ref, setRef} = useSelectedItemProvider();
+const CascoInterface = ({ show, setShow, mode, setMode }) => {
+    const { ref, setRef } = useSelectedItemProvider();
 
     // Inicializamos estados locales
     const [width, setWidth] = useState(2);
@@ -211,7 +212,7 @@ const CascoInterface = () => {
     }, [depth]);
 
     return (
-        <BaseConfiguratorInterface title="Casco Configurator">
+        <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode} setMode={setMode}>
             {/* Configuración de dimensiones */}
             <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
                 <Form>
