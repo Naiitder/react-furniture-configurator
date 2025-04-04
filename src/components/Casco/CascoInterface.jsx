@@ -1,4 +1,4 @@
-import {Slider, Form, Space, Checkbox, Typography} from "antd";
+import {Slider, Form, Space, Checkbox, Typography, Divider, Row, Col, Card} from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";

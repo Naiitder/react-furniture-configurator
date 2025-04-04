@@ -103,12 +103,12 @@ export const Experience = () => {
     const itemComponents = {
         "Casco": (
             <group ref={groupRef}>
-                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puerta={<Puerta />} />
+                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puertas={[<Puerta />]} />
             </group>
         ),
         "Casco Secciones": (
             <group ref={groupRef}>
-                <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puerta={<Puerta />} />
+                <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puertas={[<Puerta />]} />
             </group>
         ),
     };
@@ -133,9 +133,6 @@ export const Experience = () => {
             </Canvas>
             {interfaceComponents[selectedItem]}
             <RoomConfigPanel />
-            <TransformControlPanel
-
-            />
         </>
     );
 };
