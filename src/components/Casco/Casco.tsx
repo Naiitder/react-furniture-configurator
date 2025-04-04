@@ -23,7 +23,8 @@ type CascoProps = {
     patas?: React.ReactNode; // Array
     alturaPatas?: number;
     indicePata?: number;
-    puerta?: React.ReactNode;
+    puertas?: React.ReactNode;
+    indicePuerta?: number;
 }
 
 // Componente principal Casco
@@ -44,7 +45,8 @@ const Casco: React.FC<CascoProps> = ({
                                          patas = [],
                                          alturaPatas = 0.5,
                                          indicePata = -1,
-                                         puerta
+                                         puertas = [],
+                                         indicePuerta = -1,
                                      }) => {
     const groupRef = useRef<THREE.Group>(null);
     const {ref, setRef} = useSelectedItemProvider();
@@ -61,12 +63,18 @@ const Casco: React.FC<CascoProps> = ({
     }, [groupRef.current]);
 
     // Obtenemos las propiedades desde el contexto si están disponibles
-    const actualWidth = ref?.width || width;
     var indiceActualPata = ref?.indicePata || indicePata;
-
     if (indiceActualPata > 0) {
         indiceActualPata--;
     }
+
+    var indiceActualPuerta = ref?.indicePuerta || indicePuerta;
+    if (indiceActualPuerta > 0) {
+        indiceActualPuerta--;
+    }
+
+
+    const actualWidth = ref?.width || width;
     const actualAlturaPatas = ref?.alturaPatas || alturaPatas;
     const actualHeight = ref?.height || height;
     const actualDepth = ref?.depth || depth;
@@ -255,9 +263,9 @@ const Casco: React.FC<CascoProps> = ({
             )}
 
             {/* Renderizar puerta en la parte frontal */}
-            {puerta && (
+            {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
                 <>
-                    {React.cloneElement(puerta, {
+                    {React.cloneElement(puertas[indiceActualPuerta], {
                         position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
                         width: actualWidth > 2 ? actualWidth / 2 : actualWidth,
                         height: actualHeight,
@@ -267,7 +275,7 @@ const Casco: React.FC<CascoProps> = ({
 
                     {actualWidth > 2 && (
                         <>
-                            {React.cloneElement(puerta, {
+                            {React.cloneElement(puertas[indiceActualPuerta], {
                                 position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
                                 width: actualWidth / 2,
                                 height: actualHeight,

@@ -4,6 +4,10 @@ import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
 import {useEffect, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import {HTML5Backend} from "react-dnd-html5-backend";
+import {DndProvider} from "react-dnd";
+import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection.js";
+
 const {Title} = Typography;
 import TransformControlPanel from "../../pages/TransformControlPanel.js";
 
@@ -30,13 +34,16 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
     const [sueloDentro, setSueloDentro] = useState(false);
     const [techoDentro, setTechoDentro] = useState(false);
     const [traseroDentro, setTraseroDentro] = useState(true);
-    const [retranquearSuelo, setRetranquarSuelo] = useState(false);
+    const [retranquearSuelo, setRetranquearSuelo] = useState(false);
     const [retranqueoTrasero, setRetranqueoTrasero] = useState(0);
     const [texture, setTexture] = useState("./textures/oak.jpg");
 
 
     const [disabledOptions, setDisabledOptions] = useState(false);
     const [disableSueloDentro, setDisableSueloDentro] = useState(false);
+
+    const [enableConnectors, setEnableConnectors] = useState(true);
+    const [connectionThickness, setConnectionThickness] = useState(0.1);
 
     const textureOptions = [
         {image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg"},
@@ -51,23 +58,11 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
         {image: "./images/ImagenPata.png", label: "Default", value: 1},
     ];
 
-    //TODO Cambiar por índice igual que las patas
-    const [estadoPuerta, setEstadoPuerta] = useState({
-        puertaUI: "white",
-        puertaComponente: null
-    });
-
-    const cambiarPuerta = (valor) => {
-        setEstadoPuerta(() => ({
-            puertaUI: valor,
-            puertaComponente: valor === "default" ? "Puertita" : null
-        }));
-    };
-
+    const [indicePuerta, setIndicePuerta] = useState(-1);
 
     const puertaOptions = [
-        {label: "Ninguna", value: "white"},
-        {image: "./textures/dark.jpg", label: "Default", value: "default"},
+        {label: "Ninguna", value: -1},
+        {image: "./textures/dark.jpg", label: "Default", value: 1},
     ];
 
     // Inicializar el estado compartido al cargar la interfaz
@@ -85,6 +80,9 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             retranqueoTrasero,
             texture,
             indicePata,
+            indicePuerta,
+            enableConnectors,
+            connectionThickness,
         };
 
         // Solo inicializamos si no existe o está vacío
@@ -97,7 +95,10 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             const newDepth = ref.depth || depth;
             const newPataHeight = ref.alturaPatas || alturaPatas;
             const newEspesor = ref.espesor || espesor;
+            const newEnableConnectors = ref.enableConnectors || enableConnectors;
+            const newConnectionThickness = ref.connectionThickness || connectionThickness;
             const newIndicePata = ref.indicePata ?? indicePata;
+            const newIndicePuerta = ref.indicePuerta ?? indicePuerta;
 
             setWidth(newWidth);
             setHeight(newHeight);
@@ -106,6 +107,10 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             setEspesor(newEspesor);
 
             setIndicePata(newIndicePata);
+            setIndicePuerta(newIndicePuerta);
+
+            setEnableConnectors(newEnableConnectors);
+            setConnectionThickness(newConnectionThickness);
 
             // Actualizar también los valores de los sliders
             setWidthSliderValue(newWidth);
@@ -118,7 +123,7 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             setEsquinaZTriangulada(ref.esquinaZTriangulada || false);
             setSueloDentro(ref.sueloDentro || false);
             setTechoDentro(ref.techoDentro || false);
-            setRetranquarSuelo(ref.retranquearSuelo || false);
+            setRetranquearSuelo(ref.retranquearSuelo || false);
             setTraseroDentro(ref.traseroDentro !== undefined ? ref.traseroDentro : true);
 
             const newRetranqueoTrasero = ref.retranqueoTrasero || 0;
@@ -128,6 +133,12 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             setTexture(ref.texture || texture);
         }
     }, []);
+
+    useEffect(() => {
+        if (!traseroDentro) {
+            setRetranquearSuelo(false);
+        }
+    }, [traseroDentro])
 
     useEffect(() => {
         if (!ref) return;
@@ -147,13 +158,18 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             texture,
             indicePata,
             alturaPatas,
+            indicePuerta,
+            enableConnectors,
+            connectionThickness
         };
 
         setRef(updatedConfig);
     }, [
         width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
-        sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo
+        sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo, indicePuerta,
+        enableConnectors,
+        connectionThickness
     ]);
 
     // Logica para deshabilitar opciones
@@ -165,7 +181,7 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             setSueloDentro(false);
             setTechoDentro(false);
             setTraseroDentro(true);
-            setRetranquarSuelo(false);
+            setRetranquearSuelo(false);
         }
 
         if (esquinaZTriangulada) {
@@ -287,9 +303,9 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
                     </Form.Item>
                     <Form.Item label="Retranquear suelo">
                         <Checkbox
-                            disabled={disabledOptions}
+                            disabled={!traseroDentro}
                             checked={retranquearSuelo}
-                            onChange={(e) => setRetranquarSuelo(e.target.checked)}
+                            onChange={(e) => setRetranquearSuelo(e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Retranqueo Trasero">
@@ -338,7 +354,8 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
 
                     <Title level={5}>Patas</Title>
                     <Form.Item>
-                        <ItemSelector options={patasOptions} currentValue={indicePata} onValueChange={setIndicePata} />
+                        <ItemSelector options={patasOptions} currentValue={indicePata}
+                                      onValueChange={setIndicePata}/>
                         <Form.Item label="Patas Height">
                             <Slider
                                 disabled={indicePata === -1}
@@ -355,10 +372,53 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
 
                     <Title level={5}>Puertas</Title>
                     <Form.Item>
-                        <ItemSelector options={puertaOptions} currentValue={estadoPuerta["puertaUI"]} onValueChange={cambiarPuerta} />
+                        <ItemSelector options={puertaOptions} currentValue={indicePuerta}
+                                      onValueChange={setIndicePuerta}/>
                     </Form.Item>
                 </Form>
             </div>
+
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
+                <Title level={4}>Intersecciones</Title>
+                <Form>
+                    <Form.Item label="Habilitar conectores">
+                        <Checkbox
+                            checked={enableConnectors}
+                            onChange={(e) => setEnableConnectors(e.target.checked)}
+                        />
+                    </Form.Item>
+
+                    <Form.Item label="Grosor de conexión">
+                        <Slider
+                            disabled={!enableConnectors}
+                            min={1}
+                            max={20}
+                            value={connectionThickness * 100}
+                            onChange={(v) => setConnectionThickness(v / 100)}
+                        />
+                    </Form.Item>
+
+                    <Divider>Arrastra un conector a la escena</Divider>
+
+                    <Row gutter={16} justify="center">
+                        <Col>
+                            <Card title="Conectores arrastrables" variant={"borderless"}>
+                                <p>Arrastra un conector al mueble para añadir una intersección:</p>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL}/>
+                                </div>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL}/>
+                                </div>
+                                <p style={{marginTop: '10px', fontSize: '12px', color: 'gray'}}>
+                                    Suelta el conector sobre el objeto para crear una conexión.
+                                </p>
+                            </Card>
+                        </Col>
+                    </Row>
+                </Form>
+            </div>
+
         </BaseConfiguratorInterface>
     );
 };
