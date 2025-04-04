@@ -275,6 +275,9 @@ const CascoSecciones: React.FC<CascoProps> = ({
                     )}
                 </>
             )}
+
+            
+
         </group>
     );
 };
