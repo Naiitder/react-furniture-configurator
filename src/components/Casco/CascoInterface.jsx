@@ -4,10 +4,11 @@ import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
 import {useEffect, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+
 const {Title} = Typography;
 
 const CascoInterface = () => {
-    const { ref, setRef } = useSelectedItemProvider();
+    const {ref, setRef} = useSelectedItemProvider();
 
     // Inicializamos estados locales
     const [width, setWidth] = useState(2);
@@ -50,23 +51,11 @@ const CascoInterface = () => {
         {image: "./textures/dark.jpg", label: "Default", value: 1},
     ];
 
-    //TODO Cambiar por índice igual que las patas
-    const [estadoPuerta, setEstadoPuerta] = useState({
-        puertaUI: "white",
-        puertaComponente: null
-    });
-
-    const cambiarPuerta = (valor) => {
-        setEstadoPuerta(() => ({
-            puertaUI: valor,
-            puertaComponente: valor === "default" ? "Puertita" : null
-        }));
-    };
-
+    const [indicePuerta, setIndicePuerta] = useState(-1);
 
     const puertaOptions = [
-        {label: "Ninguna", value: "white"},
-        {image: "./textures/dark.jpg", label: "Default", value: "default"},
+        {label: "Ninguna", value: -1},
+        {image: "./textures/dark.jpg", label: "Default", value: 1},
     ];
 
     // Inicializar el estado compartido al cargar la interfaz
@@ -84,6 +73,7 @@ const CascoInterface = () => {
             retranqueoTrasero,
             texture,
             indicePata,
+            indicePuerta,
         };
 
         // Solo inicializamos si no existe o está vacío
@@ -97,6 +87,7 @@ const CascoInterface = () => {
             const newPataHeight = ref.alturaPatas || alturaPatas;
             const newEspesor = ref.espesor || espesor;
             const newIndicePata = ref.indicePata ?? indicePata;
+            const newIndicePuerta = ref.indicePuerta ?? indicePuerta;
 
             setWidth(newWidth);
             setHeight(newHeight);
@@ -105,6 +96,7 @@ const CascoInterface = () => {
             setEspesor(newEspesor);
 
             setIndicePata(newIndicePata);
+            setIndicePuerta(newIndicePuerta);
 
             // Actualizar también los valores de los sliders
             setWidthSliderValue(newWidth);
@@ -146,13 +138,14 @@ const CascoInterface = () => {
             texture,
             indicePata,
             alturaPatas,
+            indicePuerta,
         };
 
         setRef(updatedConfig);
     }, [
         width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
-        sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo
+        sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo, indicePuerta
     ]);
 
     // Logica para deshabilitar opciones
@@ -337,7 +330,7 @@ const CascoInterface = () => {
 
                     <Title level={5}>Patas</Title>
                     <Form.Item>
-                        <ItemSelector options={patasOptions} currentValue={indicePata} onValueChange={setIndicePata} />
+                        <ItemSelector options={patasOptions} currentValue={indicePata} onValueChange={setIndicePata}/>
                         <Form.Item label="Patas Height">
                             <Slider
                                 disabled={indicePata === -1}
@@ -354,7 +347,8 @@ const CascoInterface = () => {
 
                     <Title level={5}>Puertas</Title>
                     <Form.Item>
-                        <ItemSelector options={puertaOptions} currentValue={estadoPuerta["puertaUI"]} onValueChange={cambiarPuerta} />
+                        <ItemSelector options={puertaOptions} currentValue={indicePuerta}
+                                      onValueChange={setIndicePuerta}/>
                     </Form.Item>
                 </Form>
             </div>
