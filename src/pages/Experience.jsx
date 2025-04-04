@@ -1,14 +1,15 @@
-import {useRef, useState, useEffect} from "react";
-import {Canvas} from "@react-three/fiber";
-import {TransformControls, OrbitControls, Environment, Stage} from "@react-three/drei";
-import {useLocation} from "react-router-dom";
+import { useRef, useState, useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
+import { TransformControls, OrbitControls, Environment, Stage } from "@react-three/drei";
+import { useLocation } from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
 import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomaticas.tsx";
-import {Room} from "../components/Enviroment/Room.jsx";
+import { Room } from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
+import TransformControlPanel from "./TransformControlPanel"; // ajusta la ruta
 
 export const Experience = () => {
     const groupRef = useRef();
@@ -89,29 +90,35 @@ export const Experience = () => {
     }, []);
 
     const interfaceComponents = {
-        "Casco": <CascoInterface/>,
-        "Casco Secciones": <CascoInterface/>,
+        "Casco": <CascoInterface                 show={transformEnabled}
+                                                 setShow={setTransformEnabled}
+                                                 mode={transformMode}
+                                                 setMode={setTransformMode}/>,
+        "Casco Secciones": <CascoInterface                 show={transformEnabled}
+                                                           setShow={setTransformEnabled}
+                                                           mode={transformMode}
+                                                           setMode={setTransformMode} />,
     };
 
     const itemComponents = {
         "Casco": (
             <group ref={groupRef}>
-                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puerta={<Puerta/>}/>
+                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puerta={<Puerta />} />
             </group>
         ),
         "Casco Secciones": (
             <group ref={groupRef}>
-                <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puerta={<Puerta/>}/>
+                <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puerta={<Puerta />} />
             </group>
         ),
     };
 
     return (
         <>
-            <Canvas shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
-                <Room positionY={3.5}/>
+            <Canvas shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }}>
+                <Room positionY={3.5} />
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
-                    <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
+                    <Environment files={"/images/poly_haven_studio_4k.hdr"} />
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && (
@@ -122,10 +129,13 @@ export const Experience = () => {
                         onMouseUp={saveTransformState}
                     />
                 )}
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
             {interfaceComponents[selectedItem]}
-            <RoomConfigPanel/>
+            <RoomConfigPanel />
+            <TransformControlPanel
+
+            />
         </>
     );
 };

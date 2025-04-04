@@ -5,8 +5,9 @@ import TextureUploader from "../TextureUploader.jsx";
 import {useEffect, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
 const {Title} = Typography;
+import TransformControlPanel from "../../pages/TransformControlPanel.js";
 
-const CascoInterface = () => {
+const CascoInterface = ({ show, setShow, mode, setMode }) => {
     const { ref, setRef } = useSelectedItemProvider();
 
     // Inicializamos estados locales
@@ -195,7 +196,7 @@ const CascoInterface = () => {
     }, [depth]);
 
     return (
-        <BaseConfiguratorInterface title="Casco Configurator">
+        <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode} setMode={setMode}>
             {/* Configuración de dimensiones */}
             <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
                 <Form>
@@ -358,7 +359,6 @@ const CascoInterface = () => {
                     </Form.Item>
                 </Form>
             </div>
-
         </BaseConfiguratorInterface>
     );
 };
