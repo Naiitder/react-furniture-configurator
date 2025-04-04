@@ -16,7 +16,8 @@ type CascoProps = {
     sueloDentro?: boolean;
     techoDentro?: boolean;
     traseroDentro?: boolean;
-    offsetTrasero?: number;
+    retranqueoTrasero?: number;
+    retranquearSuelo?: boolean;
     esquinaXTriangulada?: boolean;
     esquinaZTriangulada?: boolean;
     patas?: React.ReactNode; // Array
@@ -33,7 +34,8 @@ const Casco: React.FC<CascoProps> = ({
                                          espesor = 0.1,
                                          position = [0, 0, 0],
                                          rotation = [0, 0, 0],
-                                         offsetTrasero = 0,
+                                         retranqueoTrasero = 0,
+                                         retranquearSuelo = false,
                                          sueloDentro = false,
                                          techoDentro = false,
                                          traseroDentro = false,
@@ -69,7 +71,8 @@ const Casco: React.FC<CascoProps> = ({
     const actualHeight = ref?.height || height;
     const actualDepth = ref?.depth || depth;
     const actualEspesor = ref?.espesor || espesor;
-    const actualOffsetTrasero = ref?.offsetTrasero ?? offsetTrasero;
+    const actualRetranqueoTrasero = ref?.retranqueoTrasero ?? retranqueoTrasero;
+    const actualRetranquearSuelo = ref?.retranquearSuelo ?? retranquearSuelo;
     const actualSueloDentro = ref?.sueloDentro ?? sueloDentro;
     const actualTechoDentro = ref?.techoDentro ?? techoDentro;
     const actualTraseroDentro = ref?.traseroDentro ?? traseroDentro;
@@ -78,21 +81,23 @@ const Casco: React.FC<CascoProps> = ({
 
     // Calcular dimensiones ajustadas para evitar solapamientos
     const calcularDimensiones = () => {
+        const offsetDepthTraseroDentro = actualTraseroDentro ? actualDepth : actualDepth - (actualEspesor);
+
         return {
             suelo: {
                 width: actualSueloDentro ? actualWidth - (actualEspesor * 2) : actualWidth,
                 height: actualEspesor,
-                depth: actualSueloDentro ? actualTraseroDentro ? actualDepth : actualDepth - (actualEspesor) : actualDepth
+                depth: (actualSueloDentro ? offsetDepthTraseroDentro : actualDepth) - (actualRetranquearSuelo ? ((actualRetranqueoTrasero - actualEspesor) + (actualEspesor % 2)) : 0),
             },
             techo: {
                 width: actualTechoDentro ? actualWidth - (actualEspesor * 2) : actualWidth,
                 height: actualEspesor,
-                depth: actualTechoDentro ? actualTraseroDentro ? actualDepth : actualDepth - (actualEspesor) : actualDepth
+                depth: actualTechoDentro ? offsetDepthTraseroDentro : actualDepth
             },
             lateral: {
                 width: actualEspesor,
                 height: actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor : 0),
-                depth: !actualTraseroDentro ? actualDepth - (actualEspesor) : actualDepth
+                depth: offsetDepthTraseroDentro
             },
             trasero: {
                 width: actualTraseroDentro ? actualWidth - (actualEspesor * 2) : actualWidth,
@@ -116,7 +121,7 @@ const Casco: React.FC<CascoProps> = ({
             suelo: [
                 0,
                 (actualEspesor / 2) + extraAltura,
-                actualSueloDentro && !actualTraseroDentro ? actualEspesor / 2 : 0
+                (actualSueloDentro && !actualTraseroDentro ? actualEspesor / 2 : 0) + (actualRetranquearSuelo ? actualRetranqueoTrasero / 2 : 0),
             ] as [number, number, number],
 
             techo: [
@@ -140,7 +145,7 @@ const Casco: React.FC<CascoProps> = ({
             trasero: [
                 0,
                 (actualHeight - (actualSueloDentro ? (actualSueloDentro && !actualTraseroDentro) ? 0 : actualEspesor : actualEspesor) - (actualTechoDentro ? (actualTechoDentro && !actualTraseroDentro) ? 0 : actualEspesor : actualEspesor)) / 2 + (actualSueloDentro ? (actualSueloDentro && !actualTraseroDentro) ? 0 : actualEspesor : actualEspesor) + extraAltura,
-                (-mitadProfundidad + actualEspesor / 2) + (actualTraseroDentro ? actualOffsetTrasero : 0)
+                (-mitadProfundidad + actualEspesor / 2) + (actualTraseroDentro ? actualRetranqueoTrasero : 0)
             ] as [number, number, number],
 
             puerta: [
