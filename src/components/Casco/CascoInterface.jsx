@@ -22,16 +22,20 @@ const CascoInterface = () => {
     const [depthSliderValue, setDepthSliderValue] = useState(200); // depth * 100
     const [pataHeightSliderValue, setPataHeightSliderValue] = useState(1);
     const [espesorSliderValue, setEspesorSliderValue] = useState(20);
-    const [offsetTraseroSliderValue, setOffsetTraseroSliderValue] = useState(0);
+    const [retranqueoTraseroSliderValue, setRetranqueoTraseroSliderValue] = useState(0);
 
     const [esquinaXTriangulada, setEsquinaXTriangulada] = useState(false);
     const [esquinaZTriangulada, setEsquinaZTriangulada] = useState(false);
     const [sueloDentro, setSueloDentro] = useState(false);
     const [techoDentro, setTechoDentro] = useState(false);
     const [traseroDentro, setTraseroDentro] = useState(true);
-    const [offsetTrasero, setOffsetTrasero] = useState(0);
+    const [retranquearSuelo, setRetranquarSuelo] = useState(false);
+    const [retranqueoTrasero, setRetranqueoTrasero] = useState(0);
     const [texture, setTexture] = useState("./textures/oak.jpg");
+
+
     const [disabledOptions, setDisabledOptions] = useState(false);
+    const [disableSueloDentro, setDisableSueloDentro] = useState(false);
 
     const textureOptions = [
         {image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg"},
@@ -77,7 +81,7 @@ const CascoInterface = () => {
             sueloDentro,
             techoDentro,
             traseroDentro,
-            offsetTrasero,
+            retranqueoTrasero,
             texture,
             indicePata,
         };
@@ -113,11 +117,12 @@ const CascoInterface = () => {
             setEsquinaZTriangulada(ref.esquinaZTriangulada || false);
             setSueloDentro(ref.sueloDentro || false);
             setTechoDentro(ref.techoDentro || false);
+            setRetranquarSuelo(ref.retranquearSuelo || false);
             setTraseroDentro(ref.traseroDentro !== undefined ? ref.traseroDentro : true);
 
-            const newOffsetTrasero = ref.offsetTrasero || 0;
-            setOffsetTrasero(newOffsetTrasero);
-            setOffsetTraseroSliderValue(newOffsetTrasero);
+            const newRetranqueoTrasero = ref.retranqueoTrasero || 0;
+            setRetranqueoTrasero(newRetranqueoTrasero);
+            setRetranqueoTraseroSliderValue(newRetranqueoTrasero);
 
             setTexture(ref.texture || texture);
         }
@@ -136,7 +141,8 @@ const CascoInterface = () => {
             sueloDentro,
             techoDentro,
             traseroDentro,
-            offsetTrasero,
+            retranqueoTrasero,
+            retranquearSuelo,
             texture,
             indicePata,
             alturaPatas,
@@ -146,7 +152,7 @@ const CascoInterface = () => {
     }, [
         width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
-        sueloDentro, techoDentro, traseroDentro, offsetTrasero, texture, indicePata,
+        sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo
     ]);
 
     // Logica para deshabilitar opciones
@@ -158,6 +164,7 @@ const CascoInterface = () => {
             setSueloDentro(false);
             setTechoDentro(false);
             setTraseroDentro(true);
+            setRetranquarSuelo(false);
         }
 
         if (esquinaZTriangulada) {
@@ -166,12 +173,24 @@ const CascoInterface = () => {
         }
     }, [esquinaXTriangulada, esquinaZTriangulada]);
 
+    useEffect(() => {
+        if (!retranquearSuelo) {
+            setDisableSueloDentro(false)
+            return
+        }
+
+        setDisableSueloDentro(true);
+        setSueloDentro(true);
+
+    }, [retranquearSuelo]);
+
+
     // Limitamos el offset trasero
     useEffect(() => {
         const maxOffset = depth / 3;
-        if (offsetTrasero > maxOffset) {
-            setOffsetTrasero(maxOffset);
-            setOffsetTraseroSliderValue(maxOffset);
+        if (retranqueoTrasero > maxOffset) {
+            setRetranqueoTrasero(maxOffset);
+            setRetranqueoTraseroSliderValue(maxOffset);
         }
     }, [depth]);
 
@@ -246,7 +265,7 @@ const CascoInterface = () => {
                     </Form.Item>
                     <Form.Item label="Suelo dentro">
                         <Checkbox
-                            disabled={disabledOptions}
+                            disabled={disabledOptions || disableSueloDentro}
                             checked={sueloDentro}
                             onChange={(e) => setSueloDentro(e.target.checked)}
                         />
@@ -265,16 +284,23 @@ const CascoInterface = () => {
                             onChange={(e) => setTraseroDentro(e.target.checked)}
                         />
                     </Form.Item>
-                    <Form.Item label="Offset Trasero">
+                    <Form.Item label="Retranquear suelo">
+                        <Checkbox
+                            disabled={disabledOptions}
+                            checked={retranquearSuelo}
+                            onChange={(e) => setRetranquarSuelo(e.target.checked)}
+                        />
+                    </Form.Item>
+                    <Form.Item label="Retranqueo Trasero">
                         <Slider
                             step={0.1}
                             disabled={!traseroDentro}
                             min={0}
                             max={depthSliderValue / 5}
-                            value={offsetTraseroSliderValue}
+                            value={retranqueoTraseroSliderValue}
                             onChange={(v) => {
-                                setOffsetTraseroSliderValue(v);
-                                setOffsetTrasero(v / 100);
+                                setRetranqueoTraseroSliderValue(v);
+                                setRetranqueoTrasero(v / 100);
                             }}
                         />
                     </Form.Item>
