@@ -1,9 +1,12 @@
-import {Slider, Form, Space, Checkbox, Typography} from "antd";
+import {Slider, Form, Space, Checkbox, Typography, Card, Col, Divider, Row} from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
 import {useEffect, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import {HTML5Backend} from "react-dnd-html5-backend";
+import {DndProvider} from "react-dnd";
+import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection.js";
 
 const {Title} = Typography;
 
@@ -37,6 +40,9 @@ const CascoInterface = () => {
 
     const [disabledOptions, setDisabledOptions] = useState(false);
     const [disableSueloDentro, setDisableSueloDentro] = useState(false);
+
+    const [enableConnectors, setEnableConnectors] = useState(true);
+    const [connectionThickness, setConnectionThickness] = useState(0.1);
 
     const textureOptions = [
         {image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg"},
@@ -74,6 +80,8 @@ const CascoInterface = () => {
             texture,
             indicePata,
             indicePuerta,
+            enableConnectors,
+            connectionThickness,
         };
 
         // Solo inicializamos si no existe o está vacío
@@ -86,6 +94,8 @@ const CascoInterface = () => {
             const newDepth = ref.depth || depth;
             const newPataHeight = ref.alturaPatas || alturaPatas;
             const newEspesor = ref.espesor || espesor;
+            const newEnableConnectors = ref.enableConnectors || enableConnectors;
+            const newConnectionThickness = ref.connectionThickness || connectionThickness;
             const newIndicePata = ref.indicePata ?? indicePata;
             const newIndicePuerta = ref.indicePuerta ?? indicePuerta;
 
@@ -97,6 +107,9 @@ const CascoInterface = () => {
 
             setIndicePata(newIndicePata);
             setIndicePuerta(newIndicePuerta);
+
+            setEnableConnectors(newEnableConnectors);
+            setConnectionThickness(newConnectionThickness);
 
             // Actualizar también los valores de los sliders
             setWidthSliderValue(newWidth);
@@ -139,13 +152,17 @@ const CascoInterface = () => {
             indicePata,
             alturaPatas,
             indicePuerta,
+            enableConnectors,
+            connectionThickness
         };
 
         setRef(updatedConfig);
     }, [
         width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
-        sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo, indicePuerta
+        sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo, indicePuerta,
+        enableConnectors,
+        connectionThickness
     ]);
 
     // Logica para deshabilitar opciones
@@ -330,7 +347,8 @@ const CascoInterface = () => {
 
                     <Title level={5}>Patas</Title>
                     <Form.Item>
-                        <ItemSelector options={patasOptions} currentValue={indicePata} onValueChange={setIndicePata}/>
+                        <ItemSelector options={patasOptions} currentValue={indicePata}
+                                      onValueChange={setIndicePata}/>
                         <Form.Item label="Patas Height">
                             <Slider
                                 disabled={indicePata === -1}
@@ -350,6 +368,47 @@ const CascoInterface = () => {
                         <ItemSelector options={puertaOptions} currentValue={indicePuerta}
                                       onValueChange={setIndicePuerta}/>
                     </Form.Item>
+                </Form>
+            </div>
+
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
+                <Title level={4}>Intersecciones</Title>
+                <Form>
+                    <Form.Item label="Habilitar conectores">
+                        <Checkbox
+                            checked={enableConnectors}
+                            onChange={(e) => setEnableConnectors(e.target.checked)}
+                        />
+                    </Form.Item>
+
+                    <Form.Item label="Grosor de conexión">
+                        <Slider
+                            disabled={!enableConnectors}
+                            min={1}
+                            max={20}
+                            value={connectionThickness * 100}
+                            onChange={(v) => setConnectionThickness(v / 100)}
+                        />
+                    </Form.Item>
+
+                    <Divider>Arrastra un conector a la escena</Divider>
+
+                    <Row gutter={16} justify="center">
+                        <Col>
+                            <Card title="Conectores arrastrables" bordered={false}>
+                                <p>Arrastra un conector al mueble para añadir una intersección:</p>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL}/>
+                                </div>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL}/>
+                                </div>
+                                <p style={{marginTop: '10px', fontSize: '12px', color: 'gray'}}>
+                                    Suelta el conector sobre el objeto para crear una conexión.
+                                </p>
+                            </Card>
+                        </Col>
+                    </Row>
                 </Form>
             </div>
 
