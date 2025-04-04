@@ -8,7 +8,7 @@ type TrianguloProps = {
     rotation?: [number, number, number];
     espesor: number;  // grosor de la profundidad
     depth: number;    // profundidad
-    color: string;
+    color: THREE.Material;
     shapeType: "topToLeft" | "topToRight" | "bottomToLeft" | "bottomToRight";
 }
 
@@ -55,15 +55,14 @@ const BordeTriangular: React.FC<TrianguloProps> = ({position, rotation = [0, 0, 
     }, [shape, depth]);
 
     // Crear el material con el color proporcionado
-    const material = useMemo(() => new THREE.MeshStandardMaterial({ color, wireframe: false }), [color]);
 
     // Crear la malla del triángulo extruido
     const mesh = useMemo(() => {
-        const mesh = new THREE.Mesh(geometry, material);
+        const mesh = new THREE.Mesh(geometry, color);
         mesh.position.set(...position);
         mesh.rotation.set(...rotation);
         return mesh;
-    }, [geometry, material, position, rotation]);
+    }, [geometry, color, position, rotation]);
 
     return (
         <primitive object={mesh} />

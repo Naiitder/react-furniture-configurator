@@ -3,6 +3,7 @@ import {useRef, useEffect} from "react";
 import * as THREE from 'three';
 import Caja from "./Caja";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import {useMaterial} from "../../assets/materials";
 
 // Props para el componente Casco
 type CascoProps = {
@@ -165,6 +166,9 @@ const Casco: React.FC<CascoProps> = ({
         position[2]
     ];
 
+    const materiales = useMaterial();
+    console.log(materiales)
+
     return (
         <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
             {/* Caja inferior (suelo) */}
@@ -174,7 +178,7 @@ const Casco: React.FC<CascoProps> = ({
                 width={dimensiones.suelo.width}
                 height={dimensiones.suelo.height}
                 depth={dimensiones.suelo.depth}
-                color="#ff0000"
+                color={materiales.OakWood}
                 posicionCaja={"bottom"}
                 bordesTriangulados={actualEsquinaXTriangulada}
                 bordeEjeY={false}
@@ -187,7 +191,7 @@ const Casco: React.FC<CascoProps> = ({
                 width={dimensiones.lateral.width}
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
-                color="#0000ff"
+                color={materiales.DarkWood}
                 posicionCaja={"left"}
                 bordesTriangulados={actualEsquinaXTriangulada}
             />
@@ -199,7 +203,7 @@ const Casco: React.FC<CascoProps> = ({
                 width={dimensiones.lateral.width}
                 height={dimensiones.lateral.height}
                 depth={dimensiones.lateral.depth}
-                color="#0000ff"
+                color={materiales.DarkWood}
                 posicionCaja={"right"}
                 bordesTriangulados={actualEsquinaXTriangulada}
             />
@@ -211,7 +215,7 @@ const Casco: React.FC<CascoProps> = ({
                 width={dimensiones.trasero.width}
                 height={dimensiones.trasero.height}
                 depth={dimensiones.trasero.depth}
-                color="#ffff00"
+                color={materiales.DarkWood}
                 bordesTriangulados={false}
             />
 
@@ -222,7 +226,7 @@ const Casco: React.FC<CascoProps> = ({
                 width={dimensiones.techo.width}
                 height={dimensiones.techo.height}
                 depth={dimensiones.techo.depth}
-                color="#ff0000"
+                color={materiales.OakWood}
                 posicionCaja={"top"}
                 bordesTriangulados={actualEsquinaXTriangulada || actualEsquinaZTriangulada}
                 bordeEjeY={false}
