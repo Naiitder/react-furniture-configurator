@@ -14,14 +14,14 @@ const CascoInterface = () => {
     const [height, setHeight] = useState(2);
     const [depth, setDepth] = useState(2);
     const [alturaPatas, setAlturaPatas] = useState(0.01);
-    const [espesor, setEspesor] = useState(0.2);
+    const [espesor, setEspesor] = useState(0.1);
 
     // Estados para los sliders UI
     const [widthSliderValue, setWidthSliderValue] = useState(200); // width * 100
     const [heightSliderValue, setHeightSliderValue] = useState(200); // height * 100
     const [depthSliderValue, setDepthSliderValue] = useState(200); // depth * 100
     const [pataHeightSliderValue, setPataHeightSliderValue] = useState(1);
-    const [espesorSliderValue, setEspesorSliderValue] = useState(20);
+    const [espesorSliderValue, setEspesorSliderValue] = useState(10);
     const [retranqueoTraseroSliderValue, setRetranqueoTraseroSliderValue] = useState(0);
 
     const [esquinaXTriangulada, setEsquinaXTriangulada] = useState(false);

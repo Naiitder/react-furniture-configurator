@@ -26,7 +26,7 @@ type CascoProps = {
 }
 
 // Componente principal Casco
-const CascoSecciones: React.FC<CascoProps> = ({
+const CascoSeccionesAutomaticas: React.FC<CascoProps> = ({
                                          width = 2,
                                          height = 2,
                                          depth = 2,
@@ -108,7 +108,6 @@ const CascoSecciones: React.FC<CascoProps> = ({
         const mitadProfundidad = actualDepth / 2;
 
         const extraAltura = patas && indiceActualPata != -1 ? actualAlturaPatas : 0;
-        console.log(extraAltura)
 
         const alturaLaterales = (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0)
 
@@ -164,6 +163,22 @@ const CascoSecciones: React.FC<CascoProps> = ({
     const materiales = useMaterial();
 
     const [secciones, setSecciones] = useState(2);
+    const [posicionXsecciones, setPosicionXsecciones] = useState([-.5,.5]);
+
+    useEffect(() => {
+        const nuevasSecciones = Math.ceil((actualWidth-espesor*2)*100 / 100);
+        setSecciones(nuevasSecciones);
+
+        const anchoUtil = actualWidth - espesor * 2;
+        const distanciaEntre = anchoUtil / secciones;
+        const inicio = -anchoUtil / 2 + distanciaEntre / 2;
+
+        const nuevasPosiciones = Array.from({ length: secciones }, (_, i) => inicio + i * distanciaEntre);
+        setPosicionXsecciones(nuevasPosiciones);
+
+    }, [actualWidth, espesor]);
+
+
 
     return (
         <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
@@ -278,7 +293,24 @@ const CascoSecciones: React.FC<CascoProps> = ({
             )}
 
             {secciones > 0 && (<>
-                <group></group>
+                <group>
+                    {Array.from({ length: secciones }).map((_, index) => (
+                        <Caja
+                            key={index}
+                            espesorBase={actualEspesor}
+                            position={[
+                                posicionXsecciones[index],actualHeight/2,actualEspesor/2
+                            ]}
+                            width={actualEspesor}
+                            height={actualHeight-(actualEspesor*2)}
+                            depth={actualDepth-(actualEspesor)}
+                            color={materiales.WoodWorn}
+                            posicionCaja={"bottom"}
+                            bordesTriangulados={false}
+                            bordeEjeY={false}
+                        />
+                    ))}
+                </group>
                 </>)}
 
 
@@ -286,4 +318,4 @@ const CascoSecciones: React.FC<CascoProps> = ({
     );
 };
 
-export default CascoSecciones;
+export default CascoSeccionesAutomaticas;
