@@ -43,7 +43,7 @@ const CascoInterface = () => {
 
     const patasOptions = [
         {label: "Ninguna", value: -1},
-        {image: "./textures/dark.jpg", label: "Default", value: 1},
+        {image: "./images/ImagenPata.png", label: "Default", value: 1},
     ];
 
     //TODO Cambiar por índice igual que las patas
