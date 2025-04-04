@@ -1,4 +1,4 @@
-import {Slider, Form, Space, Checkbox, Typography, Divider, Row, Col, Card} from "antd";
+import {Slider, Form, Space, Checkbox, Typography, Divider, Row, Col, Card, Select} from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
@@ -58,12 +58,22 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
         {image: "./images/ImagenPata.png", label: "Default", value: 1},
     ];
 
-    const [indicePuerta, setIndicePuerta] = useState(-1);
+    const [indicePuerta, setIndicePuerta] = useState(1);
 
     const puertaOptions = [
         {label: "Ninguna", value: -1},
         {image: "./textures/dark.jpg", label: "Default", value: 1},
     ];
+
+    const espesorOptions = [
+        {label: "10", value: 10},
+        {label: "12", value: 12},
+        {label: "14", value: 14},
+        {label: "16", value: 16},
+        {label: "18", value: 18},
+        {label: "20", value: 20},
+        {label: "22", value: 22},
+    ]
 
     // Inicializar el estado compartido al cargar la interfaz
     useEffect(() => {
@@ -252,15 +262,13 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
                         />
                     </Form.Item>
                     <Form.Item label="Espesor">
-                        <Slider
-                            min={2}
-                            max={20}
-                            step={0.1}
-                            value={espesorSliderValue}
-                            onChange={(v) => {
-                                setEspesorSliderValue(v);
-                                setEspesor(v / 100);
-                            }}
+                        <Select
+                        options={espesorOptions}
+                        value={espesorSliderValue}
+                        onChange={(v) => {
+                            setEspesorSliderValue(v);
+                            setEspesor(v / 100);
+                        }}
                         />
                     </Form.Item>
                 </Form>
