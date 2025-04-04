@@ -303,7 +303,7 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
                     </Form.Item>
                     <Form.Item label="Retranquear suelo">
                         <Checkbox
-                            disabled={!traseroDentro}
+                            disabled={!traseroDentro || disabledOptions}
                             checked={retranquearSuelo}
                             onChange={(e) => setRetranquearSuelo(e.target.checked)}
                         />
