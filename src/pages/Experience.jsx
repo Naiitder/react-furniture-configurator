@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { TransformControls, OrbitControls, Environment, Stage } from "@react-three/drei";
 import { useLocation } from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
@@ -10,14 +10,57 @@ import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomat
 import { Room } from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import TransformControlPanel from "./TransformControlPanel";
-import {useDrop} from "react-dnd"; // ajusta la ruta
+import { useDrop } from "react-dnd";
+import * as THREE from "three";
+
+const RaycastClickLogger = ({ groupRef, glRef, cameraRef }) => {
+    const { camera, gl } = useThree();
+
+    useEffect(() => {
+        if (glRef) glRef.current = gl;
+        if (cameraRef) cameraRef.current = camera;
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        const onClick = (event) => {
+            const bounds = gl.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+            mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+
+            if (groupRef.current) {
+                const intersects = raycaster.intersectObject(groupRef.current, true);
+                if (intersects.length > 0) {
+                    console.log("👉 Intersección con Casco en:", intersects[0].point);
+                }
+            }
+        };
+
+        gl.domElement.addEventListener("click", onClick);
+        return () => gl.domElement.removeEventListener("click", onClick);
+    }, [camera, gl, groupRef]);
+
+    return null;
+};
 
 export const Experience = () => {
     const groupRef = useRef();
+    const transformRef = useRef();
+    const glRef = useRef();
+    const cameraRef = useRef();
+    const location = useLocation();
+    const params = new URLSearchParams(location.search);
+    const selectedItem = params.get("item");
+
+    const [transformEnabled, setTransformEnabled] = useState(true);
+    const [transformMode, setTransformMode] = useState("translate");
+    const [undoStack, setUndoStack] = useState([]);
+    const [droppedCubes, setDroppedCubes] = useState([]);
 
     useEffect(() => {
         let saved = false;
-
         const checkAndSave = () => {
             if (groupRef.current && !saved) {
                 saveTransformState();
@@ -26,40 +69,9 @@ export const Experience = () => {
                 requestAnimationFrame(checkAndSave);
             }
         };
-
         requestAnimationFrame(checkAndSave);
     }, []);
 
-    const [droppedCubes, setDroppedCubes] = useState([]);
-
-    const [{ isOver }, drop] = useDrop(() => ({
-        accept: "INTERSECTION",
-        drop: (item, monitor) => {
-            const clientOffset = monitor.getClientOffset();
-            if (clientOffset) {
-                const newCube = {
-                    id: Date.now(),
-                    position: [0, 1, 0], // Posición inicial. Podrías calcularlo con raycaster más adelante
-                    color: item.color || "#8B4513",
-                };
-                setDroppedCubes((prev) => [...prev, newCube]);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
-    }));
-
-    const transformRef = useRef();
-    const location = useLocation();
-    const params = new URLSearchParams(location.search);
-    const selectedItem = params.get("item");
-
-    const [transformEnabled, setTransformEnabled] = useState(true);
-    const [transformMode, setTransformMode] = useState("translate");
-    const [undoStack, setUndoStack] = useState([]);
-
-    // Guarda el estado actual del objeto
     const saveTransformState = () => {
         const obj = groupRef.current;
         if (!obj) return;
@@ -71,12 +83,10 @@ export const Experience = () => {
         setUndoStack(prev => [...prev, state]);
     };
 
-    // Inicial: guarda el estado inicial una vez el objeto está montado
     useEffect(() => {
         if (groupRef.current) saveTransformState();
     }, [groupRef.current]);
 
-    // Escucha eventos del teclado
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
@@ -91,11 +101,10 @@ export const Experience = () => {
                 setTransformMode('translate');
                 setTransformEnabled(true);
             } else if (e.key.toLowerCase() === 'z' && (e.ctrlKey || e.metaKey)) {
-                // Ctrl+Z: Deshacer
                 setUndoStack(prev => {
                     if (prev.length < 2) return prev;
                     const newStack = [...prev];
-                    newStack.pop(); // Elimina el actual
+                    newStack.pop();
                     const last = newStack[newStack.length - 1];
                     if (groupRef.current) {
                         groupRef.current.position.copy(last.position);
@@ -110,15 +119,58 @@ export const Experience = () => {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
+    const [{ isOver }, drop] = useDrop(() => ({
+        accept: "INTERSECTION",
+        drop: (item, monitor) => {
+            const clientOffset = monitor.getClientOffset();
+            const gl = glRef.current;
+            const camera = cameraRef.current;
+
+            if (!clientOffset || !groupRef.current || !gl || !camera) return;
+
+            const { x, y } = clientOffset;
+            const bounds = gl.domElement.getBoundingClientRect();
+            const mouse = new THREE.Vector2(
+                ((x - bounds.left) / bounds.width) * 2 - 1,
+                -((y - bounds.top) / bounds.height) * 2 + 1
+            );
+
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(groupRef.current, true);
+
+            if (intersects.length > 0) {
+                const point = intersects[0].point;
+                const newCube = {
+                    id: Date.now(),
+                    position: [point.x, point.y, point.z],
+                    color: item.color || "#8B4513",
+                };
+                setDroppedCubes((prev) => [...prev, newCube]);
+            }
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
     const interfaceComponents = {
-        "Casco": <CascoInterface                 show={transformEnabled}
-                                                 setShow={setTransformEnabled}
-                                                 mode={transformMode}
-                                                 setMode={setTransformMode}/>,
-        "Casco Secciones": <CascoInterface                 show={transformEnabled}
-                                                           setShow={setTransformEnabled}
-                                                           mode={transformMode}
-                                                           setMode={setTransformMode} />,
+        "Casco": (
+            <CascoInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+            />
+        ),
+        "Casco Secciones": (
+            <CascoInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+            />
+        ),
     };
 
     const itemComponents = {
@@ -137,6 +189,7 @@ export const Experience = () => {
     return (
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }}>
+                <RaycastClickLogger groupRef={groupRef} glRef={glRef} cameraRef={cameraRef} />
                 <Room positionY={3.5} />
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
                     <Environment files={"/images/poly_haven_studio_4k.hdr"} />
