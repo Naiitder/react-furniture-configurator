@@ -312,9 +312,6 @@ const Casco: React.FC<CascoProps> = ({
             </group>
             {seccionesHorizontales.map(cube => {
                 let localPosition = new THREE.Vector3(...cube.position);
-                if (groupRef.current) {
-                    localPosition = groupRef.current.worldToLocal(localPosition.clone());
-                }
 
                 return (
                     <Caja key={cube.id}
@@ -327,9 +324,6 @@ const Casco: React.FC<CascoProps> = ({
             })}
             {seccionesVerticales.map(cube => {
                 let localPosition = new THREE.Vector3(...cube.position);
-                if (groupRef.current) {
-                    localPosition = groupRef.current.worldToLocal(localPosition.clone());
-                }
 
                 return (
                     <Caja key={cube.id}
