@@ -3,11 +3,13 @@ import * as THREE from "three";
 import '@react-three/fiber';
 import BordeTriangular from "./BordeTriangular";
 import {useMaterial} from "../../assets/materials";
+import {useRef} from "react";
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
 // Componente para una caja individual
 type CajaProps = {
+    ref: React.Ref<any>;
     position: [number, number, number];
     rotation?: [number, number, number];
     width: number;
@@ -25,6 +27,7 @@ type CajaProps = {
 }
 
 const Caja: React.FC<CajaProps> = ({
+                                       ref = useRef(null),
                                        position,
                                        rotation = [0, 0, 0],
                                        espesorBase,
