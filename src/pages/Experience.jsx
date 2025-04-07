@@ -151,9 +151,17 @@ export const Experience = () => {
 
                 if (intersects.length > 0) {
                     const point = intersects[0].point;
+                    const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
+
+                    let localPosition = worldPosition;
+                    if (ref.transparentBoxRef) {
+                        ref.transparentBoxRef.updateMatrixWorld(true);
+                        localPosition = ref.transparentBoxRef.worldToLocal(worldPosition.clone());
+                    }
+
                     const newCube = {
                         id: Date.now(),
-                        position: [point.x, point.y, point.z],
+                        position: [localPosition.x, localPosition.y, localPosition.z],
                         color: item.color || "#8B4513",
                     };
                     if (item.type === INTERSECTION_TYPES.HORIZONTAL){
