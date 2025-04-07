@@ -134,49 +134,117 @@ export const Experience = () => {
             const gl = glRef.current;
             const camera = cameraRef.current;
 
-            if (!clientOffset || !gl || !camera) return;
-            console.log("REF DROP", ref) // FIXME Ref.transparentBoxRef ya no existe
+            if (!clientOffset || !gl || !camera || !ref?.groupRef) return;
 
-            if(ref?.transparentBoxRef) {
-                const { x, y } = clientOffset;
-                const bounds = gl.domElement.getBoundingClientRect();
-                const mouse = new THREE.Vector2(
-                    ((x - bounds.left) / bounds.width) * 2 - 1,
-                    -((y - bounds.top) / bounds.height) * 2 + 1
-                );
+            const { x, y } = clientOffset;
+            const bounds = gl.domElement.getBoundingClientRect();
+            const mouse = new THREE.Vector2(
+                ((x - bounds.left) / bounds.width) * 2 - 1,
+                -((y - bounds.top) / bounds.height) * 2 + 1
+            );
 
-                const raycaster = new THREE.Raycaster();
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObject(ref.transparentBoxRef, true);
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
 
-                if (intersects.length > 0) {
-                    const point = intersects[0].point;
-                    const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
+            const intersects = raycaster.intersectObject(ref.groupRef, true);
 
-                    let localPosition = worldPosition;
-                    if (ref.transparentBoxRef) {
-                        ref.transparentBoxRef.updateMatrixWorld(true);
-                        localPosition = ref.transparentBoxRef.worldToLocal(worldPosition.clone());
+            if (intersects.length > 0) {
+                const point = intersects[0].point;
+                const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
+
+                ref.groupRef.updateMatrixWorld(true);
+                const localPosition = ref.groupRef.worldToLocal(worldPosition.clone());
+
+                const cascoWidth = ref?.width || 2;
+                const cascoHeight = ref?.height || 2;
+                const cascoDepth = ref?.depth || 2;
+                const espesor = ref?.espesor || 0.1;
+
+                let adjustedWidth = cascoWidth - espesor * 2;
+                let adjustedHeight = cascoHeight - espesor * 2;
+                let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
+
+                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
+                    const verticalSections = droppedVerticalCubes
+                        .map((cube) => cube.position[0])
+                        .sort((a, b) => a - b);
+
+                    const boundaries = [
+                        -cascoWidth / 2 + espesor,
+                        ...verticalSections,
+                        cascoWidth / 2 - espesor,
+                    ];
+
+                    let leftBoundary = boundaries
+                        .filter((pos) => pos < localPosition.x)
+                        .sort((a, b) => b - a)[0] || -cascoWidth / 2 + espesor;
+                    let rightBoundary = boundaries
+                        .filter((pos) => pos > localPosition.x)
+                        .sort((a, b) => a - b)[0] || cascoWidth / 2 - espesor;
+
+                    adjustedWidth = rightBoundary - leftBoundary;
+                    adjustedPosition[0] = (leftBoundary + rightBoundary) / 2;
+
+                    const existingSection = droppedHorizontalCubes.find(
+                        (cube) => Math.abs(cube.position[1] - localPosition.y) < 0.1
+                    );
+
+                    if (existingSection) {
+                        console.warn("Ya existe una sección horizontal en esta posición Y");
+                        return;
                     }
+                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
+                    const horizontalSections = droppedHorizontalCubes
+                        .map((cube) => cube.position[1])
+                        .sort((a, b) => a - b);
 
-                    const newCube = {
-                        id: Date.now(),
-                        position: [localPosition.x, localPosition.y, localPosition.z],
-                        color: item.color || "#8B4513",
-                    };
-                    if (item.type === INTERSECTION_TYPES.HORIZONTAL){
-                        setDroppedHorizontalCubes((prev) => [...prev, newCube]);
+                    const boundaries = [
+                        espesor / 2,
+                        ...horizontalSections,
+                        cascoHeight - espesor / 2,
+                    ];
+
+                    let bottomBoundary = boundaries
+                        .filter((pos) => pos < localPosition.y)
+                        .sort((a, b) => b - a)[0] || espesor / 2;
+                    let topBoundary = boundaries
+                        .filter((pos) => pos > localPosition.y)
+                        .sort((a, b) => a - b)[0] || cascoHeight - espesor / 2;
+
+                    adjustedHeight = topBoundary - bottomBoundary;
+                    adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
+
+                    const existingSection = droppedVerticalCubes.find(
+                        (cube) => Math.abs(cube.position[0] - localPosition.x) < 0.1
+                    );
+
+                    if (existingSection) {
+                        console.warn("Ya existe una sección vertical en esta posición X");
+                        return;
                     }
-                    if (item.type === INTERSECTION_TYPES.VERTICAL){
-                        setDroppedVerticalCubes((prev) => [...prev, newCube]);
-                    }
+                }
+
+                const newCube = {
+                    id: Date.now(),
+                    position: adjustedPosition,
+                    width: item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor,
+                    height: item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor,
+                    depth: cascoDepth - espesor - (ref?.traseroDentro ? ref?.retranqueoTrasero || 0 : 0),
+                    color: item.color || "#8B4513",
+                };
+
+                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
+                    setDroppedHorizontalCubes((prev) => [...prev, newCube]);
+                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
+                    setDroppedVerticalCubes((prev) => [...prev, newCube]);
                 }
             }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
         }),
-    }),[ref]);
+    }), [ref, droppedHorizontalCubes, droppedVerticalCubes]);
+
 
     const interfaceComponents = {
         "Casco": (

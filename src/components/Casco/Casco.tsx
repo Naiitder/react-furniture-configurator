@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useRef, useEffect} from "react";
+import {useRef, useEffect, useState} from "react";
 import * as THREE from 'three';
 import Caja from "./Caja";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
@@ -90,6 +90,86 @@ const Casco: React.FC<CascoProps> = ({
     const actualTraseroDentro = ref?.traseroDentro ?? traseroDentro;
     const actualEsquinaXTriangulada = ref?.esquinaXTriangulada ?? esquinaXTriangulada;
     const actualEsquinaZTriangulada = ref?.esquinaZTriangulada ?? esquinaZTriangulada;
+
+    const leftWallRef = useRef<THREE.Mesh>(null);
+    const rightWallRef = useRef<THREE.Mesh>(null);
+    const backWallRef = useRef<THREE.Mesh>(null);
+    const topWallRef = useRef<THREE.Mesh>(null);
+    const bottomWallRef = useRef<THREE.Mesh>(null);
+    const horizontalSectionsRefs = useRef<{[key: string]: THREE.Mesh}>({});
+    const verticalSectionsRefs = useRef<{[key: string]: THREE.Mesh}>({});
+
+    const checkSectionCollision = (position: THREE.Vector3, type: 'horizontal' | 'vertical') => {
+        const threshold = 0.1; // Margen de detección
+        const raycaster = new THREE.Raycaster();
+
+        // Configurar rayo según el tipo de sección
+        if (type === 'horizontal') {
+            raycaster.set(position, new THREE.Vector3(0, 1, 0));
+            raycaster.far = actualHeight;
+        } else {
+            raycaster.set(position, new THREE.Vector3(1, 0, 0));
+            raycaster.far = actualWidth;
+        }
+
+        // Lista de objetos a verificar
+        const objectsToCheck = [
+            leftWallRef.current,
+            rightWallRef.current,
+            backWallRef.current,
+            topWallRef.current,
+            bottomWallRef.current,
+            ...Object.values(horizontalSectionsRefs.current),
+            ...Object.values(verticalSectionsRefs.current)
+        ].filter(Boolean) as THREE.Object3D[];
+
+        const intersects = raycaster.intersectObjects(objectsToCheck, true);
+        return intersects.length > 0;
+    };
+
+    const renderHorizontalSections = () => {
+        return seccionesHorizontales.map((cube) => {
+            const localPosition = new THREE.Vector3(...cube.position);
+
+            return (
+                <Caja
+                    key={cube.id}
+                    ref={(ref) => {
+                        if (ref) horizontalSectionsRefs.current[cube.id] = ref;
+                    }}
+                    position={[localPosition.x, localPosition.y, actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)]}
+                    width={cube.width - actualEspesor / 2}
+                    height={cube.height}
+                    depth={cube.depth}
+                    color={materiales.OakWood}
+                    bordesTriangulados={false}
+                    espesorBase={actualEspesor}
+                />
+            );
+        });
+    };
+
+    const renderVerticalSections = () => {
+        return seccionesVerticales.map((cube) => {
+            const localPosition = new THREE.Vector3(...cube.position);
+
+            return (
+                <Caja
+                    key={cube.id}
+                    ref={(ref) => {
+                        if (ref) verticalSectionsRefs.current[cube.id] = ref;
+                    }}
+                    position={[localPosition.x, localPosition.y, actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)]}
+                    width={cube.width}
+                    height={cube.height - (actualEspesor)}
+                    depth={cube.depth}
+                    color={materiales.OakWood}
+                    bordesTriangulados={false}
+                    espesorBase={actualEspesor}
+                />
+            );
+        });
+    };
 
     // Calcular dimensiones ajustadas para evitar solapamientos
     const calcularDimensiones = () => {
@@ -193,6 +273,7 @@ const Casco: React.FC<CascoProps> = ({
         <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
             {/* Caja inferior (suelo) */}
             <Caja
+                ref={bottomWallRef}
                 espesorBase={actualEspesor}
                 position={posiciones.suelo}
                 width={dimensiones.suelo.width}
@@ -206,6 +287,7 @@ const Casco: React.FC<CascoProps> = ({
 
             {/* Caja lado izquierdo */}
             <Caja
+                ref={leftWallRef}
                 espesorBase={actualEspesor}
                 position={posiciones.izquierda}
                 width={dimensiones.lateral.width}
@@ -218,6 +300,7 @@ const Casco: React.FC<CascoProps> = ({
 
             {/* Caja lado derecho */}
             <Caja
+                ref={rightWallRef}
                 espesorBase={actualEspesor}
                 position={posiciones.derecha}
                 width={dimensiones.lateral.width}
@@ -230,6 +313,7 @@ const Casco: React.FC<CascoProps> = ({
 
             {/* Caja detrás */}
             <Caja
+                ref={backWallRef}
                 espesorBase={actualEspesor}
                 position={posiciones.trasero}
                 width={dimensiones.trasero.width}
@@ -241,6 +325,7 @@ const Casco: React.FC<CascoProps> = ({
 
             {/* Caja arriba (techo) */}
             <Caja
+                ref={topWallRef}
                 espesorBase={actualEspesor}
                 position={posiciones.techo}
                 width={dimensiones.techo.width}
@@ -300,40 +385,8 @@ const Casco: React.FC<CascoProps> = ({
                     )}
                 </>
             )}
-            <group ref={transparentBoxRef}>
-                <Caja
-                    position={[0,
-                        actualHeight / 2,
-                        actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)]}
-                    width={actualWidth - (actualEspesor * 2)}
-                    height={actualHeight - (actualEspesor * 2)}
-                    depth={actualDepth - actualEspesor - (actualTraseroDentro ? actualRetranqueoTrasero : 0)}
-                    color={materiales.Transparent} bordesTriangulados={false} espesorBase={0}/>
-            </group>
-            {seccionesHorizontales.map(cube => {
-                let localPosition = new THREE.Vector3(...cube.position);
-
-                return (
-                    <Caja key={cube.id}
-                          position={[0, localPosition.y,  actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)]}
-                          width={actualWidth - (actualEspesor * 2)}
-                          height={actualEspesor}
-                          depth={actualDepth - actualEspesor - (actualTraseroDentro ? actualRetranqueoTrasero : 0)}
-                          color={materiales.OakWood} bordesTriangulados={false} />
-                );
-            })}
-            {seccionesVerticales.map(cube => {
-                let localPosition = new THREE.Vector3(...cube.position);
-
-                return (
-                    <Caja key={cube.id}
-                          position={[localPosition.x, actualHeight/2,  actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)]}
-                          width={actualEspesor}
-                          height={actualHeight - (actualEspesor * 2)}
-                          depth={actualDepth - actualEspesor - (actualTraseroDentro ? actualRetranqueoTrasero : 0)}
-                          color={materiales.OakWood} bordesTriangulados={false} />
-                );
-            })}
+            {renderHorizontalSections()}
+            {renderVerticalSections()}
         </group>
     );
 };
