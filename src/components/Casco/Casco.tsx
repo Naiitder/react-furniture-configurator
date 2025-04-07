@@ -1,9 +1,9 @@
 import * as React from "react";
-import {useRef, useEffect} from "react";
 import * as THREE from 'three';
 import Caja from "./Caja";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
 import {useMaterial} from "../../assets/materials";
+import {ReactNode} from "react";
 
 // Props para el componente Casco
 type CascoProps = {
@@ -20,75 +20,81 @@ type CascoProps = {
     retranquearSuelo?: boolean;
     esquinaXTriangulada?: boolean;
     esquinaZTriangulada?: boolean;
-    patas?: React.ReactNode; // Array
+    patas?: React.ReactNode[]; // Array de componentes
     alturaPatas?: number;
     indicePata?: number;
-    puertas?: React.ReactNode;
+    puertas?: React.ReactNode[];
     indicePuerta?: number;
 }
 
-// Componente principal Casco
-const Casco: React.FC<CascoProps> = ({
-                                         width = 2,
-                                         height = 2,
-                                         depth = 2,
-                                         espesor = 0.1,
-                                         position = [0, 0, 0],
-                                         rotation = [0, 0, 0],
-                                         retranqueoTrasero = 0,
-                                         retranquearSuelo = false,
-                                         sueloDentro = false,
-                                         techoDentro = false,
-                                         traseroDentro = false,
-                                         esquinaXTriangulada = false,
-                                         esquinaZTriangulada = false,
-                                         patas = [],
-                                         alturaPatas = 0.5,
-                                         indicePata = -1,
-                                         puertas = [],
-                                         indicePuerta = -1,
-                                     }) => {
-    const groupRef = useRef<THREE.Group>(null);
-    const {ref, setRef} = useSelectedItemProvider();
+// Componente principal Casco como clase
+class CascoBase extends React.Component<CascoProps & {
+    contextRef: any;
+    setContextRef: (ref: any) => void;
+    materiales: any;
+}> {
+    private groupRef: React.RefObject<THREE.Group>;
 
-    // Guardamos una referencia al elemento threejs
-    useEffect(() => {
-        if (groupRef.current && ref) {
-            // Solo actualizamos la referencia al grupo, manteniendo todas las demás propiedades
-            setRef({
-                ...ref,
-                groupRef: groupRef.current
+    static defaultProps = {
+        width: 2,
+        height: 2,
+        depth: 2,
+        espesor: 0.1,
+        position: [0, 0, 0],
+        rotation: [0, 0, 0],
+        retranqueoTrasero: 0,
+        retranquearSuelo: false,
+        sueloDentro: false,
+        techoDentro: false,
+        traseroDentro: false,
+        esquinaXTriangulada: false,
+        esquinaZTriangulada: false,
+        patas: [],
+        alturaPatas: 0.5,
+        indicePata: -1,
+        puertas: [],
+        indicePuerta: -1,
+    };
+
+    constructor(props: CascoProps & { contextRef: any; setContextRef: (ref: any) => void; materiales: any }) {
+        super(props);
+        this.groupRef = React.createRef<THREE.Group>();
+    }
+
+    componentDidMount() {
+        this.updateContextRef();
+    }
+
+    componentDidUpdate() {
+        this.updateContextRef();
+    }
+
+    updateContextRef() {
+        if (this.groupRef.current && this.props.contextRef) {
+            // Actualizar la referencia en el contexto
+            this.props.setContextRef({
+                ...this.props.contextRef,
+                groupRef: this.groupRef.current
             });
         }
-    }, [groupRef.current]);
-
-    // Obtenemos las propiedades desde el contexto si están disponibles
-    var indiceActualPata = ref?.indicePata || indicePata;
-    if (indiceActualPata > 0) {
-        indiceActualPata--;
     }
 
-    var indiceActualPuerta = ref?.indicePuerta || indicePuerta;
-    if (indiceActualPuerta > 0) {
-        indiceActualPuerta--;
-    }
+    calcularDimensiones() {
+        // Usar los valores del contexto en vez de props directamente
+        const ref = this.props.contextRef || {};
 
+        const actualWidth = ref.width || this.props.width || 2;
+        const actualHeight = ref.height || this.props.height || 2;
+        const actualDepth = ref.depth || this.props.depth || 2;
+        const actualEspesor = ref.espesor || this.props.espesor || 0.1;
+        const actualRetranqueoTrasero = ref.retranqueoTrasero ?? this.props.retranqueoTrasero ?? 0;
+        const actualRetranquearSuelo = ref.retranquearSuelo ?? this.props.retranquearSuelo ?? false;
+        const actualSueloDentro = ref.sueloDentro ?? this.props.sueloDentro ?? false;
+        const actualTechoDentro = ref.techoDentro ?? this.props.techoDentro ?? false;
+        const actualTraseroDentro = ref.traseroDentro ?? this.props.traseroDentro ?? false;
+        const actualEsquinaXTriangulada = ref.esquinaXTriangulada ?? this.props.esquinaXTriangulada ?? false;
+        const actualEsquinaZTriangulada = ref.esquinaZTriangulada ?? this.props.esquinaZTriangulada ?? false;
 
-    const actualWidth = ref?.width || width;
-    const actualAlturaPatas = ref?.alturaPatas || alturaPatas;
-    const actualHeight = ref?.height || height;
-    const actualDepth = ref?.depth || depth;
-    const actualEspesor = ref?.espesor || espesor;
-    const actualRetranqueoTrasero = ref?.retranqueoTrasero ?? retranqueoTrasero;
-    const actualRetranquearSuelo = ref?.retranquearSuelo ?? retranquearSuelo;
-    const actualSueloDentro = ref?.sueloDentro ?? sueloDentro;
-    const actualTechoDentro = ref?.techoDentro ?? techoDentro;
-    const actualTraseroDentro = ref?.traseroDentro ?? traseroDentro;
-    const actualEsquinaXTriangulada = ref?.esquinaXTriangulada ?? esquinaXTriangulada;
-    const actualEsquinaZTriangulada = ref?.esquinaZTriangulada ?? esquinaZTriangulada;
-
-    // Calcular dimensiones ajustadas para evitar solapamientos
-    const calcularDimensiones = () => {
         const offsetDepthTraseroDentro = actualTraseroDentro ? actualDepth : actualDepth - (actualEspesor);
 
         return {
@@ -113,14 +119,30 @@ const Casco: React.FC<CascoProps> = ({
                 depth: actualEspesor
             }
         };
-    };
+    }
 
-    // Calcular posiciones para que el casco crezca hacia arriba
-    const calcularPosiciones = () => {
+    calcularPosiciones() {
+        // Usar los valores del contexto en vez de props directamente
+        const ref = this.props.contextRef || {};
+
+        const actualWidth = ref.width || this.props.width || 2;
+        const actualHeight = ref.height || this.props.height || 2;
+        const actualDepth = ref.depth || this.props.depth || 2;
+        const actualEspesor = ref.espesor || this.props.espesor || 0.1;
+        const actualRetranqueoTrasero = ref.retranqueoTrasero ?? this.props.retranqueoTrasero ?? 0;
+        const actualRetranquearSuelo = ref.retranquearSuelo ?? this.props.retranquearSuelo ?? false;
+        const actualSueloDentro = ref.sueloDentro ?? this.props.sueloDentro ?? false;
+        const actualTechoDentro = ref.techoDentro ?? this.props.techoDentro ?? false;
+        const actualTraseroDentro = ref.traseroDentro ?? this.props.traseroDentro ?? false;
+        const actualEsquinaXTriangulada = ref.esquinaXTriangulada ?? this.props.esquinaXTriangulada ?? false;
+        const actualEsquinaZTriangulada = ref.esquinaZTriangulada ?? this.props.esquinaZTriangulada ?? false;
+        const actualAlturaPatas = ref.alturaPatas || this.props.alturaPatas || 0.5;
+        const indiceActualPata = ref.indicePata ?? this.props.indicePata ?? -1;
+
         const mitadAncho = actualWidth / 2;
         const mitadProfundidad = actualDepth / 2;
 
-        const extraAltura = patas && indiceActualPata != -1 ? actualAlturaPatas : 0;
+        const extraAltura = this.props.patas && indiceActualPata != -1 ? actualAlturaPatas : 0;
 
         const alturaLaterales = (actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor)) / 2 + (actualSueloDentro ? 0 : actualEspesor) - (actualEsquinaZTriangulada && actualEsquinaXTriangulada ? actualEspesor / 2 : 0)
 
@@ -161,133 +183,174 @@ const Casco: React.FC<CascoProps> = ({
                 (actualDepth / 2) + actualEspesor / 2
             ] as [number, number, number]
         };
-    };
+    }
 
-    const dimensiones = calcularDimensiones();
-    const posiciones = calcularPosiciones();
+    render() {
+        const ref = this.props.contextRef || {};
+        const { materiales, position = [0, 0, 0], rotation = [0, 0, 0], patas = [], puertas = [] } = this.props;
 
-    // Ajustamos la posición base del grupo para que el fondo esté en la posición Y especificada
-    const adjustedPosition: [number, number, number] = [
-        position[0],
-        position[1],
-        position[2]
-    ];
+        // Usar valores del contexto si están disponibles, o los props como respaldo
+        const actualWidth = ref.width || this.props.width || 2;
+        const actualHeight = ref.height || this.props.height || 2;
+        const actualDepth = ref.depth || this.props.depth || 2;
+        const actualEspesor = ref.espesor || this.props.espesor || 0.1;
+        const actualEsquinaXTriangulada = ref.esquinaXTriangulada ?? this.props.esquinaXTriangulada ?? false;
+        const actualEsquinaZTriangulada = ref.esquinaZTriangulada ?? this.props.esquinaZTriangulada ?? false;
+        const actualAlturaPatas = ref.alturaPatas || this.props.alturaPatas || 0.5;
 
+        // Ajustes para los índices de pata y puerta
+        let indiceActualPata : number = ref.indicePata ?? this.props.indicePata ?? -1;
+        if (indiceActualPata > 0) {
+            indiceActualPata--;
+        }
+
+        let indiceActualPuerta : number = ref.indicePuerta ?? this.props.indicePuerta ?? -1;
+        if (indiceActualPuerta > 0) {
+            indiceActualPuerta--;
+        }
+
+        const dimensiones = this.calcularDimensiones();
+        const posiciones = this.calcularPosiciones();
+
+        return (
+            <group ref={this.groupRef} position={position} rotation={rotation}>
+                {/* Caja inferior (suelo) */}
+                <Caja
+                    espesorBase={actualEspesor}
+                    position={posiciones.suelo}
+                    width={dimensiones.suelo.width}
+                    height={dimensiones.suelo.height}
+                    depth={dimensiones.suelo.depth}
+                    material={materiales.OakWood}
+                    posicionCaja={"bottom"}
+                    bordesTriangulados={actualEsquinaXTriangulada}
+                    bordeEjeY={false}
+                />
+
+                {/* Caja lado izquierdo */}
+                <Caja
+                    espesorBase={actualEspesor}
+                    position={posiciones.izquierda}
+                    width={dimensiones.lateral.width}
+                    height={dimensiones.lateral.height}
+                    depth={dimensiones.lateral.depth}
+                    material={materiales.DarkWood}
+                    posicionCaja={"left"}
+                    bordesTriangulados={actualEsquinaXTriangulada}
+                />
+
+                {/* Caja lado derecho */}
+                <Caja
+                    espesorBase={actualEspesor}
+                    position={posiciones.derecha}
+                    width={dimensiones.lateral.width}
+                    height={dimensiones.lateral.height}
+                    depth={dimensiones.lateral.depth}
+                    material={materiales.DarkWood}
+                    posicionCaja={"right"}
+                    bordesTriangulados={actualEsquinaXTriangulada}
+                />
+
+                {/* Caja detrás */}
+                <Caja
+                    espesorBase={actualEspesor}
+                    position={posiciones.trasero}
+                    width={dimensiones.trasero.width}
+                    height={dimensiones.trasero.height}
+                    depth={dimensiones.trasero.depth}
+                    material={materiales.DarkWood}
+                    bordesTriangulados={false}
+                />
+
+                {/* Caja arriba (techo) */}
+                <Caja
+                    espesorBase={actualEspesor}
+                    position={posiciones.techo}
+                    width={dimensiones.techo.width}
+                    height={dimensiones.techo.height}
+                    depth={dimensiones.techo.depth}
+                    material={materiales.OakWood}
+                    posicionCaja={"top"}
+                    bordesTriangulados={actualEsquinaXTriangulada || actualEsquinaZTriangulada}
+                    bordeEjeY={false}
+                    bordeEjeZ={actualEsquinaZTriangulada}
+                    disableAdjustedWidth={actualEsquinaZTriangulada || (actualEsquinaZTriangulada && actualEsquinaXTriangulada)}
+                />
+
+                {/* Renderizar 4 patas en las esquinas */}
+                {(patas && indiceActualPata !== -1 && patas[indiceActualPata]) && (
+                    <group>
+                        {React.cloneElement(patas[indiceActualPata], {
+                            position: [-actualWidth / 2 + 0.1, position[1], -actualDepth / 2 + 0.1],
+                            height: actualAlturaPatas
+                        })}
+                        {React.cloneElement(patas[indiceActualPata], {
+                            position: [actualWidth / 2 - 0.1, position[1], -actualDepth / 2 + 0.1],
+                            height: actualAlturaPatas
+                        })}
+                        {React.cloneElement(patas[indiceActualPata], {
+                            position: [-actualWidth / 2 + 0.1, position[1], actualDepth / 2 - 0.1],
+                            height: actualAlturaPatas
+                        })}
+                        {React.cloneElement(patas[indiceActualPata], {
+                            position: [actualWidth / 2 - 0.1, position[1], actualDepth / 2 - 0.1],
+                            height: actualAlturaPatas
+                        })}
+                    </group>
+                )}
+
+                {/* Renderizar puerta en la parte frontal */}
+                {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
+                    <>
+                        {React.cloneElement(puertas[indiceActualPuerta], {
+                            position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                            width: actualWidth > 2 ? actualWidth / 2 : actualWidth,
+                            height: actualHeight,
+                            depth: actualEspesor,
+                            pivot: "right" // Define el pivote en el borde derecho
+                        })}
+
+                        {actualWidth > 2 && (
+                            <>
+                                {React.cloneElement(puertas[indiceActualPuerta], {
+                                    position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                                    width: actualWidth / 2,
+                                    height: actualHeight,
+                                    depth: actualEspesor,
+                                    pivot: "left" // Define el pivote en el borde izquierdo
+                                })}
+                            </>
+                        )}
+                    </>
+                )}
+            </group>
+        );
+    }
+}
+
+// HOC para manejar el contexto con hooks
+const CascoWithContext: React.FC<CascoProps> = (props) => {
+    const { ref, setRef } = useSelectedItemProvider();
     const materiales = useMaterial();
 
+    // Importante: usamos React.useRef para mantener una referencia consistente
+    // del objeto props a través de renderizados y así evitar renderizados innecesarios
+    const cascoProps = React.useRef(props);
+
+    // Actualizar las props guardadas solo cuando cambian
+    React.useEffect(() => {
+        cascoProps.current = props;
+    }, [props]);
+
+    // Renderizamos el componente base pasando el contexto
     return (
-        <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
-            {/* Caja inferior (suelo) */}
-            <Caja
-                espesorBase={actualEspesor}
-                position={posiciones.suelo}
-                width={dimensiones.suelo.width}
-                height={dimensiones.suelo.height}
-                depth={dimensiones.suelo.depth}
-                color={materiales.OakWood}
-                posicionCaja={"bottom"}
-                bordesTriangulados={actualEsquinaXTriangulada}
-                bordeEjeY={false}
-            />
-
-            {/* Caja lado izquierdo */}
-            <Caja
-                espesorBase={actualEspesor}
-                position={posiciones.izquierda}
-                width={dimensiones.lateral.width}
-                height={dimensiones.lateral.height}
-                depth={dimensiones.lateral.depth}
-                color={materiales.DarkWood}
-                posicionCaja={"left"}
-                bordesTriangulados={actualEsquinaXTriangulada}
-            />
-
-            {/* Caja lado derecho */}
-            <Caja
-                espesorBase={actualEspesor}
-                position={posiciones.derecha}
-                width={dimensiones.lateral.width}
-                height={dimensiones.lateral.height}
-                depth={dimensiones.lateral.depth}
-                color={materiales.DarkWood}
-                posicionCaja={"right"}
-                bordesTriangulados={actualEsquinaXTriangulada}
-            />
-
-            {/* Caja detrás */}
-            <Caja
-                espesorBase={actualEspesor}
-                position={posiciones.trasero}
-                width={dimensiones.trasero.width}
-                height={dimensiones.trasero.height}
-                depth={dimensiones.trasero.depth}
-                color={materiales.DarkWood}
-                bordesTriangulados={false}
-            />
-
-            {/* Caja arriba (techo) */}
-            <Caja
-                espesorBase={actualEspesor}
-                position={posiciones.techo}
-                width={dimensiones.techo.width}
-                height={dimensiones.techo.height}
-                depth={dimensiones.techo.depth}
-                color={materiales.OakWood}
-                posicionCaja={"top"}
-                bordesTriangulados={actualEsquinaXTriangulada || actualEsquinaZTriangulada}
-                bordeEjeY={false}
-                bordeEjeZ={actualEsquinaZTriangulada}
-                disableAdjustedWidth={actualEsquinaZTriangulada || (actualEsquinaZTriangulada && actualEsquinaXTriangulada)}
-            />
-
-            {/* Renderizar 4 patas en las esquinas */}
-            {(patas && indiceActualPata !== -1) && patas[indiceActualPata] && (
-                <group>
-                    {React.cloneElement(patas[indiceActualPata], {
-                        position: [-actualWidth / 2 + 0.1, position[1], -actualDepth / 2 + 0.1],
-                        height: actualAlturaPatas
-                    })}
-                    {React.cloneElement(patas[indiceActualPata], {
-                        position: [actualWidth / 2 - 0.1, position[1], -actualDepth / 2 + 0.1],
-                        height: actualAlturaPatas
-                    })}
-                    {React.cloneElement(patas[indiceActualPata], {
-                        position: [-actualWidth / 2 + 0.1, position[1], actualDepth / 2 - 0.1],
-                        height: actualAlturaPatas
-                    })}
-                    {React.cloneElement(patas[indiceActualPata], {
-                        position: [actualWidth / 2 - 0.1, position[1], actualDepth / 2 - 0.1],
-                        height: actualAlturaPatas
-                    })}
-                </group>
-            )}
-
-            {/* Renderizar puerta en la parte frontal */}
-            {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
-                <>
-                    {React.cloneElement(puertas[indiceActualPuerta], {
-                        position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                        width: actualWidth > 2 ? actualWidth / 2 : actualWidth,
-                        height: actualHeight,
-                        depth: actualEspesor,
-                        pivot: "right" // Define el pivote en el borde derecho
-                    })}
-
-                    {actualWidth > 2 && (
-                        <>
-                            {React.cloneElement(puertas[indiceActualPuerta], {
-                                position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                                width: actualWidth / 2,
-                                height: actualHeight,
-                                depth: actualEspesor,
-                                pivot: "left" // Define el pivote en el borde derecho
-                            })}
-                        </>
-                    )}
-                </>
-            )}
-        </group>
+        <CascoBase
+            {...props}
+            contextRef={ref}
+            setContextRef={setRef}
+            materiales={materiales}
+        />
     );
-};
+}
 
-export default Casco;
+export default CascoWithContext;

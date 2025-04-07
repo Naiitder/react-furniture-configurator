@@ -10,17 +10,17 @@ import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomat
 import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import TransformControlPanel from "./TransformControlPanel";
-import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx"; // ajusta la ruta
-import {useDrop} from "react-dnd"; // ajusta la ruta
+import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
+import CascoWithContext from "../components/Casco/Casco.js"; // ajusta la ruta
 
 export const Experience = () => {
-    const groupRef = useRef();
+    const transformGroupRef = useRef();
 
     useEffect(() => {
         let saved = false;
 
         const checkAndSave = () => {
-            if (groupRef.current && !saved) {
+            if (transformGroupRef.current && !saved) {
                 saveTransformState();
                 saved = true;
             } else {
@@ -31,25 +31,6 @@ export const Experience = () => {
         requestAnimationFrame(checkAndSave);
     }, []);
 
-    const [droppedCubes, setDroppedCubes] = useState([]);
-
-    const [{ isOver }, drop] = useDrop(() => ({
-        accept: "INTERSECTION",
-        drop: (item, monitor) => {
-            const clientOffset = monitor.getClientOffset();
-            if (clientOffset) {
-                const newCube = {
-                    id: Date.now(),
-                    position: [0, 1, 0], // Posición inicial. Podrías calcularlo con raycaster más adelante
-                    color: item.color || "#8B4513",
-                };
-                setDroppedCubes((prev) => [...prev, newCube]);
-            }
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
-    }));
 
     const transformRef = useRef();
     const location = useLocation();
@@ -65,7 +46,7 @@ export const Experience = () => {
 
     // Guarda el estado actual del objeto
     const saveTransformState = () => {
-        const obj = groupRef.current;
+        const obj = transformGroupRef.current;
         if (!obj || !selectedItemProps) return;
 
         const state = {
@@ -84,18 +65,18 @@ export const Experience = () => {
 
     // Inicial: guarda el estado inicial una vez el objeto está montado
     useEffect(() => {
-        if (groupRef.current) saveTransformState();
-    }, [groupRef.current]);
+        if (transformGroupRef.current) saveTransformState();
+    }, [transformGroupRef.current]);
 
     // Capturar cambios en la escala cuando se usa TransformControls
     useEffect(() => {
-        if (transformRef.current && groupRef.current) {
+        if (transformRef.current && transformGroupRef.current) {
             const controls = transformRef.current;
 
             const onObjectChange = () => {
-                if (groupRef.current && transformMode === 'scale' && selectedItemProps) {
+                if (transformGroupRef.current && transformMode === 'scale' && selectedItemProps) {
                     // Obtener la escala actual
-                    const newScale = groupRef.current.scale;
+                    const newScale = transformGroupRef.current.scale;
 
                     // Calcular nuevas dimensiones basadas en la escala relativa
                     const width = selectedItemProps.width || 1;
@@ -117,7 +98,7 @@ export const Experience = () => {
                     });
 
                     // Restaurar la escala original
-                    groupRef.current.scale.set(originalScale.x, originalScale.y, originalScale.z);
+                    transformGroupRef.current.scale.set(originalScale.x, originalScale.y, originalScale.z);
                 }
             };
 
@@ -147,9 +128,9 @@ export const Experience = () => {
                     const newStack = [...prev];
                     newStack.pop(); // Elimina el actual
                     const last = newStack[newStack.length - 1];
-                    if (groupRef.current) {
-                        groupRef.current.position.copy(last.position);
-                        groupRef.current.rotation.copy(last.rotation);
+                    if (transformGroupRef.current) {
+                        transformGroupRef.current.position.copy(last.position);
+                        transformGroupRef.current.rotation.copy(last.rotation);
 
 
                         setRef({
@@ -190,12 +171,12 @@ export const Experience = () => {
 
     const itemComponents = {
         "Casco": (
-            <group ref={groupRef}>
-                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}/>
+            <group ref={transformGroupRef}>
+                <CascoWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}/>
             </group>
         ),
         "Casco Secciones": (
-            <group ref={groupRef}>
+            <group ref={transformGroupRef}>
                 <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
                                            puertas={[<Puerta/>]}/>
             </group>
@@ -204,7 +185,7 @@ export const Experience = () => {
 
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }}>
+            <Canvas shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }}>
                 <Room positionY={3.5} />
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
                     <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
@@ -213,17 +194,11 @@ export const Experience = () => {
                 {transformEnabled && (
                     <TransformControls
                         ref={transformRef}
-                        object={groupRef}
+                        object={transformGroupRef}
                         mode={transformMode}
                         onMouseUp={saveTransformState}
                     />
                 )}
-                {droppedCubes.map(cube => (
-                    <mesh key={cube.id} position={cube.position}>
-                        <boxGeometry args={[0.5, 0.5, 0.5]} />
-                        <meshStandardMaterial color={cube.color} />
-                    </mesh>
-                ))}
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
             {interfaceComponents[selectedItem]}

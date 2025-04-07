@@ -13,7 +13,7 @@ type CajaProps = {
     width: number;
     height: number;
     depth: number;
-    color: THREE.Material;
+    material: THREE.Material;
 
     bordesTriangulados: boolean;
     disableAdjustedWidth?: boolean;
@@ -31,7 +31,7 @@ const Caja: React.FC<CajaProps> = ({
                                        width,
                                        height,
                                        depth,
-                                       color,
+                                       material,
                                        bordesTriangulados,
                                        bordeEjeY = true,
                                        bordeEjeZ = false,
@@ -51,18 +51,18 @@ const Caja: React.FC<CajaProps> = ({
     const secondTriangleShape = (posicionCaja === "bottom" ? "topToLeft" : (posicionCaja === "left" ? "bottomToLeft" : (posicionCaja === "right" ? "bottomToRight" : "bottomToLeft")));
 
     return (<>
-            <mesh position={position} material={color} rotation={rotation} onClick={(event) => event.stopPropagation()}>
+            <mesh position={position} material={material} rotation={rotation} onClick={(event) => event.stopPropagation()}>
                 <boxGeometry args={[adjustedWidth, adjustedHeight, adjustedDepth]}/>
             </mesh>
             {(bordesTriangulados && !bordeEjeZ) && (
                 <>
                     <BordeTriangular position={[position[0] - width / 2, triangleY, triangleZ]}
-                                     rotation={[0, 0, 0]} espesor={espesorBase} depth={depth} color={color}
+                                     rotation={[0, 0, 0]} espesor={espesorBase} depth={depth} color={material}
                                      shapeType={firstTriangleShape}
                     />
                     <BordeTriangular
                         position={[(position[0] + width / 2) - espesorBase, (triangleY - adjustedHeight) - (bordeEjeY ? espesorBase : -espesorBase), triangleZ]}
-                        rotation={[0, 0, 0]} espesor={espesorBase} depth={depth} color={color}
+                        rotation={[0, 0, 0]} espesor={espesorBase} depth={depth} color={material}
                         shapeType={secondTriangleShape}
                     />
                 </>

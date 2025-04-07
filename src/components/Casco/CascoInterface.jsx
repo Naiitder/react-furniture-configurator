@@ -4,8 +4,6 @@ import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
 import {useEffect, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
-import {HTML5Backend} from "react-dnd-html5-backend";
-import {DndProvider} from "react-dnd";
 import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection.js";
 
 const {Title} = Typography;
