@@ -13,6 +13,7 @@ import TransformControlPanel from "./TransformControlPanel";
 import { useDrop } from "react-dnd";
 import * as THREE from "three";
 import { useSelectedItemProvider } from "../contexts/SelectedItemProvider.jsx";
+import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -60,7 +61,8 @@ export const Experience = () => {
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
     const [undoStack, setUndoStack] = useState([]);
-    const [droppedCubes, setDroppedCubes] = useState([]);
+    const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
+    const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
 
     useEffect(() => {
         let saved = false;
@@ -152,14 +154,19 @@ export const Experience = () => {
                         position: [point.x, point.y, point.z],
                         color: item.color || "#8B4513",
                     };
-                    setDroppedCubes((prev) => [...prev, newCube]);
+                    if (item.type === INTERSECTION_TYPES.HORIZONTAL){
+                        setDroppedHorizontalCubes((prev) => [...prev, newCube]);
+                    }
+                    if (item.type === INTERSECTION_TYPES.VERTICAL){
+                        setDroppedVerticalCubes((prev) => [...prev, newCube]);
+                    }
                 }
             }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
         }),
-    }));
+    }),[ref]);
 
     const interfaceComponents = {
         "Casco": (
@@ -183,7 +190,7 @@ export const Experience = () => {
     const itemComponents = {
         "Casco": (
             <group ref={groupRef}>
-                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puertas={[<Puerta />]} />
+                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puertas={[<Puerta />]} seccionesHorizontales={droppedHorizontalCubes} seccionesVerticales={droppedVerticalCubes} />
             </group>
         ),
         "Casco Secciones": (
@@ -210,12 +217,6 @@ export const Experience = () => {
                         onMouseUp={saveTransformState}
                     />
                 )}
-                {droppedCubes.map(cube => (
-                    <mesh key={cube.id} position={cube.position}>
-                        <boxGeometry args={[0.5, 0.5, 0.5]} />
-                        <meshStandardMaterial color={cube.color} />
-                    </mesh>
-                ))}
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
             {interfaceComponents[selectedItem]}
