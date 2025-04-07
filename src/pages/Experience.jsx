@@ -1,15 +1,16 @@
-import { useRef, useState, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
-import { TransformControls, OrbitControls, Environment, Stage } from "@react-three/drei";
-import { useLocation } from "react-router-dom";
+import {useRef, useState, useEffect} from "react";
+import {Canvas} from "@react-three/fiber";
+import {TransformControls, OrbitControls, Environment, Stage} from "@react-three/drei";
+import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
 import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomaticas.tsx";
-import { Room } from "../components/Enviroment/Room.jsx";
+import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
-import TransformControlPanel from "./TransformControlPanel"; // ajusta la ruta
+import TransformControlPanel from "./TransformControlPanel";
+import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx"; // ajusta la ruta
 
 export const Experience = () => {
     const groupRef = useRef();
@@ -33,20 +34,30 @@ export const Experience = () => {
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const selectedItem = params.get("item");
+    const {ref: selectedItemProps, setRef} = useSelectedItemProvider();
 
+    const [originalScale] = useState({x: 1, y: 1, z: 1});
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
     const [undoStack, setUndoStack] = useState([]);
+    const [scaleDimensions, setScaleDimensions] = useState(originalScale)
 
     // Guarda el estado actual del objeto
     const saveTransformState = () => {
         const obj = groupRef.current;
-        if (!obj) return;
+        if (!obj || !selectedItemProps) return;
+
         const state = {
             position: obj.position.clone(),
             rotation: obj.rotation.clone(),
-            scale: obj.scale.clone()
+            scale: obj.scale.clone(),
+            dimensions: {
+                width: selectedItemProps.width,
+                height: selectedItemProps.height,
+                depth: selectedItemProps.depth
+            }
         };
+
         setUndoStack(prev => [...prev, state]);
     };
 
@@ -54,6 +65,45 @@ export const Experience = () => {
     useEffect(() => {
         if (groupRef.current) saveTransformState();
     }, [groupRef.current]);
+
+    // Capturar cambios en la escala cuando se usa TransformControls
+    useEffect(() => {
+        if (transformRef.current && groupRef.current) {
+            const controls = transformRef.current;
+
+            const onObjectChange = () => {
+                if (groupRef.current && transformMode === 'scale' && selectedItemProps) {
+                    // Obtener la escala actual
+                    const newScale = groupRef.current.scale;
+
+                    // Calcular nuevas dimensiones basadas en la escala relativa
+                    const width = selectedItemProps.width || 1;
+                    const height = selectedItemProps.height || 1;
+                    const depth = selectedItemProps.depth || 1;
+
+                    const newWidth = Math.min(5, Math.max(1, width * (newScale.x / originalScale.x)));
+                    const newHeight = Math.min(6, Math.max(1, height * (newScale.y / originalScale.y)));
+                    const newDepth = Math.min(4, Math.max(1, depth * (newScale.z / originalScale.z)));
+
+                    setScaleDimensions({x: newWidth, y: newHeight, z: newDepth});
+
+                    // Actualizar el objeto seleccionado con las nuevas dimensiones
+                    setRef({
+                        ...selectedItemProps,
+                        width: newWidth,
+                        height: newHeight,
+                        depth: newDepth
+                    });
+
+                    // Restaurar la escala original
+                    groupRef.current.scale.set(originalScale.x, originalScale.y, originalScale.z);
+                }
+            };
+
+            controls.addEventListener('objectChange', onObjectChange);
+            return () => controls.removeEventListener('objectChange', onObjectChange);
+        }
+    }, [transformMode, selectedItemProps, setRef]);
 
     // Escucha eventos del teclado
     useEffect(() => {
@@ -79,7 +129,20 @@ export const Experience = () => {
                     if (groupRef.current) {
                         groupRef.current.position.copy(last.position);
                         groupRef.current.rotation.copy(last.rotation);
-                        groupRef.current.scale.copy(last.scale);
+
+
+                        setRef({
+                            ...selectedItemProps,
+                            width: last.dimensions.width,
+                            height: last.dimensions.height,
+                            depth: last.dimensions.depth
+                        });
+
+                        setScaleDimensions({
+                            x: last.dimensions.width,
+                            y: last.dimensions.height,
+                            z: last.dimensions.depth
+                        });
                     }
                     return newStack;
                 });
@@ -90,35 +153,40 @@ export const Experience = () => {
     }, []);
 
     const interfaceComponents = {
-        "Casco": <CascoInterface                 show={transformEnabled}
-                                                 setShow={setTransformEnabled}
-                                                 mode={transformMode}
-                                                 setMode={setTransformMode}/>,
-        "Casco Secciones": <CascoInterface                 show={transformEnabled}
-                                                           setShow={setTransformEnabled}
-                                                           mode={transformMode}
-                                                           setMode={setTransformMode} />,
+        "Casco": <CascoInterface show={transformEnabled}
+                                 setShow={setTransformEnabled}
+                                 mode={transformMode}
+                                 setMode={setTransformMode}
+                                 scaleDimensions={scaleDimensions}
+        />,
+        "Casco Secciones": <CascoInterface show={transformEnabled}
+                                           setShow={setTransformEnabled}
+                                           mode={transformMode}
+                                           setMode={setTransformMode}
+                                           scaleDimensions={scaleDimensions}
+        />,
     };
 
     const itemComponents = {
         "Casco": (
             <group ref={groupRef}>
-                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puertas={[<Puerta />]} />
+                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}/>
             </group>
         ),
         "Casco Secciones": (
             <group ref={groupRef}>
-                <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puertas={[<Puerta />]} />
+                <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
+                                           puertas={[<Puerta/>]}/>
             </group>
         ),
     };
 
     return (
         <>
-            <Canvas shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }}>
-                <Room positionY={3.5} />
+            <Canvas shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
+                <Room positionY={3.5}/>
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
-                    <Environment files={"/images/poly_haven_studio_4k.hdr"} />
+                    <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && (
@@ -129,10 +197,10 @@ export const Experience = () => {
                         onMouseUp={saveTransformState}
                     />
                 )}
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
             {interfaceComponents[selectedItem]}
-            <RoomConfigPanel />
+            <RoomConfigPanel/>
         </>
     );
 };
