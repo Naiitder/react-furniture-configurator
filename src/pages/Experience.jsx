@@ -33,6 +33,7 @@ const RaycastClickLogger = ({ glRef, cameraRef }) => {
 
             raycaster.setFromCamera(mouse, camera);
 
+            console.log("REF", ref)
             if (ref?.transparentBoxRef) {
                 console.log(ref.transparentBoxRef);
                 const intersects = raycaster.intersectObject(ref.transparentBoxRef, true);
@@ -134,6 +135,7 @@ export const Experience = () => {
             const camera = cameraRef.current;
 
             if (!clientOffset || !gl || !camera) return;
+            console.log("REF DROP", ref) // FIXME Ref.transparentBoxRef ya no existe
 
             if(ref?.transparentBoxRef) {
                 const { x, y } = clientOffset;

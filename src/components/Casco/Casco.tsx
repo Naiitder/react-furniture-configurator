@@ -59,10 +59,10 @@ const Casco: React.FC<CascoProps> = ({
     useEffect(() => {
         if (groupRef.current && ref) {
             // Solo actualizamos la referencia al grupo, manteniendo todas las demás propiedades
-            setRef({
-                ...ref,
+            setRef(prevRef => ({
+                ...prevRef,
                 groupRef: groupRef.current
-            });
+            }));
         }
     }, [groupRef.current]);
 
