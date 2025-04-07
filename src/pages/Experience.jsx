@@ -9,7 +9,8 @@ import CascoInterface from "../components/Casco/CascoInterface.jsx";
 import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomaticas.tsx";
 import { Room } from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
-import TransformControlPanel from "./TransformControlPanel"; // ajusta la ruta
+import TransformControlPanel from "./TransformControlPanel";
+import {useDrop} from "react-dnd"; // ajusta la ruta
 
 export const Experience = () => {
     const groupRef = useRef();
@@ -28,6 +29,26 @@ export const Experience = () => {
 
         requestAnimationFrame(checkAndSave);
     }, []);
+
+    const [droppedCubes, setDroppedCubes] = useState([]);
+
+    const [{ isOver }, drop] = useDrop(() => ({
+        accept: "INTERSECTION",
+        drop: (item, monitor) => {
+            const clientOffset = monitor.getClientOffset();
+            if (clientOffset) {
+                const newCube = {
+                    id: Date.now(),
+                    position: [0, 1, 0], // Posición inicial. Podrías calcularlo con raycaster más adelante
+                    color: item.color || "#8B4513",
+                };
+                setDroppedCubes((prev) => [...prev, newCube]);
+            }
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
 
     const transformRef = useRef();
     const location = useLocation();
@@ -115,7 +136,7 @@ export const Experience = () => {
 
     return (
         <>
-            <Canvas shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }}>
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }}>
                 <Room positionY={3.5} />
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
                     <Environment files={"/images/poly_haven_studio_4k.hdr"} />
@@ -129,6 +150,12 @@ export const Experience = () => {
                         onMouseUp={saveTransformState}
                     />
                 )}
+                {droppedCubes.map(cube => (
+                    <mesh key={cube.id} position={cube.position}>
+                        <boxGeometry args={[0.5, 0.5, 0.5]} />
+                        <meshStandardMaterial color={cube.color} />
+                    </mesh>
+                ))}
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
             {interfaceComponents[selectedItem]}
