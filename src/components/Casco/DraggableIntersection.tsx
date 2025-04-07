@@ -17,8 +17,8 @@ export const INTERSECTION_TYPES = {
 const DraggableIntersection = ({ type, color = '#8B4513' }) => {
     // Configurar el comportamiento de arrastre
     const [{ isDragging }, drag] = useDrag(() => ({
-        type: 'intersection',
-        item: { type },
+        type: "INTERSECTION",
+        item: { type, color },
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
