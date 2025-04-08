@@ -167,13 +167,13 @@ export const Experience = () => {
                 if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
 
                     const relevantVerticals = droppedVerticalCubes.filter((cube) => {
-                        const cubeMinY = cube.position[1] - cube.height / 2;
-                        const cubeMaxY = cube.position[1] + cube.height / 2;
+                        const cubeMinY = cube.relativePosition[1] * cascoHeight - (cube.relativeHeight * cascoHeight) / 2;
+                        const cubeMaxY = cube.relativePosition[1] * cascoHeight + (cube.relativeHeight * cascoHeight) / 2;
                         return localPosition.y >= cubeMinY && localPosition.y <= cubeMaxY;
                     });
 
                     const verticalSections = relevantVerticals
-                        .map((cube) => cube.position[0])
+                        .map((cube) => cube.relativePosition[0] * cascoWidth)
                         .sort((a, b) => a - b);
 
                     const boundaries = [
@@ -193,13 +193,17 @@ export const Experience = () => {
                     adjustedPosition[0] = (leftBoundary + rightBoundary) / 2;
 
                     const existingSection = droppedHorizontalCubes.find((cube) => {
-                        const cubeMinX = cube.position[0] - cube.width / 2;
-                        const cubeMaxX = cube.position[0] + cube.width / 2;
+                        const cubeX = cube.relativePosition[0] * cascoWidth;
+                        const cubeY = cube.relativePosition[1] * cascoHeight;
+                        const cubeWidth = cube.relativeWidth * cascoWidth;
+
+                        const cubeMinX = cubeX - cubeWidth / 2;
+                        const cubeMaxX = cubeX + cubeWidth / 2;
 
                         const newMinX = adjustedPosition[0] - adjustedWidth / 2;
                         const newMaxX = adjustedPosition[0] + adjustedWidth / 2;
 
-                        const sameY = Math.abs(cube.position[1] - localPosition.y) < 0.1;
+                        const sameY = Math.abs(cubeY - localPosition.y) < 0.1;
                         const overlapsX = !(newMaxX <= cubeMinX || newMinX >= cubeMaxX);
 
                         return sameY && overlapsX;
@@ -210,13 +214,15 @@ export const Experience = () => {
                     }
                 } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
                     const relevantHorizontals = droppedHorizontalCubes.filter((cube) => {
-                        const cubeMinX = cube.position[0] - cube.width / 2;
-                        const cubeMaxX = cube.position[0] + cube.width / 2;
+                        const cubeX = cube.relativePosition[0] * cascoWidth;
+                        const cubeWidth = cube.relativeWidth * cascoWidth;
+                        const cubeMinX = cubeX - cubeWidth / 2;
+                        const cubeMaxX = cubeX + cubeWidth / 2;
                         return localPosition.x >= cubeMinX && localPosition.x <= cubeMaxX;
                     });
 
                     const horizontalSections = relevantHorizontals
-                        .map((cube) => cube.position[1])
+                        .map((cube) => cube.relativePosition[1] * cascoHeight)
                         .sort((a, b) => a - b);
 
                     const boundaries = [
@@ -236,13 +242,17 @@ export const Experience = () => {
                     adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
 
                     const existingSection = droppedVerticalCubes.find((cube) => {
-                        const cubeMinY = cube.position[1] - cube.height / 2;
-                        const cubeMaxY = cube.position[1] + cube.height / 2;
+                        const cubeX = cube.relativePosition[0] * cascoWidth;
+                        const cubeY = cube.relativePosition[1] * cascoHeight;
+                        const cubeHeight = cube.relativeHeight * cascoHeight;
+
+                        const cubeMinY = cubeY - cubeHeight / 2;
+                        const cubeMaxY = cubeY + cubeHeight / 2;
 
                         const newMinY = adjustedPosition[1] - adjustedHeight / 2;
                         const newMaxY = adjustedPosition[1] + adjustedHeight / 2;
 
-                        const sameX = Math.abs(cube.position[0] - localPosition.x) < 0.1;
+                        const sameX = Math.abs(cubeX - localPosition.x) < 0.1;
                         const overlapsY = !(newMaxY <= cubeMinY || newMinY >= cubeMaxY);
 
                         return sameX && overlapsY;
@@ -256,10 +266,14 @@ export const Experience = () => {
 
                 const newCube = {
                     id: Date.now(),
-                    position: adjustedPosition,
-                    width: item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor,
-                    height: item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor,
-                    depth: cascoDepth - espesor - (ref?.traseroDentro ? ref?.retranqueoTrasero || 0 : 0),
+                    relativePosition: [
+                        adjustedPosition[0] / cascoWidth,
+                        adjustedPosition[1] / cascoHeight,
+                        adjustedPosition[2] / cascoDepth
+                    ],
+                    relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
+                    relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
+                    relativeDepth: (cascoDepth - espesor - (ref?.traseroDentro ? ref?.retranqueoTrasero || 0 : 0)) / cascoDepth,
                     color: item.color || "#8B4513",
                 };
 

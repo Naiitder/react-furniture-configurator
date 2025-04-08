@@ -129,18 +129,21 @@ const Casco: React.FC<CascoProps> = ({
 
     const renderHorizontalSections = () => {
         return seccionesHorizontales.map((cube) => {
-            const localPosition = new THREE.Vector3(...cube.position);
-
+            const [rx, ry, rz] = cube.relativePosition;
             return (
                 <Caja
                     key={cube.id}
                     ref={(ref) => {
                         if (ref) horizontalSectionsRefs.current[cube.id] = ref;
                     }}
-                    position={[localPosition.x, localPosition.y, actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)]}
-                    width={cube.width - actualEspesor / 2}
-                    height={cube.height}
-                    depth={cube.depth}
+                    position={[
+                        rx * actualWidth,
+                        ry * actualHeight,
+                        actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
+                    ]}
+                    width={cube.relativeWidth * actualWidth - actualEspesor / 2}
+                    height={actualEspesor}
+                    depth={cube.relativeDepth * actualDepth}
                     color={materiales.OakWood}
                     bordesTriangulados={false}
                     espesorBase={actualEspesor}
@@ -151,18 +154,21 @@ const Casco: React.FC<CascoProps> = ({
 
     const renderVerticalSections = () => {
         return seccionesVerticales.map((cube) => {
-            const localPosition = new THREE.Vector3(...cube.position);
-
+            const [rx, ry, rz] = cube.relativePosition;
             return (
                 <Caja
                     key={cube.id}
                     ref={(ref) => {
                         if (ref) verticalSectionsRefs.current[cube.id] = ref;
                     }}
-                    position={[localPosition.x, localPosition.y, actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)]}
-                    width={cube.width}
-                    height={cube.height - (actualEspesor)}
-                    depth={cube.depth}
+                    position={[
+                        rx * actualWidth,
+                        ry * actualHeight,
+                        actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
+                    ]}
+                    width={actualEspesor}
+                    height={cube.relativeHeight * actualHeight - actualEspesor}
+                    depth={cube.relativeDepth * actualDepth}
                     color={materiales.OakWood}
                     bordesTriangulados={false}
                     espesorBase={actualEspesor}
