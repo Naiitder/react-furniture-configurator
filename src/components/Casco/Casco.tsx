@@ -99,34 +99,6 @@ const Casco: React.FC<CascoProps> = ({
     const horizontalSectionsRefs = useRef<{[key: string]: THREE.Mesh}>({});
     const verticalSectionsRefs = useRef<{[key: string]: THREE.Mesh}>({});
 
-    const checkSectionCollision = (position: THREE.Vector3, type: 'horizontal' | 'vertical') => {
-        const threshold = 0.1; // Margen de detección
-        const raycaster = new THREE.Raycaster();
-
-        // Configurar rayo según el tipo de sección
-        if (type === 'horizontal') {
-            raycaster.set(position, new THREE.Vector3(0, 1, 0));
-            raycaster.far = actualHeight;
-        } else {
-            raycaster.set(position, new THREE.Vector3(1, 0, 0));
-            raycaster.far = actualWidth;
-        }
-
-        // Lista de objetos a verificar
-        const objectsToCheck = [
-            leftWallRef.current,
-            rightWallRef.current,
-            backWallRef.current,
-            topWallRef.current,
-            bottomWallRef.current,
-            ...Object.values(horizontalSectionsRefs.current),
-            ...Object.values(verticalSectionsRefs.current)
-        ].filter(Boolean) as THREE.Object3D[];
-
-        const intersects = raycaster.intersectObjects(objectsToCheck, true);
-        return intersects.length > 0;
-    };
-
     const renderHorizontalSections = () => {
         return seccionesHorizontales.map((cube) => {
             const [rx, ry, rz] = cube.relativePosition;
@@ -141,9 +113,9 @@ const Casco: React.FC<CascoProps> = ({
                         ry * actualHeight,
                         actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
                     ]}
-                    width={cube.relativeWidth * actualWidth - actualEspesor / 2}
+                    width={cube.relativeWidth * actualWidth}
                     height={actualEspesor}
-                    depth={cube.relativeDepth * actualDepth}
+                    depth={(cube.relativeDepth * actualDepth) - actualRetranqueoTrasero}
                     color={materiales.OakWood}
                     bordesTriangulados={false}
                     espesorBase={actualEspesor}
@@ -155,6 +127,7 @@ const Casco: React.FC<CascoProps> = ({
     const renderVerticalSections = () => {
         return seccionesVerticales.map((cube) => {
             const [rx, ry, rz] = cube.relativePosition;
+
             return (
                 <Caja
                     key={cube.id}
@@ -168,7 +141,7 @@ const Casco: React.FC<CascoProps> = ({
                     ]}
                     width={actualEspesor}
                     height={cube.relativeHeight * actualHeight - actualEspesor}
-                    depth={cube.relativeDepth * actualDepth}
+                    depth={(cube.relativeDepth * actualDepth) - actualRetranqueoTrasero}
                     color={materiales.OakWood}
                     bordesTriangulados={false}
                     espesorBase={actualEspesor}

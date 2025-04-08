@@ -1,23 +1,23 @@
-import { useRef, useState, useEffect } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
-import { TransformControls, OrbitControls, Environment, Stage } from "@react-three/drei";
-import { useLocation } from "react-router-dom";
+import {useRef, useState, useEffect} from "react";
+import {Canvas, useThree} from "@react-three/fiber";
+import {TransformControls, OrbitControls, Environment, Stage, OrthographicCamera} from "@react-three/drei";
+import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
 import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomaticas.tsx";
-import { Room } from "../components/Enviroment/Room.jsx";
+import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import TransformControlPanel from "./TransformControlPanel";
-import { useDrop } from "react-dnd";
+import {useDrop} from "react-dnd";
 import * as THREE from "three";
-import { useSelectedItemProvider } from "../contexts/SelectedItemProvider.jsx";
+import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 
-const RaycastClickLogger = ({ glRef, cameraRef }) => {
-    const { camera, gl } = useThree();
-    const { ref } = useSelectedItemProvider();
+const RaycastClickLogger = ({glRef, cameraRef}) => {
+    const {camera, gl} = useThree();
+    const {ref} = useSelectedItemProvider();
 
     useEffect(() => {
         if (glRef) glRef.current = gl;
@@ -125,9 +125,9 @@ export const Experience = () => {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    const { ref } = useSelectedItemProvider();
+    const {ref} = useSelectedItemProvider();
 
-    const [{ isOver }, drop] = useDrop(() => ({
+    const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         drop: (item, monitor) => {
             const clientOffset = monitor.getClientOffset();
@@ -136,7 +136,7 @@ export const Experience = () => {
 
             if (!clientOffset || !gl || !camera || !ref?.groupRef) return;
 
-            const { x, y } = clientOffset;
+            const {x, y} = clientOffset;
             const bounds = gl.domElement.getBoundingClientRect();
             const mouse = new THREE.Vector2(
                 ((x - bounds.left) / bounds.width) * 2 - 1,
@@ -160,12 +160,11 @@ export const Experience = () => {
                 const cascoDepth = ref?.depth || 2;
                 const espesor = ref?.espesor || 0.1;
 
-                let adjustedWidth = cascoWidth - espesor * 2;
+                let adjustedWidth = cascoWidth - (espesor * 2);
                 let adjustedHeight = cascoHeight - espesor * 2;
                 let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
 
                 if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-
                     const relevantVerticals = droppedVerticalCubes.filter((cube) => {
                         const cubeMinY = cube.relativePosition[1] * cascoHeight - (cube.relativeHeight * cascoHeight) / 2;
                         const cubeMaxY = cube.relativePosition[1] * cascoHeight + (cube.relativeHeight * cascoHeight) / 2;
@@ -177,21 +176,24 @@ export const Experience = () => {
                         .sort((a, b) => a - b);
 
                     const boundaries = [
-                        -cascoWidth / 2 + espesor,
+                        (-cascoWidth + espesor) / 2,
                         ...verticalSections,
-                        cascoWidth / 2 - espesor,
+                        (cascoWidth - espesor) / 2,
                     ];
 
+                    // Determinar los límites
                     let leftBoundary = boundaries
                         .filter((pos) => pos < localPosition.x)
-                        .sort((a, b) => b - a)[0] || -cascoWidth / 2 + espesor;
+                        .sort((a, b) => b - a)[0] + espesor || -cascoWidth / 2 + espesor;
                     let rightBoundary = boundaries
                         .filter((pos) => pos > localPosition.x)
-                        .sort((a, b) => a - b)[0] || cascoWidth / 2 - espesor;
+                        .sort((a, b) => a - b)[0] - espesor || cascoWidth / 2 - espesor;
 
-                    adjustedWidth = rightBoundary - leftBoundary;
-                    adjustedPosition[0] = (leftBoundary + rightBoundary) / 2;
+// Calcular el ancho y la posición sin ajustes adicionales
+                    adjustedWidth = (rightBoundary - leftBoundary) + (espesor); // Simplemente la distancia entre los límites
+                    adjustedPosition[0] = (leftBoundary + rightBoundary) / 2; // Punto medio entre los límites
 
+// Verificar si ya existe una sección en esta posición
                     const existingSection = droppedHorizontalCubes.find((cube) => {
                         const cubeX = cube.relativePosition[0] * cascoWidth;
                         const cubeY = cube.relativePosition[1] * cascoHeight;
@@ -208,6 +210,7 @@ export const Experience = () => {
 
                         return sameY && overlapsX;
                     });
+
                     if (existingSection) {
                         console.warn("Ya existe una sección horizontal en esta posición Y");
                         return;
@@ -312,23 +315,25 @@ export const Experience = () => {
     const itemComponents = {
         "Casco": (
             <group ref={groupRef}>
-                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puertas={[<Puerta />]} seccionesHorizontales={droppedHorizontalCubes} seccionesVerticales={droppedVerticalCubes} />
+                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
+                       seccionesHorizontales={droppedHorizontalCubes} seccionesVerticales={droppedVerticalCubes}/>
             </group>
         ),
         "Casco Secciones": (
             <group ref={groupRef}>
-                <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1} />]} puertas={[<Puerta />]} />
+                <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
+                                           puertas={[<Puerta/>]}/>
             </group>
         ),
     };
 
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }}>
-                <RaycastClickLogger glRef={glRef} cameraRef={cameraRef} />
-                <Room positionY={3.5} />
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
+                <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
+                <Room positionY={3.5}/>
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
-                    <Environment files={"/images/poly_haven_studio_4k.hdr"} />
+                    <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && (
@@ -339,10 +344,10 @@ export const Experience = () => {
                         onMouseUp={saveTransformState}
                     />
                 )}
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
             {interfaceComponents[selectedItem]}
-            <RoomConfigPanel />
+            <RoomConfigPanel/>
         </>
     );
 };
