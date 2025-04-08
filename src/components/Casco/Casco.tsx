@@ -99,6 +99,8 @@ const Casco: React.FC<CascoProps> = ({
     const horizontalSectionsRefs = useRef<{[key: string]: THREE.Mesh}>({});
     const verticalSectionsRefs = useRef<{[key: string]: THREE.Mesh}>({});
 
+    const extraAltura = patas && indiceActualPata != -1 ? actualAlturaPatas : 0;
+
     const renderHorizontalSections = () => {
         return seccionesHorizontales.map((cube) => {
             const [rx, ry, rz] = cube.relativePosition;
@@ -110,7 +112,7 @@ const Casco: React.FC<CascoProps> = ({
                     }}
                     position={[
                         rx * actualWidth,
-                        ry * actualHeight,
+                        ry * actualHeight +extraAltura,
                         actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
                     ]}
                     width={cube.relativeWidth * actualWidth}
@@ -136,7 +138,7 @@ const Casco: React.FC<CascoProps> = ({
                     }}
                     position={[
                         rx * actualWidth,
-                        ry * actualHeight,
+                        ry * actualHeight+extraAltura,
                         actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
                     ]}
                     width={actualEspesor}
