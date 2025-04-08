@@ -192,10 +192,18 @@ export const Experience = () => {
                     adjustedWidth = rightBoundary - leftBoundary;
                     adjustedPosition[0] = (leftBoundary + rightBoundary) / 2;
 
-                    const existingSection = droppedHorizontalCubes.find(
-                        (cube) => Math.abs(cube.position[1] - localPosition.y) < 0.1
-                    );
+                    const existingSection = droppedHorizontalCubes.find((cube) => {
+                        const cubeMinX = cube.position[0] - cube.width / 2;
+                        const cubeMaxX = cube.position[0] + cube.width / 2;
 
+                        const newMinX = adjustedPosition[0] - adjustedWidth / 2;
+                        const newMaxX = adjustedPosition[0] + adjustedWidth / 2;
+
+                        const sameY = Math.abs(cube.position[1] - localPosition.y) < 0.1;
+                        const overlapsX = !(newMaxX <= cubeMinX || newMinX >= cubeMaxX);
+
+                        return sameY && overlapsX;
+                    });
                     if (existingSection) {
                         console.warn("Ya existe una sección horizontal en esta posición Y");
                         return;
@@ -227,9 +235,18 @@ export const Experience = () => {
                     adjustedHeight = topBoundary - bottomBoundary;
                     adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
 
-                    const existingSection = droppedVerticalCubes.find(
-                        (cube) => Math.abs(cube.position[0] - localPosition.x) < 0.1
-                    );
+                    const existingSection = droppedVerticalCubes.find((cube) => {
+                        const cubeMinY = cube.position[1] - cube.height / 2;
+                        const cubeMaxY = cube.position[1] + cube.height / 2;
+
+                        const newMinY = adjustedPosition[1] - adjustedHeight / 2;
+                        const newMaxY = adjustedPosition[1] + adjustedHeight / 2;
+
+                        const sameX = Math.abs(cube.position[0] - localPosition.x) < 0.1;
+                        const overlapsY = !(newMaxY <= cubeMinY || newMinY >= cubeMaxY);
+
+                        return sameX && overlapsY;
+                    });
 
                     if (existingSection) {
                         console.warn("Ya existe una sección vertical en esta posición X");
