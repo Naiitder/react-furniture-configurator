@@ -104,6 +104,30 @@ const Casco: React.FC<CascoProps> = ({
     const renderHorizontalSections = () => {
         return seccionesHorizontales.map((cube) => {
             const [rx, ry, rz] = cube.relativePosition;
+
+
+            const touchesRightEdge = Math.abs(rx * actualWidth + (cube.relativeWidth * actualWidth / 2) - actualWidth) < 0.01;
+            const touchesLeftEdge = Math.abs(rx * actualWidth - (cube.relativeWidth * actualWidth / 2)) < 0.01;
+
+            let adjustedWidth = (cube.relativeWidth * actualWidth)  - (actualEspesor/2);
+            let adjestedXposition = 0;
+
+            if (!touchesLeftEdge && !touchesRightEdge) {
+                adjustedWidth = adjustedWidth-(actualEspesor / 2);
+                adjestedXposition = (rx * actualWidth) ;
+            }
+            else if(touchesRightEdge && !touchesLeftEdge) {
+                adjustedWidth = adjustedWidth-(actualEspesor);
+                adjestedXposition = (rx * actualWidth) +(actualEspesor/4) ;
+
+            }else if (touchesLeftEdge && !touchesRightEdge) {
+                adjustedWidth = adjustedWidth-(actualEspesor);
+                adjestedXposition = (rx * actualWidth) -(actualEspesor/4);
+            }
+            else {
+                adjustedWidth = adjustedWidth - (actualEspesor * 1.5);
+                adjestedXposition = (rx * actualWidth);
+            }
             return (
                 <Caja
                     key={cube.id}
@@ -111,11 +135,11 @@ const Casco: React.FC<CascoProps> = ({
                         if (ref) horizontalSectionsRefs.current[cube.id] = ref;
                     }}
                     position={[
-                        rx * actualWidth,
+                        adjestedXposition,
                         ry * actualHeight + extraAltura,
                         actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
                     ]}
-                    width={(cube.relativeWidth * actualWidth) - (actualEspesor * 2)}
+                    width={adjustedWidth}
                     height={actualEspesor}
                     depth={(cube.relativeDepth * actualDepth) - actualRetranqueoTrasero - actualEspesor}
                     color={materiales.OakWood}
@@ -126,43 +150,56 @@ const Casco: React.FC<CascoProps> = ({
         });
     };
 
-    const renderVerticalSections = () => {
-        return seccionesVerticales.map((cube) => {
-            const [rx, ry, rz] = cube.relativePosition;
+            const renderVerticalSections = () => {
+                return seccionesVerticales.map((cube) => {
+                    const [rx, ry, rz] = cube.relativePosition;
 
-            const touchesTopEdge = Math.abs(ry * actualHeight + (cube.relativeHeight * actualHeight / 2) - actualHeight) < 0.01;
-            const touchesBottomEdge = Math.abs(ry * actualHeight - (cube.relativeHeight * actualHeight / 2)) < 0.01;
+                    const touchesTopEdge = Math.abs(ry * actualHeight + (cube.relativeHeight * actualHeight / 2) - actualHeight) < 0.01;
+                    const touchesBottomEdge = Math.abs(ry * actualHeight - (cube.relativeHeight * actualHeight / 2)) < 0.01;
 
-            // Adjust height: subtract actualEspesor only at the top/bottom edges
-            let adjustedHeight = (cube.relativeHeight * actualHeight) - actualEspesor;
-            let adjustedYEspesor = ((actualEspesor / adjustedHeight) / actualHeight) - (actualEspesor / 10);
+                    // Adjust height: subtract actualEspesor only at the top/bottom edges
+                    let adjustedHeight = (cube.relativeHeight * actualHeight) - (actualEspesor/2);
+                    let adjustedYposition = 0;
 
-            if (!touchesTopEdge && !touchesBottomEdge) {
-                adjustedHeight += (actualEspesor); // Subtract thickness only at the edges
-                adjustedYEspesor = ((actualEspesor / adjustedHeight) / actualHeight) - (actualEspesor / 10);
-            }
+                    if (!touchesTopEdge && !touchesBottomEdge) {
+                        adjustedHeight = adjustedHeight-(actualEspesor/2);
+                        adjustedYposition = (ry * actualHeight) + extraAltura;
+                    }
+                    else if(touchesBottomEdge && !touchesTopEdge) {
+                        adjustedHeight = adjustedHeight-(actualEspesor);
+                        adjustedYposition = (ry * actualHeight) +(actualEspesor/4) + extraAltura;
 
-            return (
-                <Caja
-                    key={cube.id}
-                    ref={(ref) => {
-                        if (ref) verticalSectionsRefs.current[cube.id] = ref;
-                    }}
-                    position={[
-                        rx * actualWidth,
-                        (ry * actualHeight) - (adjustedYEspesor) + extraAltura,
-                        actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
-                    ]}
-                    width={actualEspesor}
-                    height={adjustedHeight - actualEspesor / 2}
-                    depth={(cube.relativeDepth * actualDepth) - actualRetranqueoTrasero - actualEspesor}
-                    color={materiales.OakWood}
-                    bordesTriangulados={false}
-                    espesorBase={actualEspesor}
-                />
-            );
-        });
-    };
+                    }else if (touchesTopEdge && !touchesBottomEdge) {
+                        adjustedHeight = adjustedHeight-(actualEspesor);
+                        adjustedYposition = (ry * actualHeight) -(actualEspesor/4) + extraAltura;
+                    }
+                    else {
+                        adjustedHeight = adjustedHeight-(actualEspesor * 1.5);
+                        adjustedYposition = (ry * actualHeight) + extraAltura;
+                    }
+
+                    return (
+                        <Caja
+                            key={cube.id}
+                            ref={(ref) => {
+                                if (ref) verticalSectionsRefs.current[cube.id] = ref;
+                            }}
+                            position={[
+                                rx * actualWidth,
+                                adjustedYposition,
+                                actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
+                            ]}
+                            width={actualEspesor}
+                            height={adjustedHeight}
+                            depth={(cube.relativeDepth * actualDepth) - actualRetranqueoTrasero - actualEspesor}
+                            color={materiales.OakWood}
+                            bordesTriangulados={false}
+                            espesorBase={actualEspesor}
+                        />
+                    );
+                });
+            };
+
 
     // Calcular dimensiones ajustadas para evitar solapamientos
     const calcularDimensiones = () => {
