@@ -34,9 +34,9 @@ const RaycastClickLogger = ({ glRef, cameraRef }) => {
             raycaster.setFromCamera(mouse, camera);
 
             console.log("REF", ref)
-            if (ref?.transparentBoxRef) {
-                console.log(ref.transparentBoxRef);
-                const intersects = raycaster.intersectObject(ref.transparentBoxRef, true);
+            if (ref?.groupRef) {
+                console.log(ref.groupRef);
+                const intersects = raycaster.intersectObject(ref.groupRef, true);
                 if (intersects.length > 0) {
                     console.log("👉 Intersección con Casco en:", intersects[0].point);
                 }

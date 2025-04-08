@@ -259,16 +259,6 @@ const Casco: React.FC<CascoProps> = ({
 
     const materiales = useMaterial();
 
-    const transparentBoxRef = useRef<THREE.Mesh>(null);
-    useEffect(() => {
-        if (transparentBoxRef.current && ref) {
-            setRef({
-                ...ref,
-                transparentBoxRef: transparentBoxRef.current
-            });
-        }
-    }, [transparentBoxRef.current]);
-
     return (
         <group ref={groupRef} position={adjustedPosition} rotation={rotation}>
             {/* Caja inferior (suelo) */}

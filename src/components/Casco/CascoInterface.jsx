@@ -159,7 +159,7 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             indicePata,
             alturaPatas,
             indicePuerta,
-            transparentBoxRef: (ref.transparentBoxRef)
+            groupRef: (ref.groupRef)
         };
 
         setRef(updatedConfig);
