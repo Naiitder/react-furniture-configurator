@@ -112,12 +112,12 @@ const Casco: React.FC<CascoProps> = ({
                     }}
                     position={[
                         rx * actualWidth,
-                        ry * actualHeight +extraAltura,
+                        ry * actualHeight + extraAltura,
                         actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
                     ]}
-                    width={cube.relativeWidth * actualWidth}
+                    width={(cube.relativeWidth * actualWidth) - (actualEspesor * 2)}
                     height={actualEspesor}
-                    depth={(cube.relativeDepth * actualDepth) - actualRetranqueoTrasero}
+                    depth={(cube.relativeDepth * actualDepth) - actualRetranqueoTrasero - actualEspesor}
                     color={materiales.OakWood}
                     bordesTriangulados={false}
                     espesorBase={actualEspesor}
@@ -130,6 +130,18 @@ const Casco: React.FC<CascoProps> = ({
         return seccionesVerticales.map((cube) => {
             const [rx, ry, rz] = cube.relativePosition;
 
+            const touchesTopEdge = Math.abs(ry * actualHeight + (cube.relativeHeight * actualHeight / 2) - actualHeight) < 0.01;
+            const touchesBottomEdge = Math.abs(ry * actualHeight - (cube.relativeHeight * actualHeight / 2)) < 0.01;
+
+            // Adjust height: subtract actualEspesor only at the top/bottom edges
+            let adjustedHeight = (cube.relativeHeight * actualHeight) - actualEspesor;
+            let adjustedYEspesor = ((actualEspesor / adjustedHeight) / actualHeight) - (actualEspesor / 10);
+
+            if (!touchesTopEdge && !touchesBottomEdge) {
+                adjustedHeight += (actualEspesor); // Subtract thickness only at the edges
+                adjustedYEspesor = ((actualEspesor / adjustedHeight) / actualHeight) - (actualEspesor / 10);
+            }
+
             return (
                 <Caja
                     key={cube.id}
@@ -138,12 +150,12 @@ const Casco: React.FC<CascoProps> = ({
                     }}
                     position={[
                         rx * actualWidth,
-                        ry * actualHeight+extraAltura,
+                        (ry * actualHeight) - (adjustedYEspesor) + extraAltura,
                         actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0)
                     ]}
                     width={actualEspesor}
-                    height={cube.relativeHeight * actualHeight - actualEspesor}
-                    depth={(cube.relativeDepth * actualDepth) - actualRetranqueoTrasero}
+                    height={adjustedHeight - actualEspesor / 2}
+                    depth={(cube.relativeDepth * actualDepth) - actualRetranqueoTrasero - actualEspesor}
                     color={materiales.OakWood}
                     bordesTriangulados={false}
                     espesorBase={actualEspesor}

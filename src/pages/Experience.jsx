@@ -160,8 +160,8 @@ export const Experience = () => {
                 const cascoDepth = ref?.depth || 2;
                 const espesor = ref?.espesor || 0.1;
 
-                let adjustedWidth = cascoWidth - (espesor * 2);
-                let adjustedHeight = cascoHeight - espesor * 2;
+                let adjustedWidth = cascoWidth;
+                let adjustedHeight = cascoHeight;
                 let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
 
                 if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
@@ -176,24 +176,24 @@ export const Experience = () => {
                         .sort((a, b) => a - b);
 
                     const boundaries = [
-                        (-cascoWidth + espesor) / 2,
+                        (-cascoWidth) / 2,
                         ...verticalSections,
-                        (cascoWidth - espesor) / 2,
+                        (cascoWidth) / 2,
                     ];
 
                     // Determinar los límites
                     let leftBoundary = boundaries
                         .filter((pos) => pos < localPosition.x)
-                        .sort((a, b) => b - a)[0] + espesor || -cascoWidth / 2 + espesor;
+                        .sort((a, b) => b - a)[0] || -cascoWidth / 2;
                     let rightBoundary = boundaries
                         .filter((pos) => pos > localPosition.x)
-                        .sort((a, b) => a - b)[0] - espesor || cascoWidth / 2 - espesor;
+                        .sort((a, b) => a - b)[0] || cascoWidth / 2;
 
-// Calcular el ancho y la posición sin ajustes adicionales
-                    adjustedWidth = (rightBoundary - leftBoundary) + (espesor); // Simplemente la distancia entre los límites
+                    // Calcular el ancho y la posición sin ajustes adicionales
+                    adjustedWidth = (rightBoundary - leftBoundary); // Simplemente la distancia entre los límites
                     adjustedPosition[0] = (leftBoundary + rightBoundary) / 2; // Punto medio entre los límites
 
-// Verificar si ya existe una sección en esta posición
+                    // Verificar si ya existe una sección en esta posición
                     const existingSection = droppedHorizontalCubes.find((cube) => {
                         const cubeX = cube.relativePosition[0] * cascoWidth;
                         const cubeY = cube.relativePosition[1] * cascoHeight;
@@ -229,19 +229,19 @@ export const Experience = () => {
                         .sort((a, b) => a - b);
 
                     const boundaries = [
-                        espesor / 2,
+                        0,
                         ...horizontalSections,
-                        cascoHeight - espesor / 2,
+                        cascoHeight,
                     ];
 
                     let bottomBoundary = boundaries
                         .filter((pos) => pos < localPosition.y)
-                        .sort((a, b) => b - a)[0] || espesor / 2;
+                        .sort((a, b) => b - a)[0] || 0;
                     let topBoundary = boundaries
                         .filter((pos) => pos > localPosition.y)
-                        .sort((a, b) => a - b)[0] || cascoHeight - espesor / 2;
+                        .sort((a, b) => a - b)[0] || cascoHeight ;
 
-                    adjustedHeight = topBoundary - bottomBoundary;
+                    adjustedHeight = (topBoundary - bottomBoundary);
                     adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
 
                     const existingSection = droppedVerticalCubes.find((cube) => {
@@ -276,7 +276,7 @@ export const Experience = () => {
                     ],
                     relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
                     relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
-                    relativeDepth: (cascoDepth - espesor - (ref?.traseroDentro ? ref?.retranqueoTrasero || 0 : 0)) / cascoDepth,
+                    relativeDepth: (cascoDepth - (ref?.traseroDentro ? ref?.retranqueoTrasero || 0 : 0)) / cascoDepth,
                     color: item.color || "#8B4513",
                 };
 
