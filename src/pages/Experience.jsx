@@ -165,7 +165,14 @@ export const Experience = () => {
                 let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
 
                 if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                    const verticalSections = droppedVerticalCubes
+
+                    const relevantVerticals = droppedVerticalCubes.filter((cube) => {
+                        const cubeMinY = cube.position[1] - cube.height / 2;
+                        const cubeMaxY = cube.position[1] + cube.height / 2;
+                        return localPosition.y >= cubeMinY && localPosition.y <= cubeMaxY;
+                    });
+
+                    const verticalSections = relevantVerticals
                         .map((cube) => cube.position[0])
                         .sort((a, b) => a - b);
 
@@ -194,7 +201,13 @@ export const Experience = () => {
                         return;
                     }
                 } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                    const horizontalSections = droppedHorizontalCubes
+                    const relevantHorizontals = droppedHorizontalCubes.filter((cube) => {
+                        const cubeMinX = cube.position[0] - cube.width / 2;
+                        const cubeMaxX = cube.position[0] + cube.width / 2;
+                        return localPosition.x >= cubeMinX && localPosition.x <= cubeMaxX;
+                    });
+
+                    const horizontalSections = relevantHorizontals
                         .map((cube) => cube.position[1])
                         .sort((a, b) => a - b);
 
