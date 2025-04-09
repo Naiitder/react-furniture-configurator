@@ -60,10 +60,6 @@ const Caja: React.FC<CajaProps> = ({
                 if (stopPropagation) event.stopPropagation();
             }}>
                 <boxGeometry args={[adjustedWidth, adjustedHeight, adjustedDepth]}/>
-                <lineSegments>
-                    <edgesGeometry args={[new THREE.BoxGeometry(adjustedWidth, adjustedHeight, adjustedDepth)]}/>
-                    <lineBasicMaterial color={0x000000}/>
-                </lineSegments>
             </mesh>
             {(bordesTriangulados && !bordeEjeZ) && (
                 <>
