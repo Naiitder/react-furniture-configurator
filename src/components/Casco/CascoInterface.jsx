@@ -11,7 +11,7 @@ import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection
 const {Title} = Typography;
 import TransformControlPanel from "../../pages/TransformControlPanel.js";
 
-const CascoInterface = ({ show, setShow, mode, setMode }) => {
+const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1, y: 1, z: 1} }) => {
     const { ref, setRef } = useSelectedItemProvider();
 
     // Inicializamos estados locales
@@ -139,6 +139,15 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             setRetranquearSuelo(false);
         }
     }, [traseroDentro])
+
+    useEffect(() => {
+        setWidth(scaleDimensions.x);
+        setWidthSliderValue(scaleDimensions.x * 100);
+        setHeight(scaleDimensions.y);
+        setHeightSliderValue(scaleDimensions.y * 100);
+        setDepth(scaleDimensions.z);
+        setDepthSliderValue(scaleDimensions.z * 100);
+    }, [scaleDimensions]);
 
     useEffect(() => {
         if (!ref) return;
