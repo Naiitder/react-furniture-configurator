@@ -2,14 +2,16 @@ import * as React from "react";
 import * as THREE from "three";
 import '@react-three/fiber';
 import BordeTriangular from "./BordeTriangular";
-import {useMaterial} from "../../assets/materials";
 import {useRef} from "react";
+import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
 // Componente para una caja individual
 type CajaProps = {
-    ref?: React.Ref<any>;
+    meshRef?: React.Ref<any>;
+    parentRef?: React.Ref<any>;
     position: [number, number, number];
     rotation?: [number, number, number];
     width: number;
@@ -30,7 +32,8 @@ type CajaProps = {
 }
 
 const Caja: React.FC<CajaProps> = ({
-                                       ref = useRef<any>(null),
+                                       meshRef = useRef<any>(null),
+                                       parentRef = null,
                                        position,
                                        rotation = [0, 0, 0],
                                        espesorBase,
@@ -124,22 +127,43 @@ const Caja: React.FC<CajaProps> = ({
 
     // Efecto para aplicar transformaciones al mesh
     React.useEffect(() => {
-        if (ref.current && shape === "trapezoid") {
-            ref.current.position.set(position[0], position[1], position[2]);
-            ref.current.rotation.set(rotation[0], rotation[1], rotation[2]);
+        if (meshRef.current && shape === "trapezoid") {
+            meshRef.current.position.set(position[0], position[1], position[2]);
+            meshRef.current.rotation.set(rotation[0], rotation[1], rotation[2]);
         }
     }, [position, rotation, shape]);
+
+    const {refPiece, setPiece} = useSelectedPieceProvider();
+    const { ref, setRef } = useSelectedItemProvider();
 
     return (
         <>
             {(shape === "box" || shape === "trapezoid") && (
                 <mesh
-                    ref={ref}
+                    ref={meshRef}
                     position={position}
                     material={material}
                     rotation={rotation}
                     onClick={(event) => {
+                        console.log("ref actual", ref);
+                        console.log("ref del padre", parentRef);
                         if (stopPropagation) event.stopPropagation();
+
+                        if (ref === parentRef) {
+                            if (event.shiftKey) {
+                                if (refPiece.includes(meshRef.current)) {
+                                    // Si ya está seleccionado, quítalo de la selección
+                                    setPiece(current => current.filter(item => item !== meshRef.current));
+                                } else {
+                                    // Si no está seleccionado, agrégalo
+                                    setPiece(current => [...current, meshRef.current]);
+                                }
+                            } else {
+                                // Sin Shift, reemplaza la selección
+                                setPiece([meshRef.current]);
+                            }
+                        }
+
                     }}
                 >
                     <boxGeometry args={[adjustedWidth, adjustedHeight, adjustedDepth]}/>

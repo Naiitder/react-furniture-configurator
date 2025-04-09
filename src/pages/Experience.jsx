@@ -17,6 +17,7 @@ import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
 import CascoWithContext from "../components/Casco/Casco.js";
 import CascoSeccionesAutomaticasWithContext from "../components/Casco/CascoSeccionesAutomaticas.tsx";
+import {Group, Matrix4, Object3D} from "three";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -56,6 +57,7 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
 
 export const Experience = () => {
     const groupRef = useRef();
+    const {refPiece} = useSelectedPieceProvider();
     const transformRef = useRef();
     const glRef = useRef();
     const cameraRef = useRef();
@@ -68,6 +70,93 @@ export const Experience = () => {
     const [undoStack, setUndoStack] = useState([]);
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
     const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
+
+    const selectionGroupRef = useRef(new Group());
+
+    // Mantén un mapeo de objetos originales a sus proxies
+    const objectToProxyMap = useRef(new Map());
+
+    useEffect(() => {
+        // Asegúrate de que el grupo de selección esté en la escena
+        if (!selectionGroupRef.current.parent && groupRef.current) {
+            groupRef.current.add(selectionGroupRef.current);
+        }
+
+        // Limpiar el grupo y reconstruirlo
+        while (selectionGroupRef.current.children.length > 0) {
+            selectionGroupRef.current.remove(selectionGroupRef.current.children[0]);
+        }
+        objectToProxyMap.current.clear();
+
+        if (refPiece.length > 0) {
+            // Crear objetos proxy para cada pieza seleccionada
+            refPiece.forEach(piece => {
+                if (piece) {
+                    // Crear un proxy que imitará al objeto original
+                    const proxy = new Object3D();
+
+                    // Copiar la posición, rotación y escala
+                    proxy.position.copy(piece.position);
+                    proxy.rotation.copy(piece.rotation);
+                    proxy.scale.copy(piece.scale);
+
+                    // Añadir el proxy al grupo
+                    selectionGroupRef.current.add(proxy);
+
+                    // Guardar la referencia al mapa
+                    objectToProxyMap.current.set(piece, proxy);
+                }
+            });
+
+            // Si solo hay una pieza, podríamos usar directamente esa pieza
+            if (refPiece.length === 1) {
+                transformRef.current?.attach(refPiece[0]);
+            } else if (refPiece.length > 1) {
+                transformRef.current?.attach(selectionGroupRef.current);
+            }
+        } else {
+            // Si no hay piezas seleccionadas, volver al grupo principal
+            transformRef.current?.attach(groupRef.current);
+        }
+    }, [refPiece]);
+
+    // Sincronizar los cambios del TransformControls con los objetos originales
+    useEffect(() => {
+        if (!transformRef.current) return;
+
+        const onObjectChange = () => {
+            // Si estamos transformando el grupo de selección
+            if (transformRef.current.object === selectionGroupRef.current && refPiece.length > 1) {
+                // Calculamos la transformación relativamente
+                const matrix = new Matrix4();
+                selectionGroupRef.current.updateWorldMatrix(true, false);
+
+                // Aplicar la transformación a cada objeto original basado en su proxy
+                objectToProxyMap.current.forEach((proxy, original) => {
+                    // Obtener la matriz mundial del proxy
+                    proxy.updateWorldMatrix(true, false);
+                    const worldMatrix = proxy.matrixWorld.clone();
+
+                    // Aplicar la transformación al objeto original
+                    original.position.setFromMatrixPosition(worldMatrix);
+
+                    // Extraer y aplicar rotación
+                    const rotation = new THREE.Euler();
+                    rotation.setFromRotationMatrix(worldMatrix);
+                    original.rotation.copy(rotation);
+
+                    // Extraer y aplicar escala (esto es simplificado, puede necesitar ajustes)
+                    const scale = new THREE.Vector3();
+                    scale.setFromMatrixScale(worldMatrix);
+                    original.scale.copy(scale);
+                });
+            }
+        };
+
+        const controls = transformRef.current;
+        controls.addEventListener('objectChange', onObjectChange);
+        return () => controls.removeEventListener('objectChange', onObjectChange);
+    }, [refPiece, transformRef.current]);
 
     useEffect(() => {
         let saved = false;
@@ -89,22 +178,36 @@ export const Experience = () => {
 
     // Guarda el estado actual del objeto
     const saveTransformState = () => {
-        const obj = groupRef.current;
-        if (!obj || !selectedItemProps) return;
+        if (refPiece.length > 0) {
+            // Guardar el estado de cada pieza seleccionada
+            const states = refPiece.map(piece => ({
+                object: piece,
+                position: piece.position.clone(),
+                rotation: piece.rotation.clone(),
+                scale: piece.scale.clone()
+            }));
 
-        const state = {
-            position: obj.position.clone(),
-            rotation: obj.rotation.clone(),
-            scale: obj.scale.clone(),
-            dimensions: {
-                width: selectedItemProps.width,
-                height: selectedItemProps.height,
-                depth: selectedItemProps.depth
-            }
-        };
+            setUndoStack(prev => [...prev, states]);
+        } else if (groupRef.current) {
+            // Código original para guardar el estado del grupo principal
+            const obj = groupRef.current;
+            if (!obj || !selectedItemProps) return;
 
-        setUndoStack(prev => [...prev, state]);
+            const state = {
+                position: obj.position.clone(),
+                rotation: obj.rotation.clone(),
+                scale: obj.scale.clone(),
+                dimensions: {
+                    width: selectedItemProps.width,
+                    height: selectedItemProps.height,
+                    depth: selectedItemProps.depth
+                }
+            };
+
+            setUndoStack(prev => [...prev, state]);
+        }
     };
+
 
     useEffect(() => {
         if (groupRef.current) saveTransformState();
@@ -311,7 +414,7 @@ export const Experience = () => {
                         .sort((a, b) => b - a)[0] || 0;
                     let topBoundary = boundaries
                         .filter((pos) => pos > localPosition.y)
-                        .sort((a, b) => a - b)[0] || cascoHeight ;
+                        .sort((a, b) => a - b)[0] || cascoHeight;
 
                     adjustedHeight = (topBoundary - bottomBoundary);
                     adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
@@ -391,13 +494,14 @@ export const Experience = () => {
         "Casco": (
             <group ref={groupRef}>
                 <CascoWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
-                       seccionesHorizontales={droppedHorizontalCubes} seccionesVerticales={droppedVerticalCubes}/>
+                                  seccionesHorizontales={droppedHorizontalCubes}
+                                  seccionesVerticales={droppedVerticalCubes}/>
             </group>
         ),
         "Casco Secciones": (
             <group ref={groupRef}>
                 <CascoSeccionesAutomaticasWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
-                                           puertas={[<Puerta/>]}/>
+                                                      puertas={[<Puerta/>]}/>
             </group>
         ),
     };
@@ -414,7 +518,7 @@ export const Experience = () => {
                 {transformEnabled && (
                     <TransformControls
                         ref={transformRef}
-                        object={groupRef}
+                        object={refPiece.length > 1 ? selectionGroupRef.current : (refPiece.length === 1 ? refPiece[0] : groupRef.current)}
                         mode={transformMode}
                         onMouseUp={saveTransformState}
                     />

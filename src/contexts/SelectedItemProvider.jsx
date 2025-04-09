@@ -1,4 +1,3 @@
-// En tu SelectedItemProvider.jsx
 import React, { createContext, useContext, useState, useRef } from 'react';
 
 export const SelectedItemContext = createContext();
@@ -8,6 +7,12 @@ export function SelectedItemProvider({ children }) {
     const componentRefs = useRef({});
 
     const setRef = (newRef) => {
+        // Validar que newRef no sea null o undefined
+        if (!newRef) {
+            setRefInternal(null);
+            return;
+        }
+
         // Extrae cualquier componente React antes de guardarlo en el estado
         const { pata, ...serializableProps } = newRef;
 
@@ -22,6 +27,8 @@ export function SelectedItemProvider({ children }) {
 
     // Función para obtener tanto props serializables como componentes
     const getFullRef = () => {
+        if (!ref) return null;
+
         return {
             ...ref,
             pata: componentRefs.current.pata
