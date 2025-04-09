@@ -15,6 +15,8 @@ import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
+import CascoWithContext from "../components/Casco/Casco.js";
+import CascoSeccionesAutomaticasWithContext from "../components/Casco/CascoSeccionesAutomaticas.tsx";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -388,13 +390,13 @@ export const Experience = () => {
     const itemComponents = {
         "Casco": (
             <group ref={groupRef}>
-                <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
+                <CascoWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
                        seccionesHorizontales={droppedHorizontalCubes} seccionesVerticales={droppedVerticalCubes}/>
             </group>
         ),
         "Casco Secciones": (
             <group ref={groupRef}>
-                <CascoSeccionesAutomaticas rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
+                <CascoSeccionesAutomaticasWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
                                            puertas={[<Puerta/>]}/>
             </group>
         ),
