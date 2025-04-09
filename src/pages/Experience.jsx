@@ -56,7 +56,9 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
 };
 
 export const Experience = () => {
-    const groupRef = useRef();
+    const groupRef = useRef([]);
+    const parentGroupRef = useRef();
+
     const {refPiece} = useSelectedPieceProvider();
     const transformRef = useRef();
     const glRef = useRef();
@@ -77,46 +79,40 @@ export const Experience = () => {
     const objectToProxyMap = useRef(new Map());
 
     useEffect(() => {
-        // Asegúrate de que el grupo de selección esté en la escena
-        if (!selectionGroupRef.current.parent && groupRef.current) {
-            groupRef.current.add(selectionGroupRef.current);
+        // Si aún no está anidado en el contenedor padre, agrégalo
+        if (parentGroupRef.current && !selectionGroupRef.current.parent) {
+            parentGroupRef.current.add(selectionGroupRef.current);
         }
 
-        // Limpiar el grupo y reconstruirlo
+        // Limpia el grupo de selección y el mapa de proxies
         while (selectionGroupRef.current.children.length > 0) {
             selectionGroupRef.current.remove(selectionGroupRef.current.children[0]);
         }
         objectToProxyMap.current.clear();
 
         if (refPiece.length > 0) {
-            // Crear objetos proxy para cada pieza seleccionada
-            refPiece.forEach(piece => {
+            // Crear proxies para cada pieza seleccionada
+            refPiece.forEach((piece) => {
                 if (piece) {
-                    // Crear un proxy que imitará al objeto original
                     const proxy = new Object3D();
-
-                    // Copiar la posición, rotación y escala
                     proxy.position.copy(piece.position);
                     proxy.rotation.copy(piece.rotation);
                     proxy.scale.copy(piece.scale);
-
-                    // Añadir el proxy al grupo
                     selectionGroupRef.current.add(proxy);
-
-                    // Guardar la referencia al mapa
                     objectToProxyMap.current.set(piece, proxy);
                 }
             });
 
-            // Si solo hay una pieza, podríamos usar directamente esa pieza
+            // Adjuntar al TransformControls:
+            // Si solo hay una pieza, adjuntarla directamente; si hay varias, usar el grupo de selección.
             if (refPiece.length === 1) {
                 transformRef.current?.attach(refPiece[0]);
             } else if (refPiece.length > 1) {
                 transformRef.current?.attach(selectionGroupRef.current);
             }
         } else {
-            // Si no hay piezas seleccionadas, volver al grupo principal
-            transformRef.current?.attach(groupRef.current);
+            // Si no hay piezas seleccionadas, usa el contenedor padre de muebles
+            transformRef.current?.attach(parentGroupRef.current);
         }
     }, [refPiece]);
 
@@ -125,27 +121,20 @@ export const Experience = () => {
         if (!transformRef.current) return;
 
         const onObjectChange = () => {
-            // Si estamos transformando el grupo de selección
-            if (transformRef.current.object === selectionGroupRef.current && refPiece.length > 1) {
-                // Calculamos la transformación relativamente
-                const matrix = new Matrix4();
+            if (
+                transformRef.current.object === selectionGroupRef.current &&
+                refPiece.length > 1
+            ) {
+                // Actualizar la matriz del grupo de selección
                 selectionGroupRef.current.updateWorldMatrix(true, false);
 
-                // Aplicar la transformación a cada objeto original basado en su proxy
                 objectToProxyMap.current.forEach((proxy, original) => {
-                    // Obtener la matriz mundial del proxy
                     proxy.updateWorldMatrix(true, false);
                     const worldMatrix = proxy.matrixWorld.clone();
-
-                    // Aplicar la transformación al objeto original
                     original.position.setFromMatrixPosition(worldMatrix);
-
-                    // Extraer y aplicar rotación
                     const rotation = new THREE.Euler();
                     rotation.setFromRotationMatrix(worldMatrix);
                     original.rotation.copy(rotation);
-
-                    // Extraer y aplicar escala (esto es simplificado, puede necesitar ajustes)
                     const scale = new THREE.Vector3();
                     scale.setFromMatrixScale(worldMatrix);
                     original.scale.copy(scale);
@@ -154,8 +143,8 @@ export const Experience = () => {
         };
 
         const controls = transformRef.current;
-        controls.addEventListener('objectChange', onObjectChange);
-        return () => controls.removeEventListener('objectChange', onObjectChange);
+        controls.addEventListener("objectChange", onObjectChange);
+        return () => controls.removeEventListener("objectChange", onObjectChange);
     }, [refPiece, transformRef.current]);
 
     useEffect(() => {
@@ -179,20 +168,19 @@ export const Experience = () => {
     // Guarda el estado actual del objeto
     const saveTransformState = () => {
         if (refPiece.length > 0) {
-            // Guardar el estado de cada pieza seleccionada
+            // Para piezas seleccionadas, guardar el estado de cada una
             const states = refPiece.map(piece => ({
-                object: piece,
+                // Asumiendo que cada pieza tiene un identificador único, si no, usar el índice
+                id: piece.id,
                 position: piece.position.clone(),
                 rotation: piece.rotation.clone(),
                 scale: piece.scale.clone()
             }));
-
             setUndoStack(prev => [...prev, states]);
-        } else if (groupRef.current) {
-            // Código original para guardar el estado del grupo principal
-            const obj = groupRef.current;
+        } else if (parentGroupRef.current) {
+            // Estado global del contenedor de muebles
+            const obj = parentGroupRef.current;
             if (!obj || !selectedItemProps) return;
-
             const state = {
                 position: obj.position.clone(),
                 rotation: obj.rotation.clone(),
@@ -203,27 +191,27 @@ export const Experience = () => {
                     depth: selectedItemProps.depth
                 }
             };
-
             setUndoStack(prev => [...prev, state]);
         }
     };
 
 
     useEffect(() => {
-        if (groupRef.current) saveTransformState();
-    }, [groupRef.current]);
+        if (parentGroupRef.current) saveTransformState();
+    }, [parentGroupRef.current]);
 
     // Capturar cambios en la escala cuando se usa TransformControls
     useEffect(() => {
-        if (transformRef.current && groupRef.current) {
+        if (transformRef.current && parentGroupRef.current) {
             const controls = transformRef.current;
 
             const onObjectChange = () => {
-                if (groupRef.current && transformMode === 'scale' && selectedItemProps) {
-                    // Obtener la escala actual
-                    const newScale = groupRef.current.scale;
-
-                    // Calcular nuevas dimensiones basadas en la escala relativa
+                if (
+                    parentGroupRef.current &&
+                    transformMode === "scale" &&
+                    selectedItemProps
+                ) {
+                    const newScale = parentGroupRef.current.scale;
                     const width = selectedItemProps.width || 1;
                     const height = selectedItemProps.height || 1;
                     const depth = selectedItemProps.depth || 1;
@@ -232,58 +220,65 @@ export const Experience = () => {
                     const newHeight = Math.min(6, Math.max(1, height * (newScale.y / originalScale.y)));
                     const newDepth = Math.min(4, Math.max(1, depth * (newScale.z / originalScale.z)));
 
-                    setScaleDimensions({x: newWidth, y: newHeight, z: newDepth});
-
-                    // Actualizar el objeto seleccionado con las nuevas dimensiones
+                    setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
                     setRef({
                         ...selectedItemProps,
                         width: newWidth,
                         height: newHeight,
                         depth: newDepth
                     });
-
-                    // Restaurar la escala original
-                    groupRef.current.scale.set(originalScale.x, originalScale.y, originalScale.z);
+                    // Restaurar la escala original para evitar acumulativos
+                    parentGroupRef.current.scale.set(originalScale.x, originalScale.y, originalScale.z);
                 }
             };
 
-            controls.addEventListener('objectChange', onObjectChange);
-            return () => controls.removeEventListener('objectChange', onObjectChange);
+            controls.addEventListener("objectChange", onObjectChange);
+            return () => controls.removeEventListener("objectChange", onObjectChange);
         }
     }, [transformMode, selectedItemProps, setRef]);
 
     // Escucha eventos del teclado
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape') {
+            if (e.key === "Escape") {
                 setTransformEnabled(false);
-            } else if (e.key.toLowerCase() === 'e') {
-                setTransformMode('rotate');
+            } else if (e.key.toLowerCase() === "e") {
+                setTransformMode("rotate");
                 setTransformEnabled(true);
-            } else if (e.key.toLowerCase() === 'r') {
-                setTransformMode('scale');
+            } else if (e.key.toLowerCase() === "r") {
+                setTransformMode("scale");
                 setTransformEnabled(true);
-            } else if (e.key.toLowerCase() === 'w') {
-                setTransformMode('translate');
+            } else if (e.key.toLowerCase() === "w") {
+                setTransformMode("translate");
                 setTransformEnabled(true);
-            } else if (e.key.toLowerCase() === 'z' && (e.ctrlKey || e.metaKey)) {
+            } else if (e.key.toLowerCase() === "z" && (e.ctrlKey || e.metaKey)) {
+                // Realizar un "undo"
                 setUndoStack(prev => {
                     if (prev.length < 2) return prev;
                     const newStack = [...prev];
-                    newStack.pop(); // Elimina el actual
+                    newStack.pop();
                     const last = newStack[newStack.length - 1];
-                    if (groupRef.current) {
-                        groupRef.current.position.copy(last.position);
-                        groupRef.current.rotation.copy(last.rotation);
 
-
+                    if (refPiece.length > 0) {
+                        // Actualiza cada pieza según el estado guardado
+                        last.forEach(state => {
+                            // Se asume que puedes identificar la pieza original (por id o por posición en el array)
+                            const piece = refPiece.find(p => p.id === state.id);
+                            if (piece) {
+                                piece.position.copy(state.position);
+                                piece.rotation.copy(state.rotation);
+                                piece.scale.copy(state.scale);
+                            }
+                        });
+                    } else if (parentGroupRef.current) {
+                        parentGroupRef.current.position.copy(last.position);
+                        parentGroupRef.current.rotation.copy(last.rotation);
                         setRef({
                             ...selectedItemProps,
                             width: last.dimensions.width,
                             height: last.dimensions.height,
                             depth: last.dimensions.depth
                         });
-
                         setScaleDimensions({
                             x: last.dimensions.width,
                             y: last.dimensions.height,
@@ -296,7 +291,7 @@ export const Experience = () => {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, []);
+    }, [refPiece, selectedItemProps, setRef]);
 
     const {ref} = useSelectedItemProvider();
 
@@ -492,14 +487,21 @@ export const Experience = () => {
 
     const itemComponents = {
         "Casco": (
-            <group ref={groupRef}>
-                <CascoWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
-                                  seccionesHorizontales={droppedHorizontalCubes}
-                                  seccionesVerticales={droppedVerticalCubes}/>
-            </group>
+           <>
+               <group ref={(el) => (groupRef.current[0] = el)}>
+                   <CascoWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
+                                     seccionesHorizontales={droppedHorizontalCubes}
+                                     seccionesVerticales={droppedVerticalCubes}/>
+               </group>
+               <group ref={(el) => (groupRef.current[1] = el)}>
+                   <CascoWithContext position={[5,0,0]} rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
+                                     seccionesHorizontales={droppedHorizontalCubes}
+                                     seccionesVerticales={droppedVerticalCubes}/>
+               </group>
+           </>
         ),
         "Casco Secciones": (
-            <group ref={groupRef}>
+            <group ref={(el) => (groupRef.current[0] = el)}>
                 <CascoSeccionesAutomaticasWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
                                                       puertas={[<Puerta/>]}/>
             </group>
