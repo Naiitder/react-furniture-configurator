@@ -14,10 +14,12 @@ import {useDrop} from "react-dnd";
 import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
+import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
     const {ref} = useSelectedItemProvider();
+    const {refPiece} = useSelectedPieceProvider();
 
     useEffect(() => {
         if (glRef) glRef.current = gl;
@@ -192,6 +194,8 @@ export const Experience = () => {
                     // Calcular el ancho y la posición sin ajustes adicionales
                     adjustedWidth = (rightBoundary - leftBoundary); // Simplemente la distancia entre los límites
                     adjustedPosition[0] = (leftBoundary + rightBoundary) / 2; // Punto medio entre los límites
+
+                    console.log("Horizontal Pos Y", localPosition.y, "Adjusted Position Y", adjustedPosition[1]);
 
                     // Verificar si ya existe una sección en esta posición
                     const existingSection = droppedHorizontalCubes.find((cube) => {
