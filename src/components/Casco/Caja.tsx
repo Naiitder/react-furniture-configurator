@@ -9,7 +9,7 @@ import {useRef} from "react";
 
 // Componente para una caja individual
 type CajaProps = {
-    ref: React.Ref<any>;
+    ref?: React.Ref<any>;
     position: [number, number, number];
     rotation?: [number, number, number];
     width: number;

@@ -49,7 +49,7 @@ const Puerta: React.FC<PuertaProps> = ({
     const geometry = new THREE.BoxGeometry(width, height, depth);
     geometry.translate(width / 2 * (pivot === "right" ? -1 : 1), 0, 0);
 
-    const offset = Math.sin(doorRotation) * 0.05; // Desplazamiento lateral
+    const offset = Math.sin(doorRotation) * 0.5 * depth; // Desplazamiento lateral
     const direction = pivot === "right" ? -1 : 1;
     const doorX = (pivot === "right" ? direction : -direction) * offset;
     const doorZ = direction * offset;
