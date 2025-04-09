@@ -38,12 +38,9 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
     const [retranqueoTrasero, setRetranqueoTrasero] = useState(0);
     const [texture, setTexture] = useState("./textures/oak.jpg");
 
-
     const [disabledOptions, setDisabledOptions] = useState(false);
     const [disableSueloDentro, setDisableSueloDentro] = useState(false);
 
-    const [enableConnectors, setEnableConnectors] = useState(true);
-    const [connectionThickness, setConnectionThickness] = useState(0.1);
 
     const textureOptions = [
         {image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg"},
@@ -91,8 +88,6 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             texture,
             indicePata,
             indicePuerta,
-            enableConnectors,
-            connectionThickness,
         };
 
         // Solo inicializamos si no existe o está vacío
@@ -105,8 +100,6 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             const newDepth = ref.depth || depth;
             const newPataHeight = ref.alturaPatas || alturaPatas;
             const newEspesor = ref.espesor || espesor;
-            const newEnableConnectors = ref.enableConnectors || enableConnectors;
-            const newConnectionThickness = ref.connectionThickness || connectionThickness;
             const newIndicePata = ref.indicePata ?? indicePata;
             const newIndicePuerta = ref.indicePuerta ?? indicePuerta;
 
@@ -118,9 +111,6 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
 
             setIndicePata(newIndicePata);
             setIndicePuerta(newIndicePuerta);
-
-            setEnableConnectors(newEnableConnectors);
-            setConnectionThickness(newConnectionThickness);
 
             // Actualizar también los valores de los sliders
             setWidthSliderValue(newWidth);
@@ -169,8 +159,7 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             indicePata,
             alturaPatas,
             indicePuerta,
-            enableConnectors,
-            connectionThickness
+            groupRef: (ref.groupRef)
         };
 
         setRef(updatedConfig);
@@ -178,8 +167,6 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
         width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
         sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo, indicePuerta,
-        enableConnectors,
-        connectionThickness
     ]);
 
     // Logica para deshabilitar opciones
@@ -355,6 +342,7 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
                 </Form.Item>
             </div>
 
+
             {/* Configuración de componentes */}
             <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
                 <Form>
@@ -389,23 +377,6 @@ const CascoInterface = ({ show, setShow, mode, setMode }) => {
             <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
                 <Title level={4}>Intersecciones</Title>
                 <Form>
-                    <Form.Item label="Habilitar conectores">
-                        <Checkbox
-                            checked={enableConnectors}
-                            onChange={(e) => setEnableConnectors(e.target.checked)}
-                        />
-                    </Form.Item>
-
-                    <Form.Item label="Grosor de conexión">
-                        <Slider
-                            disabled={!enableConnectors}
-                            min={1}
-                            max={20}
-                            value={connectionThickness * 100}
-                            onChange={(v) => setConnectionThickness(v / 100)}
-                        />
-                    </Form.Item>
-
                     <Divider>Arrastra un conector a la escena</Divider>
 
                     <Row gutter={16} justify="center">
