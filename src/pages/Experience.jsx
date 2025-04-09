@@ -80,14 +80,27 @@ export const Experience = () => {
         requestAnimationFrame(checkAndSave);
     }, []);
 
+    const {ref: selectedItemProps, setRef} = useSelectedItemProvider();
+
+    const [originalScale] = useState({x: 1, y: 1, z: 1});
+    const [scaleDimensions, setScaleDimensions] = useState(originalScale)
+
+    // Guarda el estado actual del objeto
     const saveTransformState = () => {
         const obj = groupRef.current;
-        if (!obj) return;
+        if (!obj || !selectedItemProps) return;
+
         const state = {
             position: obj.position.clone(),
             rotation: obj.rotation.clone(),
-            scale: obj.scale.clone()
+            scale: obj.scale.clone(),
+            dimensions: {
+                width: selectedItemProps.width,
+                height: selectedItemProps.height,
+                depth: selectedItemProps.depth
+            }
         };
+
         setUndoStack(prev => [...prev, state]);
     };
 
@@ -95,6 +108,46 @@ export const Experience = () => {
         if (groupRef.current) saveTransformState();
     }, [groupRef.current]);
 
+    // Capturar cambios en la escala cuando se usa TransformControls
+    useEffect(() => {
+        if (transformRef.current && groupRef.current) {
+            const controls = transformRef.current;
+
+            const onObjectChange = () => {
+                if (groupRef.current && transformMode === 'scale' && selectedItemProps) {
+                    // Obtener la escala actual
+                    const newScale = groupRef.current.scale;
+
+                    // Calcular nuevas dimensiones basadas en la escala relativa
+                    const width = selectedItemProps.width || 1;
+                    const height = selectedItemProps.height || 1;
+                    const depth = selectedItemProps.depth || 1;
+
+                    const newWidth = Math.min(5, Math.max(1, width * (newScale.x / originalScale.x)));
+                    const newHeight = Math.min(6, Math.max(1, height * (newScale.y / originalScale.y)));
+                    const newDepth = Math.min(4, Math.max(1, depth * (newScale.z / originalScale.z)));
+
+                    setScaleDimensions({x: newWidth, y: newHeight, z: newDepth});
+
+                    // Actualizar el objeto seleccionado con las nuevas dimensiones
+                    setRef({
+                        ...selectedItemProps,
+                        width: newWidth,
+                        height: newHeight,
+                        depth: newDepth
+                    });
+
+                    // Restaurar la escala original
+                    groupRef.current.scale.set(originalScale.x, originalScale.y, originalScale.z);
+                }
+            };
+
+            controls.addEventListener('objectChange', onObjectChange);
+            return () => controls.removeEventListener('objectChange', onObjectChange);
+        }
+    }, [transformMode, selectedItemProps, setRef]);
+
+    // Escucha eventos del teclado
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
@@ -112,12 +165,25 @@ export const Experience = () => {
                 setUndoStack(prev => {
                     if (prev.length < 2) return prev;
                     const newStack = [...prev];
-                    newStack.pop();
+                    newStack.pop(); // Elimina el actual
                     const last = newStack[newStack.length - 1];
                     if (groupRef.current) {
                         groupRef.current.position.copy(last.position);
                         groupRef.current.rotation.copy(last.rotation);
-                        groupRef.current.scale.copy(last.scale);
+
+
+                        setRef({
+                            ...selectedItemProps,
+                            width: last.dimensions.width,
+                            height: last.dimensions.height,
+                            depth: last.dimensions.depth
+                        });
+
+                        setScaleDimensions({
+                            x: last.dimensions.width,
+                            y: last.dimensions.height,
+                            z: last.dimensions.depth
+                        });
                     }
                     return newStack;
                 });
