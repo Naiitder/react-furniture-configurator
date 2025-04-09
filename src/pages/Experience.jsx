@@ -370,6 +370,7 @@ export const Experience = () => {
                 setShow={setTransformEnabled}
                 mode={transformMode}
                 setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
             />
         ),
         "Casco Secciones": (
@@ -378,6 +379,8 @@ export const Experience = () => {
                 setShow={setTransformEnabled}
                 mode={transformMode}
                 setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
+
             />
         ),
     };
