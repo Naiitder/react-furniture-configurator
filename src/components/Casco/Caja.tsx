@@ -16,6 +16,7 @@ type CajaProps = {
     height: number;
     depth: number;
     color: THREE.Material;
+    stopPropagation?: boolean;
 
     bordesTriangulados: boolean;
     disableAdjustedWidth?: boolean;
@@ -41,6 +42,7 @@ const Caja: React.FC<CajaProps> = ({
                                        posicionCaja = "top",
                                        orientacionBordeZ = "front",
                                        disableAdjustedWidth = false,
+                                       stopPropagation = true
                                    }) => {
     const adjustedWidth = (!disableAdjustedWidth && bordesTriangulados && !bordeEjeY) ? width - (espesorBase * 2) : width;
     // Solo para frontal
@@ -54,8 +56,14 @@ const Caja: React.FC<CajaProps> = ({
     const secondTriangleShape = (posicionCaja === "bottom" ? "topToLeft" : (posicionCaja === "left" ? "bottomToLeft" : (posicionCaja === "right" ? "bottomToRight" : "bottomToLeft")));
 
     return (<>
-            <mesh position={position} material={color} rotation={rotation} onClick={(event) => event.stopPropagation()}>
+            <mesh position={position} material={color} rotation={rotation} onClick={(event) => {
+                if (stopPropagation) event.stopPropagation();
+            }}>
                 <boxGeometry args={[adjustedWidth, adjustedHeight, adjustedDepth]}/>
+                <lineSegments>
+                    <edgesGeometry args={[new THREE.BoxGeometry(adjustedWidth, adjustedHeight, adjustedDepth)]}/>
+                    <lineBasicMaterial color={0x000000}/>
+                </lineSegments>
             </mesh>
             {(bordesTriangulados && !bordeEjeZ) && (
                 <>

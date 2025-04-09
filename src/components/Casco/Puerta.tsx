@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import {Pomo} from "./Pomo";
 import {useMaterial} from "../../assets/materials";
+import Caja from "./Caja"; // Asegúrate de importar el componente Caja
 
 type PuertaProps = {
     position?: [number, number, number];
@@ -11,7 +12,7 @@ type PuertaProps = {
     height: number;
     depth: number;
     color?: string;
-    pivot?: "left" | "right"; // Definir el pivote
+    pivot?: "left" | "right";
 };
 
 const Puerta: React.FC<PuertaProps> = ({
@@ -20,10 +21,11 @@ const Puerta: React.FC<PuertaProps> = ({
                                            height,
                                            depth,
                                            color = "#654321",
-                                           pivot = "right" // Por defecto, pivote en el lado derecho
+                                           pivot = "right"
                                        }) => {
     const [doorRotation, setDoorRotation] = React.useState(0);
     const [targetRotation, setTargetRotation] = React.useState(0);
+    const doorRef = useRef(null);
 
     useEffect(() => {
         let animationFrame;
@@ -46,30 +48,41 @@ const Puerta: React.FC<PuertaProps> = ({
         event.stopPropagation();
     };
 
-    const geometry = new THREE.BoxGeometry(width, height, depth);
-    geometry.translate(width / 2 * (pivot === "right" ? -1 : 1), 0, 0);
-
-    const offset = Math.sin(doorRotation) * 0.5 * depth; // Desplazamiento lateral
+    const offset = Math.sin(doorRotation) * 0.5 * depth;
     const direction = pivot === "right" ? -1 : 1;
     const doorX = (pivot === "right" ? direction : -direction) * offset;
     const doorZ = direction * offset;
 
-    // Ajustar la posición del pivote
-    const pivotOffset = pivot === "right" ? width / 2 : -width / 2;
+    const materials = useMaterial();
 
-    const materials = useMaterial()
+    // Ajustar la posición inicial de la caja según el pivote
+    const boxPosition: [number, number, number] = [
+        width / 2 * (pivot === "right" ? -1 : 1),
+        0,
+        0
+    ];
 
     return (
         <group position={position} onClick={handleClick}>
-                <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
-                    <mesh geometry={geometry} material={materials.WoodWorn}>
-                    </mesh>
-
-                    <group position={[(pivot === "right" ? (-width+(width*10/100)) : (width -(width*10/100))), 0, depth/2]}>
-                        <Pomo scale={[0.2, 0.2, 0.2]}/>
-                    </group>
+            <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
+                <Caja
+                    ref={doorRef}
+                    position={boxPosition}
+                    width={width}
+                    height={height}
+                    depth={depth}
+                    color={materials.WoodWorn}
+                    espesorBase={0.1} // Ajusta según necesites
+                    bordesTriangulados={false}
+                    bordeEjeY={false}
+                    bordeEjeZ={false}
+                    stopPropagation={false}
+                />
+                <group position={[(pivot === "right" ? (-width+(width*10/100)) : (width -(width*10/100))), 0, depth/2]}>
+                    <Pomo scale={[0.2, 0.2, 0.2]}/>
                 </group>
             </group>
+        </group>
     );
 };
 
