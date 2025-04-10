@@ -12,31 +12,39 @@ const { Title } = Typography;
 const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1, y: 1, z: 1 } }) => {
     const { refItem, setRefItem } = useSelectedItemProvider();
 
-    // Estados locales para configuración del Casco
-    const [width, setWidth] = useState(2);
-    const [height, setHeight] = useState(2);
-    const [depth, setDepth] = useState(2);
-    const [alturaPatas, setAlturaPatas] = useState(0.01);
-    const [espesor, setEspesor] = useState(0.1);
+    const [config, setConfig] = useState({
+        width: 2,
+        height: 2,
+        depth: 2,
+        espesor: 0.1,
+        alturaPatas: 0.01,
+        esquinaXTriangulada: false,
+        esquinaZTriangulada: false,
+        sueloDentro: false,
+        techoDentro: false,
+        traseroDentro: true,
+        retranquearSuelo: false,
+        retranqueoTrasero: 0,
+        texture: "./textures/oak.jpg",
+        indicePata: -1,
+        indicePuerta: 1,
+    });
 
-    const [widthSliderValue, setWidthSliderValue] = useState(200);
-    const [heightSliderValue, setHeightSliderValue] = useState(200);
-    const [depthSliderValue, setDepthSliderValue] = useState(200);
-    const [pataHeightSliderValue, setPataHeightSliderValue] = useState(1);
-    const [espesorSliderValue, setEspesorSliderValue] = useState(10);
-    const [retranqueoTraseroSliderValue, setRetranqueoTraseroSliderValue] = useState(0);
+    useEffect(() => {
+        if (refItem && refItem.userData) {
+            setConfig({ ...refItem.userData });
+        }
+    }, [refItem]);
 
-    const [esquinaXTriangulada, setEsquinaXTriangulada] = useState(false);
-    const [esquinaZTriangulada, setEsquinaZTriangulada] = useState(false);
-    const [sueloDentro, setSueloDentro] = useState(false);
-    const [techoDentro, setTechoDentro] = useState(false);
-    const [traseroDentro, setTraseroDentro] = useState(true);
-    const [retranquearSuelo, setRetranquearSuelo] = useState(false);
-    const [retranqueoTrasero, setRetranqueoTrasero] = useState(0);
-    const [texture, setTexture] = useState("./textures/oak.jpg");
+    useEffect(() => {
+        if (refItem && refItem.userData) {
+            refItem.userData = { ...config };
+        }
+    }, [config]);
 
-    const [indicePata, setIndicePata] = useState(-1);
-    const [indicePuerta, setIndicePuerta] = useState(1);
+    const updateConfig = (key, value) => {
+        setConfig((prev) => ({ ...prev, [key]: value }));
+    };
 
     const [disabledOptions, setDisabledOptions] = useState(false);
     const [disableSueloDentro, setDisableSueloDentro] = useState(false);
@@ -45,131 +53,68 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
     useEffect(() => {
         if (refItem) {
             // Usar refItem.userData si existe, de lo contrario el objeto mismo
-            const config = refItem.userData ? refItem.userData : refItem;
+            const newConfig = refItem.userData ? refItem.userData : refItem;
 
-            setWidth(config.width || 2);
-            setHeight(config.height || 2);
-            setDepth(config.depth || 2);
-            setAlturaPatas(config.alturaPatas || 0.01);
-            setEspesor(config.espesor || 0.1);
-
-            setWidthSliderValue((config.width || 2) * 100);
-            setHeightSliderValue((config.height || 2) * 100);
-            setDepthSliderValue((config.depth || 2) * 100);
-            setPataHeightSliderValue(config.alturaPatas ? config.alturaPatas * 100 : 1);
-            setEspesorSliderValue((config.espesor || 0.1) * 10);
-            setRetranqueoTraseroSliderValue(config.retranqueoTrasero || 0);
-
-            setEsquinaXTriangulada(config.esquinaXTriangulada || false);
-            setEsquinaZTriangulada(config.esquinaZTriangulada || false);
-            setSueloDentro(config.sueloDentro || false);
-            setTechoDentro(config.techoDentro || false);
-            setRetranquearSuelo(config.retranquearSuelo || false);
-            setTraseroDentro(config.traseroDentro !== undefined ? config.traseroDentro : true);
-            setRetranqueoTrasero(config.retranqueoTrasero || 0);
-            setTexture(config.texture || "./textures/oak.jpg");
-
-            setIndicePata(config.indicePata ?? -1);
-            setIndicePuerta(config.indicePuerta ?? 1);
+            updateConfig("width", newConfig.width || config.width);
+            updateConfig("height", newConfig.height || 2);
+            updateConfig("depth", newConfig.depth || 2);
+            updateConfig("alturaPatas", newConfig.alturaPatas || 0.01);
+            updateConfig("espesor", newConfig.espesor || 0.1);
+            updateConfig("esquinaXTriangulada", newConfig.esquinaXTriangulada || false);
+            updateConfig("esquinaZTriangulada", newConfig.esquinaZTriangulada || false);
+            updateConfig("sueloDentro", newConfig.sueloDentro || false);
+            updateConfig("techoDentro", newConfig.techoDentro || false);
+            updateConfig("retranquearSuelo", newConfig.retranquearSuelo || false);
+            updateConfig("traseroDentro", newConfig.traseroDentro !== undefined ? newConfig.traseroDentro : true);
+            updateConfig("retranqueoTrasero", newConfig.retranqueoTrasero || 0);
+            updateConfig("texture", newConfig.texture || "./textures/oak.jpg");
+            updateConfig("indicePata", newConfig.indicePata ?? -1);
+            updateConfig("indicePuerta", newConfig.indicePuerta ?? 1);
         }
     }, [refItem]);
 
     // Efecto para actualizar el objeto de configuración (refItem) cuando la interfaz cambia
     useEffect(() => {
         if (!refItem || !(refItem instanceof THREE.Object3D)) return;
-        // Obtiene la configuración actual (ya sea desde userData o el propio objeto)
-        const currentConfig = refItem.userData ? refItem.userData : refItem;
-
-        // Crea el objeto de configuración nuevo con los estados locales
-        const newConfig = {
-            width,
-            height,
-            depth,
-            espesor,
-            esquinaXTriangulada,
-            esquinaZTriangulada,
-            sueloDentro,
-            techoDentro,
-            traseroDentro,
-            retranqueoTrasero,
-            retranquearSuelo,
-            texture,
-            indicePata,
-            alturaPatas,
-            indicePuerta,
-        };
-
-        // Verifica si alguno de los valores ha cambiado
-        const hasChanged = Object.keys(newConfig).some(
-            (key) => newConfig[key] !== currentConfig[key]
-        );
-        if (!hasChanged) return; // Si no hay cambios, finaliza el efecto
-
-
-        Object.assign(refItem.userData, newConfig);
-    }, [
-        width,
-        height,
-        depth,
-        espesor,
-        esquinaXTriangulada,
-        esquinaZTriangulada,
-        sueloDentro,
-        techoDentro,
-        traseroDentro,
-        retranqueoTrasero,
-        retranquearSuelo,
-        texture,
-        indicePata,
-        alturaPatas,
-        indicePuerta,
-    ]);
+        refItem.userData = { ...config };
+    }, [config]);
 
     // Actualizar la interfaz cuando las dimensiones controladas por TransformControls cambien
-    useEffect(() => {
-        setWidth(scaleDimensions.x);
-        setWidthSliderValue(scaleDimensions.x * 100);
-        setHeight(scaleDimensions.y);
-        setHeightSliderValue(scaleDimensions.y * 100);
-        setDepth(scaleDimensions.z);
-        setDepthSliderValue(scaleDimensions.z * 100);
-    }, [scaleDimensions]);
 
     // Lógica para deshabilitar opciones según relaciones de esquina
     useEffect(() => {
-        const canUseOptions = !esquinaXTriangulada && !esquinaZTriangulada;
+        const canUseOptions = !config.esquinaXTriangulada && !config.esquinaZTriangulada;
         setDisabledOptions(!canUseOptions);
 
         if (!canUseOptions) {
-            setSueloDentro(false);
-            setTechoDentro(false);
-            setTraseroDentro(true);
-            setRetranquearSuelo(false);
+            updateConfig("sueloDentro", false);
+            updateConfig("techoDentro", false);
+            updateConfig("traseroDentro", true);
+            updateConfig("retranquearSuelo", false);
         }
 
-        if (esquinaZTriangulada) {
-            setSueloDentro(false);
-            setTechoDentro(true);
+        if (config.esquinaZTriangulada) {
+            updateConfig("sueloDentro", false);
+            updateConfig("techoDentro", true);
         }
-    }, [esquinaXTriangulada, esquinaZTriangulada]);
+    }, [config.esquinaXTriangulada, config.esquinaZTriangulada]);
 
     useEffect(() => {
-        if (!retranquearSuelo) {
+        if (!config.retranquearSuelo) {
             setDisableSueloDentro(false);
             return;
         }
         setDisableSueloDentro(true);
-        setSueloDentro(true);
-    }, [retranquearSuelo]);
+        updateConfig("sueloDentro", true);
+    }, [config.retranquearSuelo]);
 
     // Limitamos el offset trasero basado en la profundidad
     useEffect(() => {
-        const maxOffset = depth / 3;
-        if (retranqueoTrasero > maxOffset) {
-            setRetranqueoTrasero(maxOffset);
-            setRetranqueoTraseroSliderValue(maxOffset);
+        const maxOffset = config.depth / 3;
+        if (config.retranqueoTrasero > maxOffset) {
+            updateConfig("retranqueoTrasero", maxOffset);
         }
-    }, [depth]);
+    }, [config.depth, config.retranqueoTrasero]);
 
     return (
         <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode}
@@ -181,11 +126,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                         <Slider
                             min={100}
                             max={500}
-                            value={widthSliderValue}
-                            onChange={(v) => {
-                                setWidthSliderValue(v);
-                                setWidth(v / 100);
-                            }}
+                            value={config.width * 100}
+                            onChange={(v) => updateConfig("width", v / 100)}
                         />
                     </Form.Item>
                     <Form.Item label="Casco Height">
@@ -193,11 +135,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                             step={1}
                             min={100}
                             max={600}
-                            value={heightSliderValue}
-                            onChange={(v) => {
-                                setHeightSliderValue(v);
-                                setHeight(v / 100);
-                            }}
+                            value={config.height * 100}
+                            onChange={(v) => updateConfig("height", v / 100)}
                         />
                     </Form.Item>
                     <Form.Item label="Casco Depth">
@@ -205,11 +144,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                             step={1}
                             min={100}
                             max={400}
-                            value={depthSliderValue}
-                            onChange={(v) => {
-                                setDepthSliderValue(v);
-                                setDepth(v / 100);
-                            }}
+                            value={config.depth * 100}
+                            onChange={(v) => updateConfig("depth", v / 100)}
                         />
                     </Form.Item>
                     <Form.Item label="Espesor">
@@ -223,11 +159,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                                 { label: "20", value: 20 },
                                 { label: "22", value: 22 },
                             ]}
-                            value={espesorSliderValue}
-                            onChange={(v) => {
-                                setEspesorSliderValue(v);
-                                setEspesor(v / 100);
-                            }}
+                            value={config.espesor * 100}
+                            onChange={(v) => updateConfig("espesor", v / 100)}
                         />
                     </Form.Item>
                 </Form>
@@ -239,55 +172,51 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                     <Title level={4}>Opciones</Title>
                     <Form.Item label="45º X">
                         <Checkbox
-                            checked={esquinaXTriangulada}
-                            onChange={(e) => setEsquinaXTriangulada(e.target.checked)}
-                        />
+                            checked={config.esquinaXTriangulada}
+                            onChange={(e) => updateConfig("esquinaXTriangulada", e.target.checked)}                        />
                     </Form.Item>
                     <Form.Item label="45º Z">
                         <Checkbox
-                            checked={esquinaZTriangulada}
-                            onChange={(e) => setEsquinaZTriangulada(e.target.checked)}
+                            checked={config.esquinaZTriangulada}
+                            onChange={(e) => updateConfig("esquinaZTriangulada", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Suelo dentro">
                         <Checkbox
                             disabled={disabledOptions || disableSueloDentro}
-                            checked={sueloDentro}
-                            onChange={(e) => setSueloDentro(e.target.checked)}
+                            checked={config.sueloDentro}
+                            onChange={(e) => updateConfig("sueloDentro", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Techo dentro">
                         <Checkbox
                             disabled={disabledOptions}
-                            checked={techoDentro}
-                            onChange={(e) => setTechoDentro(e.target.checked)}
+                            checked={config.techoDentro}
+                            onChange={(e) => updateConfig("techoDentro", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Trasero dentro">
                         <Checkbox
                             disabled={disabledOptions}
-                            checked={traseroDentro}
-                            onChange={(e) => setTraseroDentro(e.target.checked)}
+                            checked={config.traseroDentro}
+                            onChange={(e) => updateConfig("traseroDentro", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Retranquear suelo">
                         <Checkbox
-                            disabled={!traseroDentro || disabledOptions}
-                            checked={retranquearSuelo}
-                            onChange={(e) => setRetranquearSuelo(e.target.checked)}
+                            disabled={!config.traseroDentro || disabledOptions}
+                            checked={config.retranquearSuelo}
+                            onChange={(e) => updateConfig("retranquearSuelo", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Retranqueo Trasero">
                         <Slider
                             step={0.1}
-                            disabled={!traseroDentro}
+                            disabled={!config.traseroDentro}
                             min={0}
-                            max={depthSliderValue / 5}
-                            value={retranqueoTraseroSliderValue}
-                            onChange={(v) => {
-                                setRetranqueoTraseroSliderValue(v);
-                                setRetranqueoTrasero(v / 100);
-                            }}
+                            max={config.retranqueoTrasero / 5}
+                            value={config.retranqueoTrasero * 100}
+                            onChange={(v) => updateConfig("retranqueoTrasero", v / 100)}
                         />
                     </Form.Item>
                 </Form>
@@ -302,13 +231,13 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                                 { image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg" },
                                 { image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg" },
                             ]}
-                            currentValue={texture}
-                            onValueChange={setTexture}
+                            currentValue={config.texture}
+                            onValueChange={(v) => updateConfig("texture", v)}
                         />
                         <div style={{ marginTop: "10px" }}>
                             <TextureUploader
-                                onValueChange={setTexture}
-                                currentValue={texture}
+                                onValueChange={(v) => updateConfig("texture", v)}
+                                currentValue={config.texture}
                                 defaultTexture="./textures/oak.jpg"
                             />
                         </div>
@@ -327,19 +256,17 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                                 { label: "Ninguna", value: -1 },
                                 { image: "./images/ImagenPata.png", label: "Default", value: 1 },
                             ]}
-                            currentValue={indicePata}
-                            onValueChange={setIndicePata}
+                            currentValue={config.indicePata}
+                            onValueChange={(v) => updateConfig("indicePata", v)}
                         />
                         <Form.Item label="Patas Height">
                             <Slider
-                                disabled={indicePata === -1}
+                                disabled={config.indicePata === -1}
                                 min={1}
                                 max={15}
-                                value={pataHeightSliderValue}
-                                onChange={(v) => {
-                                    setPataHeightSliderValue(v);
-                                    setAlturaPatas(v / 100);
-                                }}
+                                value={config.alturaPatas * 100}
+                                onChange={(v) => updateConfig("alturaPatas", v / 100)}
+
                             />
                         </Form.Item>
                     </Form.Item>
@@ -351,8 +278,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                                 { label: "Ninguna", value: -1 },
                                 { image: "./textures/dark.jpg", label: "Default", value: 1 },
                             ]}
-                            currentValue={indicePuerta}
-                            onValueChange={setIndicePuerta}
+                            currentValue={config.indicePuerta}
+                            onValueChange={(v) => updateConfig("indicePuerta", v)}
                         />
                     </Form.Item>
                 </Form>
