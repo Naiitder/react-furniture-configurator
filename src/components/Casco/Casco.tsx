@@ -3,7 +3,7 @@ import * as THREE from "three";
 import Caja from "./Caja";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import { useMaterial } from "../../assets/materials";
-import { ReactNode } from "react";
+import {ReactNode, useEffect} from "react";
 
 // Props para el componente Casco
 export type CascoProps = {
@@ -85,6 +85,7 @@ export class CascoBase extends React.Component<
         this.updateContextRefOnce();
     }
 
+
     componentDidUpdate(prevProps) {
         // Only update ref if certain props have changed
         const relevantPropsChanged =
@@ -94,7 +95,9 @@ export class CascoBase extends React.Component<
 
         if (relevantPropsChanged) {
             this.updateContextRefOnce();
-        }
+        } else
+            this.updateContextRefOnce();
+
     }
 
 // Call this once to prevent multiple updates
@@ -569,8 +572,10 @@ export class CascoBase extends React.Component<
     }
 }
 
+// TODO Comprobar si es el memo por la razon que no actualiza bien (creo que es eso)
 const CascoWithContext = React.memo((props) => {
     const { refItem, setRefItem } = useSelectedItemProvider();
+    const meshRef = React.useRef(null);
     const materiales = useMaterial();
 
     // Only update context when truly necessary
@@ -580,10 +585,12 @@ const CascoWithContext = React.memo((props) => {
         }
     }, [refItem, setRefItem]);
 
+    //TODO MeshRef individualizado y refItem solamente coger ese meshRef como referencia
+
     return (
         <CascoBase
             {...props}
-            contextRef={refItem}
+            contextRef={meshRef}
             setContextRef={updateContextRef}
             materiales={materiales}
         />
