@@ -134,7 +134,7 @@ const Caja: React.FC<CajaProps> = ({
     }, [position, rotation, shape]);
 
     const {refPiece, setPiece} = useSelectedPieceProvider();
-    const { ref, setRef } = useSelectedItemProvider();
+    const {ref, setRef} = useSelectedItemProvider();
 
     return (
         <>
@@ -162,6 +162,9 @@ const Caja: React.FC<CajaProps> = ({
                                 // Sin Shift, reemplaza la selección
                                 setPiece([meshRef.current]);
                             }
+                        } else {
+                            setPiece([]);
+                            setRef(parentRef);
                         }
 
                     }}

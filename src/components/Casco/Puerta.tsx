@@ -66,7 +66,7 @@ const Puerta: React.FC<PuertaProps> = ({
         <group position={position} onClick={handleClick}>
             <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
                 <Caja
-                    ref={doorRef}
+                    parentRef={doorRef}
                     position={boxPosition}
                     width={width}
                     height={height}

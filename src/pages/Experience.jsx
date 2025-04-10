@@ -1,6 +1,6 @@
 import {useRef, useState, useEffect} from "react";
 import {Canvas, useThree} from "@react-three/fiber";
-import {TransformControls, OrbitControls, Environment, Stage, OrthographicCamera} from "@react-three/drei";
+import {TransformControls, OrbitControls, Environment, Stage} from "@react-three/drei";
 import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
@@ -9,7 +9,6 @@ import CascoInterface from "../components/Casco/CascoInterface.jsx";
 import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomaticas.tsx";
 import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
-import TransformControlPanel from "./TransformControlPanel";
 import {useDrop} from "react-dnd";
 import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
@@ -17,7 +16,7 @@ import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
 import CascoWithContext from "../components/Casco/Casco.js";
 import CascoSeccionesAutomaticasWithContext from "../components/Casco/CascoSeccionesAutomaticas.tsx";
-import {Group, Matrix4, Object3D} from "three";
+import {Group, Object3D} from "three";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -56,8 +55,12 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
 };
 
 export const Experience = () => {
-    const groupRef = useRef([]);
-    const parentGroupRef = useRef();
+    // Use a parent group for the entire scene
+    const parentGroupRef = useRef(new Group());
+
+    // Separate refs for each Casco
+    const casco1Ref = useRef(null);
+    const casco2Ref = useRef(null);
 
     const {refPiece} = useSelectedPieceProvider();
     const transformRef = useRef();
@@ -72,26 +75,38 @@ export const Experience = () => {
     const [undoStack, setUndoStack] = useState([]);
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
     const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
+    const [selectedCasco, setSelectedCasco] = useState('casco1');
 
     const selectionGroupRef = useRef(new Group());
 
     // Mantén un mapeo de objetos originales a sus proxies
     const objectToProxyMap = useRef(new Map());
 
+    // Handle initial setup
     useEffect(() => {
-        // Si aún no está anidado en el contenedor padre, agrégalo
-        if (parentGroupRef.current && !selectionGroupRef.current.parent) {
+        // Make sure our parent group is initialized
+        if (!parentGroupRef.current) {
+            parentGroupRef.current = new Group();
+        }
+        // Make sure selection group is initialized
+        if (!selectionGroupRef.current) {
+            selectionGroupRef.current = new Group();
             parentGroupRef.current.add(selectionGroupRef.current);
         }
+    }, []);
 
-        // Limpia el grupo de selección y el mapa de proxies
+    // Update the TransformControls attachment logic
+    useEffect(() => {
+        if (!transformRef.current) return;
+
+        // Clean up selection group before reconfiguring
         while (selectionGroupRef.current.children.length > 0) {
             selectionGroupRef.current.remove(selectionGroupRef.current.children[0]);
         }
         objectToProxyMap.current.clear();
 
         if (refPiece.length > 0) {
-            // Crear proxies para cada pieza seleccionada
+            // Create proxies for selected pieces
             refPiece.forEach((piece) => {
                 if (piece) {
                     const proxy = new Object3D();
@@ -103,20 +118,27 @@ export const Experience = () => {
                 }
             });
 
-            // Adjuntar al TransformControls:
-            // Si solo hay una pieza, adjuntarla directamente; si hay varias, usar el grupo de selección.
+            // Attach to TransformControls
             if (refPiece.length === 1) {
-                transformRef.current?.attach(refPiece[0]);
+                transformRef.current.attach(refPiece[0]);
             } else if (refPiece.length > 1) {
-                transformRef.current?.attach(selectionGroupRef.current);
+                transformRef.current.attach(selectionGroupRef.current);
             }
         } else {
-            // Si no hay piezas seleccionadas, usa el contenedor padre de muebles
-            transformRef.current?.attach(parentGroupRef.current);
-        }
-    }, [refPiece]);
+            // Attach to the selected Casco or parent group
+            const targetRef = selectedCasco === 'casco1' ? casco1Ref.current :
+                (selectedCasco === 'casco2' ? casco2Ref.current : parentGroupRef.current);
 
-    // Sincronizar los cambios del TransformControls con los objetos originales
+            if (targetRef && typeof targetRef.updateMatrixWorld === 'function') {
+                transformRef.current.attach(targetRef);
+            } else {
+                console.warn("Invalid object reference for TransformControls", targetRef);
+                transformRef.current.attach(parentGroupRef.current);
+            }
+        }
+    }, [refPiece, selectedCasco]);
+
+    // Sync TransformControls changes with original objects
     useEffect(() => {
         if (!transformRef.current) return;
 
@@ -125,7 +147,7 @@ export const Experience = () => {
                 transformRef.current.object === selectionGroupRef.current &&
                 refPiece.length > 1
             ) {
-                // Actualizar la matriz del grupo de selección
+                // Update selection group world matrix
                 selectionGroupRef.current.updateWorldMatrix(true, false);
 
                 objectToProxyMap.current.forEach((proxy, original) => {
@@ -145,73 +167,71 @@ export const Experience = () => {
         const controls = transformRef.current;
         controls.addEventListener("objectChange", onObjectChange);
         return () => controls.removeEventListener("objectChange", onObjectChange);
-    }, [refPiece, transformRef.current]);
-
-    useEffect(() => {
-        let saved = false;
-        const checkAndSave = () => {
-            if (groupRef.current && !saved) {
-                saveTransformState();
-                saved = true;
-            } else {
-                requestAnimationFrame(checkAndSave);
-            }
-        };
-        requestAnimationFrame(checkAndSave);
-    }, []);
+    }, [refPiece]);
 
     const {ref: selectedItemProps, setRef} = useSelectedItemProvider();
 
     const [originalScale] = useState({x: 1, y: 1, z: 1});
-    const [scaleDimensions, setScaleDimensions] = useState(originalScale)
+    const [scaleDimensions, setScaleDimensions] = useState(originalScale);
 
-    // Guarda el estado actual del objeto
+    // Save the current transform state
     const saveTransformState = () => {
         if (refPiece.length > 0) {
-            // Para piezas seleccionadas, guardar el estado de cada una
+            // For selected pieces, save state of each one
             const states = refPiece.map(piece => ({
-                // Asumiendo que cada pieza tiene un identificador único, si no, usar el índice
-                id: piece.id,
+                id: piece.id || Math.random().toString(36).substr(2, 9),
                 position: piece.position.clone(),
                 rotation: piece.rotation.clone(),
                 scale: piece.scale.clone()
             }));
             setUndoStack(prev => [...prev, states]);
-        } else if (parentGroupRef.current) {
-            // Estado global del contenedor de muebles
-            const obj = parentGroupRef.current;
+        } else {
+            // Global state of the furniture container
+            let obj;
+            if (selectedCasco === 'casco1') {
+                obj = casco1Ref.current;
+            } else if (selectedCasco === 'casco2') {
+                obj = casco2Ref.current;
+            } else {
+                obj = parentGroupRef.current;
+            }
+
             if (!obj || !selectedItemProps) return;
+
             const state = {
                 position: obj.position.clone(),
                 rotation: obj.rotation.clone(),
                 scale: obj.scale.clone(),
                 dimensions: {
-                    width: selectedItemProps.width,
-                    height: selectedItemProps.height,
-                    depth: selectedItemProps.depth
+                    width: selectedItemProps.width || 1,
+                    height: selectedItemProps.height || 1,
+                    depth: selectedItemProps.depth || 1
                 }
             };
             setUndoStack(prev => [...prev, state]);
         }
     };
 
-
+    // Save initial state
     useEffect(() => {
-        if (parentGroupRef.current) saveTransformState();
-    }, [parentGroupRef.current]);
+        const timer = setTimeout(() => {
+            if (casco1Ref.current || casco2Ref.current) {
+                saveTransformState();
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, []);
 
-    // Capturar cambios en la escala cuando se usa TransformControls
+    // Handle scale changes via TransformControls
     useEffect(() => {
-        if (transformRef.current && parentGroupRef.current) {
+        if (transformRef.current) {
             const controls = transformRef.current;
+            const targetRef = selectedCasco === 'casco1' ? casco1Ref.current :
+                (selectedCasco === 'casco2' ? casco2Ref.current : null);
 
             const onObjectChange = () => {
-                if (
-                    parentGroupRef.current &&
-                    transformMode === "scale" &&
-                    selectedItemProps
-                ) {
-                    const newScale = parentGroupRef.current.scale;
+                if (targetRef && transformMode === "scale" && selectedItemProps) {
+                    const newScale = targetRef.scale;
                     const width = selectedItemProps.width || 1;
                     const height = selectedItemProps.height || 1;
                     const depth = selectedItemProps.depth || 1;
@@ -220,24 +240,24 @@ export const Experience = () => {
                     const newHeight = Math.min(6, Math.max(1, height * (newScale.y / originalScale.y)));
                     const newDepth = Math.min(4, Math.max(1, depth * (newScale.z / originalScale.z)));
 
-                    setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
+                    setScaleDimensions({x: newWidth, y: newHeight, z: newDepth});
                     setRef({
                         ...selectedItemProps,
                         width: newWidth,
                         height: newHeight,
                         depth: newDepth
                     });
-                    // Restaurar la escala original para evitar acumulativos
-                    parentGroupRef.current.scale.set(originalScale.x, originalScale.y, originalScale.z);
+                    // Restore original scale to prevent accumulation
+                    targetRef.scale.set(originalScale.x, originalScale.y, originalScale.z);
                 }
             };
 
             controls.addEventListener("objectChange", onObjectChange);
             return () => controls.removeEventListener("objectChange", onObjectChange);
         }
-    }, [transformMode, selectedItemProps, setRef]);
+    }, [transformMode, selectedItemProps, setRef, selectedCasco]);
 
-    // Escucha eventos del teclado
+    // Handle keyboard events
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "Escape") {
@@ -252,7 +272,7 @@ export const Experience = () => {
                 setTransformMode("translate");
                 setTransformEnabled(true);
             } else if (e.key.toLowerCase() === "z" && (e.ctrlKey || e.metaKey)) {
-                // Realizar un "undo"
+                // Perform undo
                 setUndoStack(prev => {
                     if (prev.length < 2) return prev;
                     const newStack = [...prev];
@@ -260,9 +280,8 @@ export const Experience = () => {
                     const last = newStack[newStack.length - 1];
 
                     if (refPiece.length > 0) {
-                        // Actualiza cada pieza según el estado guardado
+                        // Update each piece according to saved state
                         last.forEach(state => {
-                            // Se asume que puedes identificar la pieza original (por id o por posición en el array)
                             const piece = refPiece.find(p => p.id === state.id);
                             if (piece) {
                                 piece.position.copy(state.position);
@@ -270,20 +289,32 @@ export const Experience = () => {
                                 piece.scale.copy(state.scale);
                             }
                         });
-                    } else if (parentGroupRef.current) {
-                        parentGroupRef.current.position.copy(last.position);
-                        parentGroupRef.current.rotation.copy(last.rotation);
-                        setRef({
-                            ...selectedItemProps,
-                            width: last.dimensions.width,
-                            height: last.dimensions.height,
-                            depth: last.dimensions.depth
-                        });
-                        setScaleDimensions({
-                            x: last.dimensions.width,
-                            y: last.dimensions.height,
-                            z: last.dimensions.depth
-                        });
+                    } else {
+                        // Update selected Casco
+                        let targetRef;
+                        if (selectedCasco === 'casco1') {
+                            targetRef = casco1Ref.current;
+                        } else if (selectedCasco === 'casco2') {
+                            targetRef = casco2Ref.current;
+                        } else {
+                            targetRef = parentGroupRef.current;
+                        }
+
+                        if (targetRef) {
+                            targetRef.position.copy(last.position);
+                            targetRef.rotation.copy(last.rotation);
+                            setRef({
+                                ...selectedItemProps,
+                                width: last.dimensions.width,
+                                height: last.dimensions.height,
+                                depth: last.dimensions.depth
+                            });
+                            setScaleDimensions({
+                                x: last.dimensions.width,
+                                y: last.dimensions.height,
+                                z: last.dimensions.depth
+                            });
+                        }
                     }
                     return newStack;
                 });
@@ -291,10 +322,11 @@ export const Experience = () => {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [refPiece, selectedItemProps, setRef]);
+    }, [refPiece, selectedItemProps, setRef, selectedCasco]);
 
     const {ref} = useSelectedItemProvider();
 
+    // Handle drag and drop of intersections
     const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         drop: (item, monitor) => {
@@ -462,6 +494,12 @@ export const Experience = () => {
         }),
     }), [ref, droppedHorizontalCubes, droppedVerticalCubes]);
 
+    // Handle Casco selection on click
+    const handleCascoClick = (cascoId, event) => {
+        // Stop event propagation
+        event.stopPropagation();
+        setSelectedCasco(cascoId);
+    };
 
     const interfaceComponents = {
         "Casco": (
@@ -480,32 +518,57 @@ export const Experience = () => {
                 mode={transformMode}
                 setMode={setTransformMode}
                 scaleDimensions={scaleDimensions}
-
             />
         ),
     };
 
     const itemComponents = {
         "Casco": (
-           <>
-               <group ref={(el) => (groupRef.current[0] = el)}>
-                   <CascoWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
-                                     seccionesHorizontales={droppedHorizontalCubes}
-                                     seccionesVerticales={droppedVerticalCubes}/>
-               </group>
-               <group ref={(el) => (groupRef.current[1] = el)}>
-                   <CascoWithContext position={[5,0,0]} rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
-                                     seccionesHorizontales={droppedHorizontalCubes}
-                                     seccionesVerticales={droppedVerticalCubes}/>
-               </group>
-           </>
-        ),
-        "Casco Secciones": (
-            <group ref={(el) => (groupRef.current[0] = el)}>
-                <CascoSeccionesAutomaticasWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
-                                                      puertas={[<Puerta/>]}/>
+            <group ref={parentGroupRef}>
+                <CascoWithContext
+                    ref={casco1Ref}
+                    rotation={[0, Math.PI, 0]}
+                    patas={[<Pata height={1}/>]}
+                    puertas={[<Puerta/>]}
+                    seccionesHorizontales={droppedHorizontalCubes}
+                    seccionesVerticales={droppedVerticalCubes}
+                    onClick={(e) => handleCascoClick('casco1', e)}
+                />
+                <Casco
+                    ref={casco2Ref}
+                    position={[5, 0, 0]}
+                    rotation={[0, Math.PI, 0]}
+                    patas={[<Pata height={1}/>]}
+                    puertas={[<Puerta/>]}
+                    seccionesHorizontales={droppedHorizontalCubes}
+                    seccionesVerticales={droppedVerticalCubes}
+                    onClick={(e) => handleCascoClick('casco2', e)}
+                />
             </group>
         ),
+        "Casco Secciones": (
+            <group ref={parentGroupRef}>
+                <CascoSeccionesAutomaticasWithContext
+                    ref={casco1Ref}
+                    rotation={[0, Math.PI, 0]}
+                    patas={[<Pata height={1}/>]}
+                    puertas={[<Puerta/>]}
+                />
+            </group>
+        ),
+    };
+
+    // Get the currently active transform object
+    const getActiveTransformObject = () => {
+        if (refPiece.length > 1) {
+            return selectionGroupRef.current;
+        } else if (refPiece.length === 1) {
+            return refPiece[0];
+        } else {
+            const targetRef = selectedCasco === 'casco1' ? casco1Ref.current :
+                (selectedCasco === 'casco2' ? casco2Ref.current : null);
+            return targetRef || parentGroupRef.current;
+        }
     };
 
     return (
@@ -520,7 +583,6 @@ export const Experience = () => {
                 {transformEnabled && (
                     <TransformControls
                         ref={transformRef}
-                        object={refPiece.length > 1 ? selectionGroupRef.current : (refPiece.length === 1 ? refPiece[0] : groupRef.current)}
                         mode={transformMode}
                         onMouseUp={saveTransformState}
                     />
@@ -529,6 +591,18 @@ export const Experience = () => {
             </Canvas>
             {interfaceComponents[selectedItem]}
             <RoomConfigPanel/>
+            {/* UI indicator para mostrar cuál Casco está seleccionado */}
+            <div style={{
+                position: 'absolute',
+                bottom: '10px',
+                left: '10px',
+                background: 'rgba(0,0,0,0.5)',
+                color: 'white',
+                padding: '5px 10px',
+                borderRadius: '4px'
+            }}>
+                Seleccionado: {selectedCasco === 'casco1' ? 'Primer Casco' : 'Segundo Casco'}
+            </div>
         </>
     );
 };
