@@ -145,8 +145,8 @@ const Caja: React.FC<CajaProps> = ({
                     rotation={rotation}
                     onClick={(event) => {
                         if (stopPropagation) event.stopPropagation();
-                        console.log("Parent Ref: ", parentRef, "Selected Item Ref: ", refItem.current);
-                        if (refItem.current != parentRef) {
+                        console.log("Parent Ref: ", parentRef, "Selected Item Ref: ", refItem);
+                        if (refItem != parentRef) {
                             setRefItem(parentRef);
                             return;
                         }

@@ -1,30 +1,27 @@
-import {Slider, Form, Space, Checkbox, Typography, Divider, Row, Col, Card, Select} from "antd";
+import { Slider, Form, Checkbox, Typography, Divider, Row, Col, Card, Select } from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
-import {useEffect, useState} from "react";
-import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
-import {HTML5Backend} from "react-dnd-html5-backend";
-import {DndProvider} from "react-dnd";
-import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection.js";
+import { useEffect, useState } from "react";
+import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
+import DraggableIntersection, { INTERSECTION_TYPES } from "./DraggableIntersection.js";
+import * as THREE from "three";
 
-const {Title} = Typography;
-import TransformControlPanel from "../../pages/TransformControlPanel.js";
+const { Title } = Typography;
 
-const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, y: 1, z: 1}}) => {
-    const {refItem, setRefItem} = useSelectedItemProvider();
+const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1, y: 1, z: 1 } }) => {
+    const { refItem, setRefItem } = useSelectedItemProvider();
 
-    // Inicializamos estados locales
+    // Estados locales para configuración del Casco
     const [width, setWidth] = useState(2);
     const [height, setHeight] = useState(2);
     const [depth, setDepth] = useState(2);
     const [alturaPatas, setAlturaPatas] = useState(0.01);
     const [espesor, setEspesor] = useState(0.1);
 
-    // Estados para los sliders UI
-    const [widthSliderValue, setWidthSliderValue] = useState(200); // width * 100
-    const [heightSliderValue, setHeightSliderValue] = useState(200); // height * 100
-    const [depthSliderValue, setDepthSliderValue] = useState(200); // depth * 100
+    const [widthSliderValue, setWidthSliderValue] = useState(200);
+    const [heightSliderValue, setHeightSliderValue] = useState(200);
+    const [depthSliderValue, setDepthSliderValue] = useState(200);
     const [pataHeightSliderValue, setPataHeightSliderValue] = useState(1);
     const [espesorSliderValue, setEspesorSliderValue] = useState(10);
     const [retranqueoTraseroSliderValue, setRetranqueoTraseroSliderValue] = useState(0);
@@ -38,121 +35,53 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
     const [retranqueoTrasero, setRetranqueoTrasero] = useState(0);
     const [texture, setTexture] = useState("./textures/oak.jpg");
 
+    const [indicePata, setIndicePata] = useState(-1);
+    const [indicePuerta, setIndicePuerta] = useState(1);
+
     const [disabledOptions, setDisabledOptions] = useState(false);
     const [disableSueloDentro, setDisableSueloDentro] = useState(false);
 
-
-    const textureOptions = [
-        {image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg"},
-        {image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg"},
-    ];
-
-
-    const [indicePata, setIndicePata] = useState(-1);
-
-    const patasOptions = [
-        {label: "Ninguna", value: -1},
-        {image: "./images/ImagenPata.png", label: "Default", value: 1},
-    ];
-
-    const [indicePuerta, setIndicePuerta] = useState(1);
-
-    const puertaOptions = [
-        {label: "Ninguna", value: -1},
-        {image: "./textures/dark.jpg", label: "Default", value: 1},
-    ];
-
-    const espesorOptions = [
-        {label: "10", value: 10},
-        {label: "12", value: 12},
-        {label: "14", value: 14},
-        {label: "16", value: 16},
-        {label: "18", value: 18},
-        {label: "20", value: 20},
-        {label: "22", value: 22},
-    ]
-
-    // Inicializar el estado compartido al cargar la interfaz
+    // Efecto para sincronizar la interfaz con el refItem actual
     useEffect(() => {
-        const initialConfig = {
-            width,
-            height,
-            depth,
-            espesor,
-            esquinaXTriangulada,
-            esquinaZTriangulada,
-            sueloDentro,
-            techoDentro,
-            traseroDentro,
-            retranqueoTrasero,
-            texture,
-            indicePata,
-            indicePuerta,
-        };
+        if (refItem) {
+            // Usar refItem.userData si existe, de lo contrario el objeto mismo
+            const config = refItem.userData ? refItem.userData : refItem;
 
-        // Solo inicializamos si no existe o está vacío
-        if (!refItem) {
-            setRefItem(initialConfig);
-        } else {
-            // Actualizamos el estado local con los valores del ref
-            const newWidth = refItem.width || width;
-            const newHeight = refItem.height || height;
-            const newDepth = refItem.depth || depth;
-            const newPataHeight = refItem.alturaPatas || alturaPatas;
-            const newEspesor = refItem.espesor || espesor;
-            const newIndicePata = refItem.indicePata ?? indicePata;
-            const newIndicePuerta = refItem.indicePuerta ?? indicePuerta;
+            setWidth(config.width || 2);
+            setHeight(config.height || 2);
+            setDepth(config.depth || 2);
+            setAlturaPatas(config.alturaPatas || 0.01);
+            setEspesor(config.espesor || 0.1);
 
-            setWidth(newWidth);
-            setHeight(newHeight);
-            setDepth(newDepth);
-            setAlturaPatas(newPataHeight);
-            setEspesor(newEspesor);
+            setWidthSliderValue((config.width || 2) * 100);
+            setHeightSliderValue((config.height || 2) * 100);
+            setDepthSliderValue((config.depth || 2) * 100);
+            setPataHeightSliderValue(config.alturaPatas ? config.alturaPatas * 100 : 1);
+            setEspesorSliderValue((config.espesor || 0.1) * 10);
+            setRetranqueoTraseroSliderValue(config.retranqueoTrasero || 0);
 
-            setIndicePata(newIndicePata);
-            setIndicePuerta(newIndicePuerta);
+            setEsquinaXTriangulada(config.esquinaXTriangulada || false);
+            setEsquinaZTriangulada(config.esquinaZTriangulada || false);
+            setSueloDentro(config.sueloDentro || false);
+            setTechoDentro(config.techoDentro || false);
+            setRetranquearSuelo(config.retranquearSuelo || false);
+            setTraseroDentro(config.traseroDentro !== undefined ? config.traseroDentro : true);
+            setRetranqueoTrasero(config.retranqueoTrasero || 0);
+            setTexture(config.texture || "./textures/oak.jpg");
 
-            // Actualizar también los valores de los sliders
-            setWidthSliderValue(newWidth);
-            setHeightSliderValue(newHeight);
-            setDepthSliderValue(newDepth * 100);
-            setPataHeightSliderValue(newPataHeight);
-            setEspesorSliderValue(newEspesor * 10);
-
-            setEsquinaXTriangulada(refItem.esquinaXTriangulada || false);
-            setEsquinaZTriangulada(refItem.esquinaZTriangulada || false);
-            setSueloDentro(refItem.sueloDentro || false);
-            setTechoDentro(refItem.techoDentro || false);
-            setRetranquearSuelo(refItem.retranquearSuelo || false);
-            setTraseroDentro(refItem.traseroDentro !== undefined ? refItem.traseroDentro : true);
-
-            const newRetranqueoTrasero = refItem.retranqueoTrasero || 0;
-            setRetranqueoTrasero(newRetranqueoTrasero);
-            setRetranqueoTraseroSliderValue(newRetranqueoTrasero);
-
-            setTexture(refItem.texture || texture);
+            setIndicePata(config.indicePata ?? -1);
+            setIndicePuerta(config.indicePuerta ?? 1);
         }
-    }, []);
+    }, [refItem]);
 
+    // Efecto para actualizar el objeto de configuración (refItem) cuando la interfaz cambia
     useEffect(() => {
-        if (!traseroDentro) {
-            setRetranquearSuelo(false);
-        }
-    }, [traseroDentro])
+        if (!refItem || !(refItem instanceof THREE.Object3D)) return;
+        // Obtiene la configuración actual (ya sea desde userData o el propio objeto)
+        const currentConfig = refItem.userData ? refItem.userData : refItem;
 
-    useEffect(() => {
-        setWidth(scaleDimensions.x);
-        setWidthSliderValue(scaleDimensions.x * 100);
-        setHeight(scaleDimensions.y);
-        setHeightSliderValue(scaleDimensions.y * 100);
-        setDepth(scaleDimensions.z);
-        setDepthSliderValue(scaleDimensions.z * 100);
-    }, [scaleDimensions]);
-
-    useEffect(() => {
-        if (!refItem) return;
-
-        const updatedConfig = {
+        // Crea el objeto de configuración nuevo con los estados locales
+        const newConfig = {
             width,
             height,
             depth,
@@ -168,19 +97,47 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
             indicePata,
             alturaPatas,
             indicePuerta,
-            groupRef: (refItem.groupRef)
         };
 
-        setRefItem(updatedConfig);
+        // Verifica si alguno de los valores ha cambiado
+        const hasChanged = Object.keys(newConfig).some(
+            (key) => newConfig[key] !== currentConfig[key]
+        );
+        if (!hasChanged) return; // Si no hay cambios, finaliza el efecto
+
+
+        Object.assign(refItem.userData, newConfig);
     }, [
-        width, height, depth, alturaPatas, espesor,
-        esquinaXTriangulada, esquinaZTriangulada,
-        sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo, indicePuerta,
+        width,
+        height,
+        depth,
+        espesor,
+        esquinaXTriangulada,
+        esquinaZTriangulada,
+        sueloDentro,
+        techoDentro,
+        traseroDentro,
+        retranqueoTrasero,
+        retranquearSuelo,
+        texture,
+        indicePata,
+        alturaPatas,
+        indicePuerta,
     ]);
 
-    // Logica para deshabilitar opciones
+    // Actualizar la interfaz cuando las dimensiones controladas por TransformControls cambien
     useEffect(() => {
-        const canUseOptions = (!esquinaXTriangulada && !esquinaZTriangulada);
+        setWidth(scaleDimensions.x);
+        setWidthSliderValue(scaleDimensions.x * 100);
+        setHeight(scaleDimensions.y);
+        setHeightSliderValue(scaleDimensions.y * 100);
+        setDepth(scaleDimensions.z);
+        setDepthSliderValue(scaleDimensions.z * 100);
+    }, [scaleDimensions]);
+
+    // Lógica para deshabilitar opciones según relaciones de esquina
+    useEffect(() => {
+        const canUseOptions = !esquinaXTriangulada && !esquinaZTriangulada;
         setDisabledOptions(!canUseOptions);
 
         if (!canUseOptions) {
@@ -198,17 +155,14 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
 
     useEffect(() => {
         if (!retranquearSuelo) {
-            setDisableSueloDentro(false)
-            return
+            setDisableSueloDentro(false);
+            return;
         }
-
         setDisableSueloDentro(true);
         setSueloDentro(true);
-
     }, [retranquearSuelo]);
 
-
-    // Limitamos el offset trasero
+    // Limitamos el offset trasero basado en la profundidad
     useEffect(() => {
         const maxOffset = depth / 3;
         if (retranqueoTrasero > maxOffset) {
@@ -220,8 +174,8 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
     return (
         <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode}
                                    setMode={setMode}>
-            {/* Configuración de dimensiones */}
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+            {/* Sección de dimensiones */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px" }}>
                 <Form>
                     <Form.Item label="Casco Width">
                         <Slider
@@ -260,7 +214,15 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
                     </Form.Item>
                     <Form.Item label="Espesor">
                         <Select
-                            options={espesorOptions}
+                            options={[
+                                { label: "10", value: 10 },
+                                { label: "12", value: 12 },
+                                { label: "14", value: 14 },
+                                { label: "16", value: 16 },
+                                { label: "18", value: 18 },
+                                { label: "20", value: 20 },
+                                { label: "22", value: 22 },
+                            ]}
                             value={espesorSliderValue}
                             onChange={(v) => {
                                 setEspesorSliderValue(v);
@@ -271,8 +233,10 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
                 </Form>
             </div>
 
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+            {/* Sección de opciones adicionales */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
                 <Form>
+                    <Title level={4}>Opciones</Title>
                     <Form.Item label="45º X">
                         <Checkbox
                             checked={esquinaXTriangulada}
@@ -329,19 +293,19 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
                 </Form>
             </div>
 
-            {/* Configuración de textura */}
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+            {/* Sección de Texturas */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
                 <Form.Item label="Textura">
-                    <div style={{marginTop: "10px"}}>
-                        {/* Texturas predefinidas */}
+                    <div style={{ marginTop: "10px" }}>
                         <ItemSelector
-                            options={textureOptions}
+                            options={[
+                                { image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg" },
+                                { image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg" },
+                            ]}
                             currentValue={texture}
                             onValueChange={setTexture}
                         />
-
-                        {/* Carga de textura personalizada */}
-                        <div style={{marginTop: "10px"}}>
+                        <div style={{ marginTop: "10px" }}>
                             <TextureUploader
                                 onValueChange={setTexture}
                                 currentValue={texture}
@@ -352,16 +316,20 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
                 </Form.Item>
             </div>
 
-
-            {/* Configuración de componentes */}
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+            {/* Sección de Componentes (Patas y Puertas) */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
                 <Form>
                     <Title level={4}>Componentes</Title>
-
                     <Title level={5}>Patas</Title>
                     <Form.Item>
-                        <ItemSelector options={patasOptions} currentValue={indicePata}
-                                      onValueChange={setIndicePata}/>
+                        <ItemSelector
+                            options={[
+                                { label: "Ninguna", value: -1 },
+                                { image: "./images/ImagenPata.png", label: "Default", value: 1 },
+                            ]}
+                            currentValue={indicePata}
+                            onValueChange={setIndicePata}
+                        />
                         <Form.Item label="Patas Height">
                             <Slider
                                 disabled={indicePata === -1}
@@ -378,28 +346,34 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
 
                     <Title level={5}>Puertas</Title>
                     <Form.Item>
-                        <ItemSelector options={puertaOptions} currentValue={indicePuerta}
-                                      onValueChange={setIndicePuerta}/>
+                        <ItemSelector
+                            options={[
+                                { label: "Ninguna", value: -1 },
+                                { image: "./textures/dark.jpg", label: "Default", value: 1 },
+                            ]}
+                            currentValue={indicePuerta}
+                            onValueChange={setIndicePuerta}
+                        />
                     </Form.Item>
                 </Form>
             </div>
 
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
+            {/* Sección de Intersecciones */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
                 <Title level={4}>Intersecciones</Title>
                 <Form>
                     <Divider>Arrastra un conector a la escena</Divider>
-
                     <Row gutter={16} justify="center">
                         <Col>
                             <Card title="Conectores arrastrables" variant={"borderless"}>
                                 <p>Arrastra un conector al mueble para añadir una intersección:</p>
-                                <div style={{display: 'flex', justifyContent: 'center'}}>
-                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL}/>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL} />
                                 </div>
-                                <div style={{display: 'flex', justifyContent: 'center'}}>
-                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL}/>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL} />
                                 </div>
-                                <p style={{marginTop: '10px', fontSize: '12px', color: 'gray'}}>
+                                <p style={{ marginTop: '10px', fontSize: '12px', color: 'gray' }}>
                                     Suelta el conector sobre el objeto para crear una conexión.
                                 </p>
                             </Card>
@@ -407,7 +381,6 @@ const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, 
                     </Row>
                 </Form>
             </div>
-
         </BaseConfiguratorInterface>
     );
 };
