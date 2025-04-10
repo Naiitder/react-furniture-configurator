@@ -64,13 +64,43 @@ export const Experience = () => {
 
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
+    const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
+    const { refItem, setRefItem } = useSelectedItemProvider();
+    const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
+
     const [undoStack, setUndoStack] = useState([]);
+
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
     const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
-    const { refItem, setRefItem } = useSelectedItemProvider();
 
-    const [originalScale] = useState({ x: 1, y: 1, z: 1 });
-    const [scaleDimensions, setScaleDimensions] = useState(originalScale);
+    useEffect(() => {
+        setCascoInstances({
+            casco1: {
+                id: 'casco1',
+                position: [-3, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: { width: 2, height: 2, depth: 2, espesor: 0.3 },
+                patas: [<Pata height={1} />],
+                puertas: [<Puerta />],
+            },
+            casco2: {
+                id: 'casco2',
+                position: [3, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: { width: 2, height: 2, depth: 2, espesor: 0.1 },
+                patas: [<Pata height={1} />],
+                puertas: [<Puerta />],
+            },
+        });
+    }, []);
+
+    // Actualizar refItem al hacer clic en un casco
+    const handleCascoClick = (cascoData) => {
+        setRefItem({
+            ...cascoData,
+            userData: { ...cascoData.userData },
+        });
+    };
 
     // Guardar estado inicial del objeto seleccionado
     const saveTransformState = () => {
@@ -96,39 +126,31 @@ export const Experience = () => {
         }
     }, [refItem]);
 
-    // Manejar cambios en TransformControls
+    // Manejar cambios de escala
     useEffect(() => {
-        if (transformRef.current && refItem && refItem instanceof THREE.Object3D) {
+        if (transformRef.current && refItem) {
             const controls = transformRef.current;
-
             const onObjectChange = () => {
                 if (transformMode === "scale") {
                     const newScale = refItem.scale;
-                    const width = refItem.userData?.width || 1;
-                    const height = refItem.userData?.height || 1;
-                    const depth = refItem.userData?.depth || 1;
+                    const width = refItem.userData.width || 2;
+                    const height = refItem.userData.height || 2;
+                    const depth = refItem.userData.depth || 2;
 
-                    const newWidth = Math.min(5, Math.max(1, width * (newScale.x / originalScale.x)));
-                    const newHeight = Math.min(6, Math.max(1, height * (newScale.y / originalScale.y)));
-                    const newDepth = Math.min(4, Math.max(1, depth * (newScale.z / originalScale.z)));
+                    const newWidth = Math.min(5, Math.max(1, width * newScale.x));
+                    const newHeight = Math.min(6, Math.max(1, height * newScale.y));
+                    const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
 
                     setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
-
-                    // Actualizar userData en lugar de reasignar refItem directamente
-                    refItem.userData = {
-                        ...refItem.userData,
-                        width: newWidth,
-                        height: newHeight,
-                        depth: newDepth,
-                    };
-                    refItem.scale.set(originalScale.x, originalScale.y, originalScale.z);
+                    refItem.userData = { ...refItem.userData, width: newWidth, height: newHeight, depth: newDepth };
+                    refItem.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
                 }
             };
-
             controls.addEventListener("objectChange", onObjectChange);
             return () => controls.removeEventListener("objectChange", onObjectChange);
         }
-    }, [transformMode, refItem]);
+    }, [transformMode, refItem])
+
 
     // Configuración del drop con react-dnd
     const [{ isOver }, drop] = useDrop(() => ({
@@ -298,22 +320,18 @@ export const Experience = () => {
     const itemComponents = {
         "Casco": (
             <>
-                <CascoWithContext
-                    position={[-3, 0, 0]}
-                    rotation={[0, Math.PI, 0]}
-                    patas={[<Pata height={1} />]}
-                    puertas={[<Puerta />]}
-                    seccionesHorizontales={droppedHorizontalCubes}
-                    seccionesVerticales={droppedVerticalCubes}
-                />
-                <Casco
-                    position={[3, 0, 0]}
-                    rotation={[0, Math.PI, 0]}
-                    patas={[<Pata height={1} />]}
-                    puertas={[<Puerta />]}
-                    seccionesHorizontales={droppedHorizontalCubes}
-                    seccionesVerticales={droppedVerticalCubes}
-                />
+                {Object.values(cascoInstances).map((casco) => (
+                    <Casco
+                        key={casco.id}
+                        position={casco.position}
+                        rotation={casco.rotation}
+                        {...casco.userData}
+                        patas={casco.patas}
+                        puertas={casco.puertas}
+                        onClick={() => handleCascoClick(casco)}
+
+                    />
+                ))}
             </>
         ),
         "Casco Secciones": (
@@ -351,12 +369,7 @@ export const Experience = () => {
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
-                    <TransformControls
-                        ref={transformRef}
-                        object={refItem}
-                        mode={transformMode}
-                        onMouseUp={saveTransformState}
-                    />
+                    <TransformControls ref={transformRef} object={refItem} mode={transformMode} />
                 )}
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>

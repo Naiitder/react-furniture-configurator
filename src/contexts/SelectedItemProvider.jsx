@@ -1,45 +1,34 @@
-import React, { createContext, useContext, useState, useRef } from 'react';
+import React, {createContext, useContext, useState, useRef, useCallback, useMemo} from 'react';
 
 export const SelectedItemContext = createContext();
 
-export function SelectedItemProvider({ children }) {
+// Example of a more optimized context provider
+export const SelectedItemProvider = ({ children }) => {
     const [refItem, setRefItemInternal] = useState(null);
-    const componentRefs = useRef({}); // Para almacenar referencias a componentes Three.js
 
-    const setRefItem = (newRef) => {
-        if (!newRef) {
-            setRefItemInternal(null);
-            componentRefs.current = {};
-            return;
-        }
+    // Memoize the setRefItem function
+    const setRefItem = useCallback((newRef) => {
+        setRefItemInternal(prev => {
+            // Prevent unnecessary updates
+            if (prev === newRef || (prev?.groupRef === newRef?.groupRef)) {
+                return prev;
+            }
+            return newRef;
+        });
+    }, []);
 
-        // Separar propiedades serializables de componentes Three.js
-        const { pata, ...serializableProps } = newRef;
-
-        // Guardar componentes en una referencia separada
-        if (pata) {
-            componentRefs.current.pata = pata;
-        }
-
-        // Actualizar el estado con propiedades serializables
-        setRefItemInternal(serializableProps);
-    };
-
-    // Combinar datos serializables con componentes cuando sea necesario
-    const getFullRefItem = () => {
-        return {
-            ...refItem,
-            pata: componentRefs.current.pata,
-        };
-    };
+    // Memoize the context value
+    const contextValue = useMemo(() => ({
+        refItem,
+        setRefItem
+    }), [refItem, setRefItem]);
 
     return (
-        <SelectedItemContext.Provider value={{ refItem, setRefItem, getFullRefItem }}>
+        <SelectedItemContext.Provider value={contextValue}>
             {children}
         </SelectedItemContext.Provider>
     );
-}
-
+};
 export function useSelectedItemProvider() {
     return useContext(SelectedItemContext);
 }

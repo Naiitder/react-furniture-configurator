@@ -40,6 +40,8 @@ export class CascoBase extends React.Component<
     protected readonly groupRef: React.RefObject<THREE.Group>;
     private readonly horizontalSectionsRefs: React.RefObject<{ [key: string]: THREE.Mesh }>;
     private readonly verticalSectionsRefs: React.RefObject<{ [key: string]: THREE.Mesh }>;
+    private _hasUpdatedRef = false;
+
 
     static defaultProps = {
         width: 2,
@@ -80,15 +82,41 @@ export class CascoBase extends React.Component<
     }
 
     componentDidMount() {
-        this.updateContextRef();
+        this.updateContextRefOnce();
     }
 
-    componentDidUpdate() {
-        this.updateContextRef();
+    componentDidUpdate(prevProps) {
+        // Only update ref if certain props have changed
+        const relevantPropsChanged =
+            prevProps.width !== this.props.width ||
+            prevProps.height !== this.props.height ||
+            prevProps.depth !== this.props.depth;
+
+        if (relevantPropsChanged) {
+            this.updateContextRefOnce();
+        }
     }
+
+// Call this once to prevent multiple updates
+    updateContextRefOnce() {
+        if (!this._hasUpdatedRef && this.groupRef.current) {
+            this._hasUpdatedRef = true;
+            this.updateContextRef();
+            // Reset flag after a delay to allow future updates
+            setTimeout(() => {
+                this._hasUpdatedRef = false;
+            }, 100);
+        }
+    }
+
 
     updateContextRef() {
-        if (this.groupRef.current && this.props.contextRef) {
+        // Only update if actually necessary
+        if (this.groupRef.current &&
+            (!this.props.contextRef ||
+                !this.props.contextRef.groupRef ||
+                this.props.contextRef.groupRef !== this.groupRef.current)) {
+
             this.props.setContextRef({
                 ...this.props.contextRef,
                 groupRef: this.groupRef.current,
@@ -98,19 +126,21 @@ export class CascoBase extends React.Component<
 
     calcularDimensiones() {
         const ref = this.props.contextRef || {};
-        const actualWidth = ref.width || this.props.width || 2;
-        const actualHeight = ref.height || this.props.height || 2;
-        const actualDepth = ref.depth || this.props.depth || 2;
-        const actualEspesor = ref.espesor || this.props.espesor || 0.1;
+        const userData = ref?.userData || {};
+        const actualWidth = userData.width || this.props.width || 2;
+        const actualHeight = userData.height || this.props.height || 2;
+        const actualDepth = userData.depth || this.props.depth || 2;
+        const actualEspesor = userData.espesor || this.props.espesor || 0.1;
+        const actualSueloDentro = userData.sueloDentro ?? this.props.sueloDentro ?? false;
+        const actualTechoDentro = userData.techoDentro ?? this.props.techoDentro ?? false;
+        const actualTraseroDentro = userData.traseroDentro ?? this.props.traseroDentro ?? true;
+
+        const offsetDepthTraseroDentro = actualTraseroDentro ? actualDepth : actualDepth - actualEspesor;
         const actualRetranqueoTrasero = ref.retranqueoTrasero ?? this.props.retranqueoTrasero ?? 0;
         const actualRetranquearSuelo = ref.retranquearSuelo ?? this.props.retranquearSuelo ?? false;
-        const actualSueloDentro = ref.sueloDentro ?? this.props.sueloDentro ?? false;
-        const actualTechoDentro = ref.techoDentro ?? this.props.techoDentro ?? false;
-        const actualTraseroDentro = ref.traseroDentro ?? this.props.traseroDentro ?? false;
         const actualEsquinaXTriangulada = ref.esquinaXTriangulada ?? this.props.esquinaXTriangulada ?? false;
         const actualEsquinaZTriangulada = ref.esquinaZTriangulada ?? this.props.esquinaZTriangulada ?? false;
 
-        const offsetDepthTraseroDentro = actualTraseroDentro ? actualDepth : actualDepth - actualEspesor;
 
         return {
             suelo: {
@@ -525,24 +555,29 @@ export class CascoBase extends React.Component<
     }
 }
 
-// HOC para manejar el contexto con hooks
-const CascoWithContext: React.FC<CascoProps> = (props) => {
-    const { ref, setRef } = useSelectedItemProvider();
+const CascoWithContext = React.memo((props) => {
+    const { refItem, setRefItem } = useSelectedItemProvider();
     const materiales = useMaterial();
-    const cascoProps = React.useRef(props);
 
-    React.useEffect(() => {
-        cascoProps.current = props;
-    }, [props]);
+    // Only update context when truly necessary
+    const updateContextRef = React.useCallback((ref) => {
+        if (ref && (!refItem || ref.groupRef !== refItem.groupRef)) {
+            setRefItem(ref);
+        }
+    }, [refItem, setRefItem]);
 
     return (
         <CascoBase
             {...props}
-            contextRef={ref}
-            setContextRef={setRef}
+            contextRef={refItem}
+            setContextRef={updateContextRef}
             materiales={materiales}
         />
     );
-};
+}, (prevProps, nextProps) => {
+    // Custom comparison function for memo
+    // Return true if props are equal (don't re-render)
+    return JSON.stringify(prevProps) === JSON.stringify(nextProps);
+});
 
 export default CascoWithContext;
