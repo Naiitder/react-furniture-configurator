@@ -1,35 +1,40 @@
-// En tu SelectedItemProvider.jsx
 import React, { createContext, useContext, useState, useRef } from 'react';
 
 export const SelectedItemContext = createContext();
 
 export function SelectedItemProvider({ children }) {
-    const [ref, setRefInternal] = useState(null);
-    const componentRefs = useRef({});
+    const [refItem, setRefItemInternal] = useState(null);
+    const componentRefs = useRef({}); // Para almacenar referencias a componentes Three.js
 
-    const setRef = (newRef) => {
-        // Extrae cualquier componente React antes de guardarlo en el estado
+    const setRefItem = (newRef) => {
+        if (!newRef) {
+            setRefItemInternal(null);
+            componentRefs.current = {};
+            return;
+        }
+
+        // Separar propiedades serializables de componentes Three.js
         const { pata, ...serializableProps } = newRef;
 
-        // Guarda el componente en una referencia separada
+        // Guardar componentes en una referencia separada
         if (pata) {
             componentRefs.current.pata = pata;
         }
 
-        // Guarda las propiedades serializables en el estado
-        setRefInternal(serializableProps);
+        // Actualizar el estado con propiedades serializables
+        setRefItemInternal(serializableProps);
     };
 
-    // Función para obtener tanto props serializables como componentes
-    const getFullRef = () => {
+    // Combinar datos serializables con componentes cuando sea necesario
+    const getFullRefItem = () => {
         return {
-            ...ref,
-            pata: componentRefs.current.pata
+            ...refItem,
+            pata: componentRefs.current.pata,
         };
     };
 
     return (
-        <SelectedItemContext.Provider value={{ ref, setRef, getFullRef }}>
+        <SelectedItemContext.Provider value={{ refItem, setRefItem, getFullRefItem }}>
             {children}
         </SelectedItemContext.Provider>
     );

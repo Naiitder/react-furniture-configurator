@@ -290,6 +290,7 @@ export class CascoBase extends React.Component<
 
             return (
                 <Caja
+                    parentRef={ref}
                     shape={"box"}
                     key={cube.id}
                     ref={(ref) => {
@@ -347,6 +348,7 @@ export class CascoBase extends React.Component<
 
             return (
                 <Caja
+                    parentRef={ref}
                     shape={"box"}
                     key={cube.id}
                     ref={(ref) => {
@@ -368,7 +370,7 @@ export class CascoBase extends React.Component<
     }
 
     render() {
-        const ref = this.props.contextRef || {};
+        const ref = this.props.contextRef || this.groupRef;
         const {
             materiales,
             position = [0, 0, 0],
@@ -398,6 +400,7 @@ export class CascoBase extends React.Component<
             <group ref={this.groupRef} position={position} rotation={rotation}>
                 {/* Caja inferior (suelo) */}
                 <Caja
+                    parentRef={ref}
                     espesorBase={actualEspesor}
                     position={posiciones.suelo}
                     width={dimensiones.suelo.width}
@@ -411,6 +414,7 @@ export class CascoBase extends React.Component<
 
                 {/* Caja lado izquierdo */}
                 <Caja
+                    parentRef={ref}
                     espesorBase={actualEspesor}
                     position={posiciones.izquierda}
                     width={dimensiones.lateral.width}
@@ -423,6 +427,7 @@ export class CascoBase extends React.Component<
 
                 {/* Caja lado derecho */}
                 <Caja
+                    parentRef={ref}
                     espesorBase={actualEspesor}
                     position={posiciones.derecha}
                     width={dimensiones.lateral.width}
@@ -435,6 +440,7 @@ export class CascoBase extends React.Component<
 
                 {/* Caja detrás */}
                 <Caja
+                    parentRef={ref}
                     espesorBase={actualEspesor}
                     position={posiciones.trasero}
                     width={dimensiones.trasero.width}
@@ -446,6 +452,7 @@ export class CascoBase extends React.Component<
 
                 {/* Caja arriba (techo) */}
                 <Caja
+                    parentRef={ref}
                     espesorBase={actualEspesor}
                     position={posiciones.techo}
                     width={dimensiones.techo.width}
@@ -487,15 +494,18 @@ export class CascoBase extends React.Component<
                 {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
                     <>
                         {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
+                            parentRef: ref,
                             position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
                             width: actualWidth > 2 ? actualWidth / 2 : actualWidth,
                             height: actualHeight,
                             depth: actualEspesor,
                             pivot: "right",
                         })}
+
                         {actualWidth > 2 && (
                             <>
                                 {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
+                                    parentRef: ref,
                                     position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
                                     width: actualWidth / 2,
                                     height: actualHeight,

@@ -4,11 +4,13 @@ import '@react-three/fiber';
 import BordeTriangular from "./BordeTriangular";
 import {useMaterial} from "../../assets/materials";
 import {useRef} from "react";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
 // Componente para una caja individual
 type CajaProps = {
+    parentRef: React.Ref<any>;
     ref?: React.Ref<any>;
     position: [number, number, number];
     rotation?: [number, number, number];
@@ -30,6 +32,7 @@ type CajaProps = {
 }
 
 const Caja: React.FC<CajaProps> = ({
+                                       parentRef,
                                        ref = useRef<any>(null),
                                        position,
                                        rotation = [0, 0, 0],
@@ -122,6 +125,8 @@ const Caja: React.FC<CajaProps> = ({
         return geometry;
     };
 
+    const {refItem, setRefItem} = useSelectedItemProvider();
+
     // Efecto para aplicar transformaciones al mesh
     React.useEffect(() => {
         if (ref.current && shape === "trapezoid") {
@@ -140,6 +145,11 @@ const Caja: React.FC<CajaProps> = ({
                     rotation={rotation}
                     onClick={(event) => {
                         if (stopPropagation) event.stopPropagation();
+                        console.log("Parent Ref: ", parentRef, "Selected Item Ref: ", refItem.current);
+                        if (refItem.current != parentRef) {
+                            setRefItem(parentRef);
+                            return;
+                        }
                     }}
                 >
                     <boxGeometry args={[adjustedWidth, adjustedHeight, adjustedDepth]}/>

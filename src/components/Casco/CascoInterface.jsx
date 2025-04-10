@@ -11,8 +11,8 @@ import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection
 const {Title} = Typography;
 import TransformControlPanel from "../../pages/TransformControlPanel.js";
 
-const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1, y: 1, z: 1} }) => {
-    const { ref, setRef } = useSelectedItemProvider();
+const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, y: 1, z: 1}}) => {
+    const {refItem, setRefItem} = useSelectedItemProvider();
 
     // Inicializamos estados locales
     const [width, setWidth] = useState(2);
@@ -91,17 +91,17 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
         };
 
         // Solo inicializamos si no existe o está vacío
-        if (!ref) {
-            setRef(initialConfig);
+        if (!refItem) {
+            setRefItem(initialConfig);
         } else {
             // Actualizamos el estado local con los valores del ref
-            const newWidth = ref.width || width;
-            const newHeight = ref.height || height;
-            const newDepth = ref.depth || depth;
-            const newPataHeight = ref.alturaPatas || alturaPatas;
-            const newEspesor = ref.espesor || espesor;
-            const newIndicePata = ref.indicePata ?? indicePata;
-            const newIndicePuerta = ref.indicePuerta ?? indicePuerta;
+            const newWidth = refItem.width || width;
+            const newHeight = refItem.height || height;
+            const newDepth = refItem.depth || depth;
+            const newPataHeight = refItem.alturaPatas || alturaPatas;
+            const newEspesor = refItem.espesor || espesor;
+            const newIndicePata = refItem.indicePata ?? indicePata;
+            const newIndicePuerta = refItem.indicePuerta ?? indicePuerta;
 
             setWidth(newWidth);
             setHeight(newHeight);
@@ -119,18 +119,18 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
             setPataHeightSliderValue(newPataHeight);
             setEspesorSliderValue(newEspesor * 10);
 
-            setEsquinaXTriangulada(ref.esquinaXTriangulada || false);
-            setEsquinaZTriangulada(ref.esquinaZTriangulada || false);
-            setSueloDentro(ref.sueloDentro || false);
-            setTechoDentro(ref.techoDentro || false);
-            setRetranquearSuelo(ref.retranquearSuelo || false);
-            setTraseroDentro(ref.traseroDentro !== undefined ? ref.traseroDentro : true);
+            setEsquinaXTriangulada(refItem.esquinaXTriangulada || false);
+            setEsquinaZTriangulada(refItem.esquinaZTriangulada || false);
+            setSueloDentro(refItem.sueloDentro || false);
+            setTechoDentro(refItem.techoDentro || false);
+            setRetranquearSuelo(refItem.retranquearSuelo || false);
+            setTraseroDentro(refItem.traseroDentro !== undefined ? refItem.traseroDentro : true);
 
-            const newRetranqueoTrasero = ref.retranqueoTrasero || 0;
+            const newRetranqueoTrasero = refItem.retranqueoTrasero || 0;
             setRetranqueoTrasero(newRetranqueoTrasero);
             setRetranqueoTraseroSliderValue(newRetranqueoTrasero);
 
-            setTexture(ref.texture || texture);
+            setTexture(refItem.texture || texture);
         }
     }, []);
 
@@ -150,7 +150,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
     }, [scaleDimensions]);
 
     useEffect(() => {
-        if (!ref) return;
+        if (!refItem) return;
 
         const updatedConfig = {
             width,
@@ -168,10 +168,10 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
             indicePata,
             alturaPatas,
             indicePuerta,
-            groupRef: (ref.groupRef)
+            groupRef: (refItem.groupRef)
         };
 
-        setRef(updatedConfig);
+        setRefItem(updatedConfig);
     }, [
         width, height, depth, alturaPatas, espesor,
         esquinaXTriangulada, esquinaZTriangulada,
@@ -218,7 +218,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
     }, [depth]);
 
     return (
-        <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode} setMode={setMode}>
+        <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode}
+                                   setMode={setMode}>
             {/* Configuración de dimensiones */}
             <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
                 <Form>
@@ -259,12 +260,12 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
                     </Form.Item>
                     <Form.Item label="Espesor">
                         <Select
-                        options={espesorOptions}
-                        value={espesorSliderValue}
-                        onChange={(v) => {
-                            setEspesorSliderValue(v);
-                            setEspesor(v / 100);
-                        }}
+                            options={espesorOptions}
+                            value={espesorSliderValue}
+                            onChange={(v) => {
+                                setEspesorSliderValue(v);
+                                setEspesor(v / 100);
+                            }}
                         />
                     </Form.Item>
                 </Form>
