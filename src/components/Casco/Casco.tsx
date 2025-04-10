@@ -410,6 +410,7 @@ export class CascoBase extends React.Component<
         }
     };
 
+
     render() {
         const ref = this.props.contextRef || this.groupRef;
         const {
@@ -436,6 +437,8 @@ export class CascoBase extends React.Component<
 
         const dimensiones = this.calcularDimensiones();
         const posiciones = this.calcularPosiciones();
+
+
 
         return (
             <group ref={this.groupRef} position={position} rotation={rotation} onPointerDown={this.handleClick}  >

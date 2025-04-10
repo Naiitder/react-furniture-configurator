@@ -31,8 +31,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
     });
 
     useEffect(() => {
-        if (refItem && refItem.userData) {
-            setConfig({ ...refItem.userData });
+        if (refItem) {
+            refItem.userData = { ...config };
         }
     }, [refItem]);
 
@@ -40,6 +40,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
         if (!refItem || !(refItem instanceof THREE.Object3D)) return;
         refItem.userData = { ...config };
     }, [config]);
+
     const updateConfig = (key, value) => {
         setConfig((prev) => ({ ...prev, [key]: value }));
     };
@@ -54,17 +55,17 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
             const newConfig = refItem.groupRef ? refItem.groupRef : refItem;
 
             updateConfig("width", newConfig.width || config.width);
-            updateConfig("height", newConfig.height || 2);
-            updateConfig("depth", newConfig.depth || 2);
-            updateConfig("alturaPatas", newConfig.alturaPatas || 0.01);
-            updateConfig("espesor", newConfig.espesor || 0.1);
-            updateConfig("esquinaXTriangulada", newConfig.esquinaXTriangulada || false);
-            updateConfig("esquinaZTriangulada", newConfig.esquinaZTriangulada || false);
-            updateConfig("sueloDentro", newConfig.sueloDentro || false);
-            updateConfig("techoDentro", newConfig.techoDentro || false);
-            updateConfig("retranquearSuelo", newConfig.retranquearSuelo || false);
+            updateConfig("height", newConfig.height || config.height);
+            updateConfig("depth", newConfig.depth || config.depth);
+            updateConfig("alturaPatas", newConfig.alturaPatas || config.alturaPatas);
+            updateConfig("espesor", newConfig.espesor || config.espesor);
+            updateConfig("esquinaXTriangulada", newConfig.esquinaXTriangulada || config.esquinaXTriangulada);
+            updateConfig("esquinaZTriangulada", newConfig.esquinaZTriangulada || config.esquinaZTriangulada);
+            updateConfig("sueloDentro", newConfig.sueloDentro || config.sueloDentro);
+            updateConfig("techoDentro", newConfig.techoDentro || config.techoDentro);
+            updateConfig("retranquearSuelo", newConfig.retranquearSuelo || config.retranquearSuelo);
             updateConfig("traseroDentro", newConfig.traseroDentro !== undefined ? newConfig.traseroDentro : true);
-            updateConfig("retranqueoTrasero", newConfig.retranqueoTrasero || 0);
+            updateConfig("retranqueoTrasero", newConfig.retranqueoTrasero || config.retranqueoTrasero);
             updateConfig("texture", newConfig.texture || "./textures/oak.jpg");
             updateConfig("indicePata", newConfig.indicePata ?? -1);
             updateConfig("indicePuerta", newConfig.indicePuerta ?? 1);

@@ -77,6 +77,7 @@ export const Experience = () => {
         setCascoInstances({
             casco1: {
                 id: 'casco1',
+                name: 'Casco1',
                 position: [-3, 0, 0],
                 rotation: [0, Math.PI, 0],
                 userData: { width: 2, height: 2, depth: 2, espesor: 0.3 },
@@ -85,7 +86,17 @@ export const Experience = () => {
             },
             casco2: {
                 id: 'casco2',
+                name: 'Casco2',
                 position: [3, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: { width: 2, height: 2, depth: 2, espesor: 0.1 },
+                patas: [<Pata height={1} />],
+                puertas: [<Puerta />],
+            },
+            casco3: {
+                id: 'casco3',
+                name: 'Casco3',
+                position: [0, 0, 0],
                 rotation: [0, Math.PI, 0],
                 userData: { width: 2, height: 2, depth: 2, espesor: 0.1 },
                 patas: [<Pata height={1} />],
