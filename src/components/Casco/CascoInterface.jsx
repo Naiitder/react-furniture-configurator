@@ -37,11 +37,9 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
     }, [refItem]);
 
     useEffect(() => {
-        if (refItem && refItem.userData) {
-            refItem.userData = { ...config };
-        }
+        if (!refItem || !(refItem instanceof THREE.Object3D)) return;
+        refItem.userData = { ...config };
     }, [config]);
-
     const updateConfig = (key, value) => {
         setConfig((prev) => ({ ...prev, [key]: value }));
     };
@@ -52,8 +50,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
     // Efecto para sincronizar la interfaz con el refItem actual
     useEffect(() => {
         if (refItem) {
-            // Usar refItem.userData si existe, de lo contrario el objeto mismo
-            const newConfig = refItem.userData ? refItem.userData : refItem;
+            // Usar refItem.groupRef si existe, de lo contrario el objeto mismo
+            const newConfig = refItem.groupRef ? refItem.groupRef : refItem;
 
             updateConfig("width", newConfig.width || config.width);
             updateConfig("height", newConfig.height || 2);
@@ -76,7 +74,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
     // Efecto para actualizar el objeto de configuración (refItem) cuando la interfaz cambia
     useEffect(() => {
         if (!refItem || !(refItem instanceof THREE.Object3D)) return;
-        refItem.userData = { ...config };
+        refItem.groupRef = { ...config };
     }, [config]);
 
     // Actualizar la interfaz cuando las dimensiones controladas por TransformControls cambien

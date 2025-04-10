@@ -399,6 +399,17 @@ export class CascoBase extends React.Component<
         });
     }
 
+    handleClick = (event: React.PointerEvent) => {
+        event.stopPropagation(); // Evita que el evento se propague al canvas o a otros objetos
+        // Llama al callback que actualiza el contexto pasándole la referencia real
+        if (this.props.setContextRef && this.groupRef.current) {
+            this.props.setContextRef({
+                groupRef: this.groupRef.current,
+                // Puedes agregar acá información adicional o userData si lo requieres
+            });
+        }
+    };
+
     render() {
         const ref = this.props.contextRef || this.groupRef;
         const {
@@ -427,7 +438,7 @@ export class CascoBase extends React.Component<
         const posiciones = this.calcularPosiciones();
 
         return (
-            <group ref={this.groupRef} position={position} rotation={rotation}>
+            <group ref={this.groupRef} position={position} rotation={rotation} onPointerDown={this.handleClick}  >
                 {/* Caja inferior (suelo) */}
                 <Caja
                     parentRef={ref}

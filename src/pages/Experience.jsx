@@ -95,11 +95,8 @@ export const Experience = () => {
     }, []);
 
     // Actualizar refItem al hacer clic en un casco
-    const handleCascoClick = (cascoData) => {
-        setRefItem({
-            ...cascoData,
-            userData: { ...cascoData.userData },
-        });
+    const handleCascoClick = (selectedObject) => {
+        setRefItem(selectedObject);
     };
 
     // Guardar estado inicial del objeto seleccionado
@@ -328,7 +325,7 @@ export const Experience = () => {
                         {...casco.userData}
                         patas={casco.patas}
                         puertas={casco.puertas}
-                        onClick={() => handleCascoClick(casco)}
+                        onClick={handleCascoClick}
 
                     />
                 ))}
@@ -369,7 +366,7 @@ export const Experience = () => {
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
-                    <TransformControls ref={transformRef} object={refItem} mode={transformMode} />
+                    <TransformControls ref={transformRef} object={refItem.groupRef} mode={transformMode} />
                 )}
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
