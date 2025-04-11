@@ -135,6 +135,7 @@ const Caja: React.FC<CajaProps> = ({
         }
     }, [position, rotation, shape]);
 
+
     return (
         <>
             {(shape === "box" || shape === "trapezoid") && (
