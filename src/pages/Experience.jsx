@@ -377,18 +377,30 @@ export const Experience = () => {
                         position={[0, 0, 0]}
                         isSelected={selectedCascoId === "casco1"}
                         onClick={() => setSelectedCascoId("casco1")}
+                        espesor={0.2}
+                        ancho={2}
+                        profundidad={7}
+                        altura={2}
                     />
                     <CascoSimple
                         id="casco2"
                         position={[10, 0, 0]}
                         isSelected={selectedCascoId === "casco2"}
                         onClick={() => setSelectedCascoId("casco2")}
+                        espesor={0.2}
+                        ancho={2}
+                        profundidad={2}
+                        altura={6}
                     />
                     <CascoSimple
                         id="casco3"
                         position={[-10, 0, 0]}
                         isSelected={selectedCascoId === "casco3"}
                         onClick={() => setSelectedCascoId("casco3")}
+                        espesor={0.2}
+                        ancho={8}
+                        profundidad={2}
+                        altura={2}
                     />
                 </group>
             </>
@@ -400,7 +412,7 @@ export const Experience = () => {
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
-                <Room positionY={3.5}/>
+                <Room positionY={1}/>
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
                     <Environment files={"/images/poly_haven_studio_4k.hdr"} />
                     {itemComponents[selectedItem]}

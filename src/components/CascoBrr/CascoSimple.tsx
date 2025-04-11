@@ -2,11 +2,16 @@ import * as React from "react";
 import { useRef } from "react";
 import Tablon from "./Tablon";
 import * as THREE from "three";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 
 type CascoSimpleProps = {
     id: string;
     position?: [number, number, number];
     isSelected: boolean;
+    espesor: number;
+    ancho: number;
+    profundidad: number;
+    altura: number;
     onClick: () => void;
 };
 
@@ -14,16 +19,24 @@ export default function CascoSimple({
                                         position = [0, 0, 0],
                                         isSelected,
                                         onClick,
+                                        espesor,
+                                        ancho,
+                                        profundidad,
+                                        altura
                                     }: CascoSimpleProps) {
     const groupRef = useRef<THREE.Group>(null);
-
+    /*
     const espesor = 0.2;
     const ancho = 2;
-    const profundidad = 2;
+    const profundidad = 7;
 
     const altura = 2;
+
+     */
     const alturaInterna = altura - espesor * 2;
     const centroY = espesor + alturaInterna / 2;
+
+  //  const {itemRef, setItemRef} = useSelectedItemProvider()
 
     return (
         <group ref={groupRef} position={position} onPointerDown={(e) => { e.stopPropagation(); onClick(); }}>
