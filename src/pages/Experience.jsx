@@ -16,6 +16,7 @@ import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import CascoWithContext from "../components/Casco/Casco.js";
 import CascoSeccionesAutomaticasWithContext from "../components/Casco/CascoSeccionesAutomaticas.tsx";
+import CascoSimple from "../components/CascoBrr/CascoSimple.js";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -72,6 +73,10 @@ export const Experience = () => {
 
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
     const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
+
+    // @Pruden
+    const [selectedCascoId, setSelectedCascoId] = useState(null);
+
 
     useEffect(() => {
         setCascoInstances({
@@ -323,6 +328,16 @@ export const Experience = () => {
                 scaleDimensions={scaleDimensions}
             />
         ),
+        //@Pruden
+        "Casco brr": (
+            <CascoInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
+            />
+        ),
     };
 
     const itemComponents = {
@@ -365,13 +380,50 @@ export const Experience = () => {
                 />
             </group>
         ),
+
+        //@Pruden
+        "Casco brr": (
+            <>
+                <ambientLight intensity={0.5} />
+                <pointLight position={[10, 10, 10]} />
+
+                <group
+                    onPointerMissed={(e) => {
+                        if (selectedItem === "Casco brr") {
+                            e.stopPropagation();
+                            setSelectedCascoId(null);
+                        }
+                    }}
+                >
+                    <CascoSimple
+                        id="casco1"
+                        position={[0, 0, 0]}
+                        isSelected={selectedCascoId === "casco1"}
+                        onClick={() => setSelectedCascoId("casco1")}
+                    />
+                    <CascoSimple
+                        id="casco2"
+                        position={[10, 0, 0]}
+                        isSelected={selectedCascoId === "casco2"}
+                        onClick={() => setSelectedCascoId("casco2")}
+                    />
+                    <CascoSimple
+                        id="casco3"
+                        position={[-10, 0, 0]}
+                        isSelected={selectedCascoId === "casco3"}
+                        onClick={() => setSelectedCascoId("casco3")}
+                    />
+                </group>
+            </>
+        ),
+
     };
 
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }}>
-                <RaycastClickLogger glRef={glRef} cameraRef={cameraRef} />
-                <Room positionY={3.5} />
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
+                <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
+                <Room positionY={3.5}/>
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
                     <Environment files={"/images/poly_haven_studio_4k.hdr"} />
                     {itemComponents[selectedItem]}
