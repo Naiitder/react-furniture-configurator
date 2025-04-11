@@ -24,7 +24,7 @@ export default function CascoSimple({
                                         ancho,
                                         profundidad,
                                         altura,
-                                        version
+                                        version,
                                     }: CascoSimpleProps) {
     const groupRef = useRef<THREE.Group>(null);
     const { setRefItem, refItem } = useSelectedItemProvider();
@@ -71,7 +71,7 @@ export default function CascoSimple({
             }}
         >
             {/* Tableros */}
-            <Tablon nombre="suelo" width={actualAncho} height={actualEspesor} depth={actualProfundidad} position={[0, actualEspesor / 2, 0]} color={isSelected ? "#00ff00" : "#deb887"} />
+            <Tablon nombre="suelo" width={actualAncho} height={actualEspesor} depth={actualProfundidad} position={[0, actualEspesor / 2, 0]} color={isSelected ? "#00ff00" : "#deb887"}  />
             <Tablon nombre="techo" width={actualAncho} height={actualEspesor} depth={actualProfundidad} position={[0, actualAltura - actualEspesor / 2, 0]} color={isSelected ? "#00ff00" : "#deb887"} />
             <Tablon nombre="izquierda" width={actualEspesor} height={alturaInterna} depth={actualProfundidad} position={[(actualAncho - actualEspesor) / 2, centroY, 0]} color={isSelected ? "#00ff00" : "#ae9292"} />
             <Tablon nombre="derecha" width={actualEspesor} height={alturaInterna} depth={actualProfundidad} position={[-(actualAncho - actualEspesor) / 2, centroY, 0]} color={isSelected ? "#00ff00" : "#ae9292"} />

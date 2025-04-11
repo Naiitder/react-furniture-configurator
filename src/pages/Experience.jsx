@@ -401,6 +401,20 @@ export const Experience = () => {
                         profundidad={2}
                         altura={2}
                         version={refVersion}
+
+                    />
+
+                    <CascoSimple
+                        id="casco4"
+                        position={[-5, 5, 0]}
+                        isSelected={selectedCascoId === "casco4"}
+                        onClick={() => setSelectedCascoId("casco4")}
+                        espesor={0.2}
+                        ancho={8}
+                        profundidad={2}
+                        altura={2}
+                        version={refVersion}
+
                     />
                 </group>
             </>
@@ -418,7 +432,7 @@ export const Experience = () => {
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
-                    <TransformControls ref={transformRef} object={refItem.groupRef} mode={transformMode} />
+                    <TransformControls ref={transformRef} object={refItem} mode={transformMode} />
                 )}
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
