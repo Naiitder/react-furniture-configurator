@@ -1,16 +1,16 @@
-import { Slider, Form, Checkbox, Typography, Divider, Row, Col, Card, Select } from "antd";
+import {Slider, Form, Checkbox, Typography, Divider, Row, Col, Card, Select} from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
-import { useEffect, useState } from "react";
-import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
-import DraggableIntersection, { INTERSECTION_TYPES } from "./DraggableIntersection.js";
+import {useEffect, useState} from "react";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection.js";
 import * as THREE from "three";
 import {useFrame} from "@react-three/fiber";
 
-const { Title } = Typography;
+const {Title} = Typography;
 
-const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1, y: 1, z: 1 } }) => {
+const CascoInterface = ({show, setShow, mode, setMode, scaleDimensions = {x: 1, y: 1, z: 1}}) => {
     const [config, setConfig] = useState({
         width: 2,
         height: 2,
@@ -28,15 +28,18 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
         indicePata: -1,
         indicePuerta: 1,
     });
-    const { refItem, selectedCascoId, setRefItem, setRefVersion } = useSelectedItemProvider();
+    const {refItem, selectedCascoId, setRefItem, setRefVersion} = useSelectedItemProvider();
 
     useEffect(() => {
         if (refItem?.current instanceof THREE.Object3D) {
+            setDisableUI(false);
             const data = refItem.current.userData;
             updateConfig("width", data.ancho);
             updateConfig("height", data.altura);
             updateConfig("depth", data.profundidad);
             updateConfig("espesor", data.espesor);
+        } else {
+            setDisableUI(true);
         }
     }, [selectedCascoId]);
 
@@ -47,16 +50,17 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
             refItem.current.userData.profundidad = config.depth;
             refItem.current.userData.espesor = config.espesor;
 
-            setRefItem({ current: refItem.current });
+            setRefItem({current: refItem.current});
             setRefVersion((v) => v + 1); // 🔥 fuerza re-render
         }
     }, [config]);
 
 
     const updateConfig = (key, value) => {
-        setConfig((prev) => ({ ...prev, [key]: value }));
+        setConfig((prev) => ({...prev, [key]: value}));
     };
 
+    const [disableUI, setDisableUI] = useState(true);
     const [disabledOptions, setDisabledOptions] = useState(false);
     const [disableSueloDentro, setDisableSueloDentro] = useState(false);
 
@@ -102,10 +106,11 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
         <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode}
                                    setMode={setMode}>
             {/* Sección de dimensiones */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
                 <Form>
                     <Form.Item label="Casco Width">
                         <Slider
+                            disabled={disableUI}
                             min={100}
                             max={500}
                             value={config.width * 100}
@@ -114,6 +119,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                     </Form.Item>
                     <Form.Item label="Casco Height">
                         <Slider
+                            disabled={disableUI}
                             step={1}
                             min={100}
                             max={600}
@@ -123,6 +129,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                     </Form.Item>
                     <Form.Item label="Casco Depth">
                         <Slider
+                            disabled={disableUI}
                             step={1}
                             min={100}
                             max={400}
@@ -132,14 +139,15 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                     </Form.Item>
                     <Form.Item label="Espesor">
                         <Select
+                            disabled={disableUI}
                             options={[
-                                { label: "10", value: 10 },
-                                { label: "12", value: 12 },
-                                { label: "14", value: 14 },
-                                { label: "16", value: 16 },
-                                { label: "18", value: 18 },
-                                { label: "20", value: 20 },
-                                { label: "22", value: 22 },
+                                {label: "10", value: 10},
+                                {label: "12", value: 12},
+                                {label: "14", value: 14},
+                                {label: "16", value: 16},
+                                {label: "18", value: 18},
+                                {label: "20", value: 20},
+                                {label: "22", value: 22},
                             ]}
                             value={config.espesor * 100}
                             onChange={(v) => updateConfig("espesor", v / 100)}
@@ -149,44 +157,47 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
             </div>
 
             {/* Sección de opciones adicionales */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
                 <Form>
                     <Title level={4}>Opciones</Title>
                     <Form.Item label="45º X">
                         <Checkbox
+                            disabled={disableUI}
                             checked={config.esquinaXTriangulada}
-                            onChange={(e) => updateConfig("esquinaXTriangulada", e.target.checked)}                        />
+                            onChange={(e) => updateConfig("esquinaXTriangulada", e.target.checked)}
+                        />
                     </Form.Item>
                     <Form.Item label="45º Z">
                         <Checkbox
+                            disabled={disableUI}
                             checked={config.esquinaZTriangulada}
                             onChange={(e) => updateConfig("esquinaZTriangulada", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Suelo dentro">
                         <Checkbox
-                            disabled={disabledOptions || disableSueloDentro}
+                            disabled={disabledOptions || disableSueloDentro || disableUI}
                             checked={config.sueloDentro}
                             onChange={(e) => updateConfig("sueloDentro", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Techo dentro">
                         <Checkbox
-                            disabled={disabledOptions}
+                            disabled={disabledOptions || disableUI}
                             checked={config.techoDentro}
                             onChange={(e) => updateConfig("techoDentro", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Trasero dentro">
                         <Checkbox
-                            disabled={disabledOptions}
+                            disabled={disabledOptions || disableUI}
                             checked={config.traseroDentro}
                             onChange={(e) => updateConfig("traseroDentro", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Retranquear suelo">
                         <Checkbox
-                            disabled={!config.traseroDentro || disabledOptions}
+                            disabled={!config.traseroDentro || disabledOptions || disableUI}
                             checked={config.retranquearSuelo}
                             onChange={(e) => updateConfig("retranquearSuelo", e.target.checked)}
                         />
@@ -194,7 +205,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                     <Form.Item label="Retranqueo Trasero">
                         <Slider
                             step={0.1}
-                            disabled={!config.traseroDentro}
+                            disabled={!config.traseroDentro || disableUI}
                             min={0}
                             max={config.retranqueoTrasero / 5}
                             value={config.retranqueoTrasero * 100}
@@ -205,19 +216,21 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
             </div>
 
             {/* Sección de Texturas */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
                 <Form.Item label="Textura">
-                    <div style={{ marginTop: "10px" }}>
+                    <div style={{marginTop: "10px"}}>
                         <ItemSelector
+                            disabled={disableUI}
                             options={[
-                                { image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg" },
-                                { image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg" },
+                                {image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg"},
+                                {image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg"},
                             ]}
                             currentValue={config.texture}
                             onValueChange={(v) => updateConfig("texture", v)}
                         />
-                        <div style={{ marginTop: "10px" }}>
+                        <div style={{marginTop: "10px"}}>
                             <TextureUploader
+                                disabled={disableUI}
                                 onValueChange={(v) => updateConfig("texture", v)}
                                 currentValue={config.texture}
                                 defaultTexture="./textures/oak.jpg"
@@ -228,15 +241,16 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
             </div>
 
             {/* Sección de Componentes (Patas y Puertas) */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
                 <Form>
                     <Title level={4}>Componentes</Title>
                     <Title level={5}>Patas</Title>
                     <Form.Item>
                         <ItemSelector
+                            disabled={disableUI}
                             options={[
-                                { label: "Ninguna", value: -1 },
-                                { image: "./images/ImagenPata.png", label: "Default", value: 1 },
+                                {label: "Ninguna", value: -1},
+                                {image: "./images/ImagenPata.png", label: "Default", value: 1},
                             ]}
                             currentValue={config.indicePata}
                             onValueChange={(v) => updateConfig("indicePata", v)}
@@ -256,9 +270,10 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                     <Title level={5}>Puertas</Title>
                     <Form.Item>
                         <ItemSelector
+                            disabled={disableUI}
                             options={[
-                                { label: "Ninguna", value: -1 },
-                                { image: "./textures/dark.jpg", label: "Default", value: 1 },
+                                {label: "Ninguna", value: -1},
+                                {image: "./textures/dark.jpg", label: "Default", value: 1},
                             ]}
                             currentValue={config.indicePuerta}
                             onValueChange={(v) => updateConfig("indicePuerta", v)}
@@ -268,7 +283,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
             </div>
 
             {/* Sección de Intersecciones */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
                 <Title level={4}>Intersecciones</Title>
                 <Form>
                     <Divider>Arrastra un conector a la escena</Divider>
@@ -276,13 +291,13 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                         <Col>
                             <Card title="Conectores arrastrables" variant={"borderless"}>
                                 <p>Arrastra un conector al mueble para añadir una intersección:</p>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL} />
+                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL}/>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL} />
+                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL}/>
                                 </div>
-                                <p style={{ marginTop: '10px', fontSize: '12px', color: 'gray' }}>
+                                <p style={{marginTop: '10px', fontSize: '12px', color: 'gray'}}>
                                     Suelta el conector sobre el objeto para crear una conexión.
                                 </p>
                             </Card>

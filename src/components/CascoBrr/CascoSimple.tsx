@@ -27,16 +27,6 @@ export default function CascoSimple({
                                         version
                                     }: CascoSimpleProps) {
     const groupRef = useRef<THREE.Group>(null);
-    /*
-    const espesor = 0.2;
-    const ancho = 2;
-    const profundidad = 7;
-
-    const altura = 2;
-
-     */
-
-
     const { setRefItem, refItem } = useSelectedItemProvider();
 
     const [actualEspesor, setActualEspesor] = useState(espesor);
@@ -59,7 +49,7 @@ export default function CascoSimple({
         setActualAncho(userData.ancho || actualAncho);
         setActualProfundidad(userData.profundidad || actualProfundidad);
         setActualAltura(userData.altura || actualAltura);
-    }, [version]); // 👀 aquí reaccionas al cambio
+    }, [version]);
 
     return (
         <group
@@ -76,7 +66,6 @@ export default function CascoSimple({
                         profundidad: actualProfundidad,
                         altura: actualAltura,
                     };
-                    // 👇 Esto es lo que la interfaz usará
                     setRefItem({ current: groupRef.current });
                 }
             }}
