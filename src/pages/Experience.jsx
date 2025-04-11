@@ -36,10 +36,10 @@ const RaycastClickLogger = ({ glRef, cameraRef }) => {
             raycaster.setFromCamera(mouse, camera);
 
             // Asegurarse de que refItem sea un objeto Three.js válido
-            if (refItem && refItem instanceof THREE.Object3D) {
-                const intersects = raycaster.intersectObject(refItem, true);
+            if (refItem) {
+                const intersects = raycaster.intersectObject(refItem.groupRef, true);
                 if (intersects.length > 0) {
-                    console.log("👉 Intersección con Casco en:", intersects[0].point);
+                    //console.log("👉 Intersección con Casco en:", intersects[0].point);
                 }
             } else {
                 console.warn("refItem no es un objeto Three.js válido:", refItem);
@@ -112,12 +112,12 @@ export const Experience = () => {
 
     // Guardar estado inicial del objeto seleccionado
     const saveTransformState = () => {
-        if (!refItem || !(refItem instanceof THREE.Object3D)) return;
+        if (!refItem || !(refItem.groupRef instanceof THREE.Object3D)) return;
 
         const state = {
-            position: refItem.position.clone(),
-            rotation: refItem.rotation.clone(),
-            scale: refItem.scale.clone(),
+            position: refItem.groupRef.position.clone(),
+            rotation: refItem.groupRef.rotation.clone(),
+            scale: refItem.groupRef.scale.clone(),
             dimensions: {
                 width: refItem.userData?.width || 1,
                 height: refItem.userData?.height || 1,
@@ -129,10 +129,12 @@ export const Experience = () => {
 
     // Actualizar refItem al cargar el componente
     useEffect(() => {
-        if (refItem && refItem instanceof THREE.Object3D) {
+        if (refItem) {
             saveTransformState();
+           // console.log("groupRef",refItem.groupRef);
         }
     }, [refItem]);
+
 
     // Manejar cambios de escala
     useEffect(() => {
@@ -168,7 +170,7 @@ export const Experience = () => {
             const gl = glRef.current;
             const camera = cameraRef.current;
 
-            if (!clientOffset || !gl || !camera || !refItem || !(refItem instanceof THREE.Object3D)) return;
+            if (!clientOffset || !gl || !camera || !refItem) return;
 
             const { x, y } = clientOffset;
             const bounds = gl.domElement.getBoundingClientRect();
@@ -180,12 +182,12 @@ export const Experience = () => {
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
 
-            const intersects = raycaster.intersectObject(refItem, true);
+            const intersects = raycaster.intersectObject(refItem.groupRef, true);
             if (intersects.length > 0) {
                 const point = intersects[0].point;
                 const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
-                refItem.updateMatrixWorld(true);
-                const localPosition = refItem.worldToLocal(worldPosition.clone());
+                refItem.groupRef.updateMatrixWorld(true);
+                const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
 
                 const cascoWidth = refItem.userData?.width || 2;
                 const cascoHeight = refItem.userData?.height || 2;
@@ -329,35 +331,23 @@ export const Experience = () => {
         "Casco": (
             <>
                 {Object.values(cascoInstances).map((casco) => (
-                    <Casco
-                        key={casco.id}
-                        position={casco.position}
-                        rotation={casco.rotation}
-                        {...casco.userData}
-                        patas={casco.patas}
-                        puertas={casco.puertas}
-                        onClick={handleCascoClick}
+                    <group key={casco.id}>
+                        <Casco
+                            key={casco.id}
+                            position={casco.position}
+                            rotation={casco.rotation}
+                            {...casco.userData}
+                            patas={casco.patas}
+                            puertas={casco.puertas}
+                            onClick={handleCascoClick}
 
-                    />
+                        />
+                    </group>
                 ))}
             </>
         ),
         "Casco Secciones": (
-            <group
-                ref={(node) => {
-                    if (node) {
-                        setRefItem({
-                            ...node,
-                            userData: {
-                                width: 2,
-                                height: 2,
-                                depth: 2,
-                                espesor: 0.1,
-                            },
-                        });
-                    }
-                }}
-            >
+            <group>
                 <CascoSeccionesAutomaticasWithContext
                     rotation={[0, Math.PI, 0]}
                     patas={[<Pata height={1} />]}

@@ -39,7 +39,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
     useEffect(() => {
         if (!refItem) return;
         refItem.userData = { ...config };
-        console.log(refItem.userData);
+        //console.log(refItem.userData);
     }, [config]);
 
     const updateConfig = (key, value) => {

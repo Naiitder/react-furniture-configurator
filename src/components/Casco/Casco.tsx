@@ -82,7 +82,6 @@ export class CascoBase extends React.Component<
     }
 
     componentDidMount() {
-        this.updateContextRefOnce();
     }
 
 
@@ -92,12 +91,6 @@ export class CascoBase extends React.Component<
             prevProps.width !== this.props.width ||
             prevProps.height !== this.props.height ||
             prevProps.depth !== this.props.depth;
-
-        if (relevantPropsChanged) {
-            this.updateContextRefOnce();
-        } else
-            this.updateContextRefOnce();
-
     }
 
 // Call this once to prevent multiple updates
@@ -448,10 +441,10 @@ export class CascoBase extends React.Component<
 
 
         return (
-            <group ref={this.groupRef} position={position} rotation={rotation} onPointerDown={this.handleClick}  >
+            <group ref={this.groupRef} position={position} rotation={rotation}  >
                 {/* Caja inferior (suelo) */}
                 <Caja
-                    parentRef={ref}
+                    parentRef={this.groupRef}
                     espesorBase={actualEspesor}
                     position={posiciones.suelo}
                     width={dimensiones.suelo.width}
@@ -465,7 +458,7 @@ export class CascoBase extends React.Component<
 
                 {/* Caja lado izquierdo */}
                 <Caja
-                    parentRef={ref}
+                    parentRef={this.groupRef}
                     espesorBase={actualEspesor}
                     position={posiciones.izquierda}
                     width={dimensiones.lateral.width}
@@ -478,7 +471,7 @@ export class CascoBase extends React.Component<
 
                 {/* Caja lado derecho */}
                 <Caja
-                    parentRef={ref}
+                    parentRef={this.groupRef}
                     espesorBase={actualEspesor}
                     position={posiciones.derecha}
                     width={dimensiones.lateral.width}
@@ -491,7 +484,7 @@ export class CascoBase extends React.Component<
 
                 {/* Caja detrás */}
                 <Caja
-                    parentRef={ref}
+                    parentRef={this.groupRef}
                     espesorBase={actualEspesor}
                     position={posiciones.trasero}
                     width={dimensiones.trasero.width}
@@ -503,7 +496,7 @@ export class CascoBase extends React.Component<
 
                 {/* Caja arriba (techo) */}
                 <Caja
-                    parentRef={ref}
+                    parentRef={this.groupRef}
                     espesorBase={actualEspesor}
                     position={posiciones.techo}
                     width={dimensiones.techo.width}
@@ -577,19 +570,17 @@ export class CascoBase extends React.Component<
 }
 
 // TODO Comprobar si es el memo por la razon que no actualiza bien (creo que es eso)
-const CascoWithContext = React.memo((props) => {
+const CascoWithContext = (props) => {
     const { refItem, setRefItem } = useSelectedItemProvider();
     const meshRef = React.useRef(null);
     const materiales = useMaterial();
 
-    // Only update context when truly necessary
     const updateContextRef = React.useCallback((ref) => {
         if (ref && (!refItem || ref.groupRef !== refItem.groupRef)) {
+            console.log("NUEVO REF", ref)
             setRefItem(ref);
         }
     }, [refItem, setRefItem]);
-
-    //TODO MeshRef individualizado y refItem solamente coger ese meshRef como referencia
 
     return (
         <CascoBase
@@ -599,10 +590,6 @@ const CascoWithContext = React.memo((props) => {
             materiales={materiales}
         />
     );
-}, (prevProps, nextProps) => {
-    // Custom comparison function for memo
-    // Return true if props are equal (don't re-render)
-    return JSON.stringify(prevProps) === JSON.stringify(nextProps);
-});
+};
 
 export default CascoWithContext;
