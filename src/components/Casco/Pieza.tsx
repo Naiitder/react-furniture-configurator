@@ -9,7 +9,7 @@ import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
 // Componente para una caja individual
-type CajaProps = {
+type PiezaProps = {
     meshRef?: React.Ref<any>;
     parentRef?: React.Ref<any>;
     position: [number, number, number];
@@ -31,7 +31,7 @@ type CajaProps = {
     orientacionBordeZ?: "vertical" | "front";
 }
 
-const Caja: React.FC<CajaProps> = ({
+const Pieza: React.FC<PiezaProps> = ({
                                        meshRef = useRef<any>(null),
                                        parentRef = null,
                                        position,
@@ -134,7 +134,7 @@ const Caja: React.FC<CajaProps> = ({
     }, [position, rotation, shape]);
 
     const {refPiece, setPiece} = useSelectedPieceProvider();
-    const { ref, setRef } = useSelectedItemProvider();
+    const { refItem, setRefItem } = useSelectedItemProvider();
 
     return (
         <>
@@ -145,11 +145,11 @@ const Caja: React.FC<CajaProps> = ({
                     material={material}
                     rotation={rotation}
                     onClick={(event) => {
-                        console.log("ref actual", ref);
-                        console.log("ref del padre", parentRef);
+                        console.log("ref actual",  refItem);
+                        console.log("ref del padre", parentRef.current);
                         if (stopPropagation) event.stopPropagation();
 
-                        if (ref === parentRef) {
+                        if ( refItem === parentRef.current) {
                             if (event.shiftKey) {
                                 if (refPiece.includes(meshRef.current)) {
                                     // Si ya está seleccionado, quítalo de la selección
@@ -162,6 +162,8 @@ const Caja: React.FC<CajaProps> = ({
                                 // Sin Shift, reemplaza la selección
                                 setPiece([meshRef.current]);
                             }
+                        } else {
+                            setRefItem(parentRef.current);
                         }
 
                     }}
@@ -198,4 +200,4 @@ const Caja: React.FC<CajaProps> = ({
     );
 };
 
-export default Caja;
+export default Pieza;

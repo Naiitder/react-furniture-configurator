@@ -4,7 +4,7 @@ import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import {Pomo} from "./Pomo";
 import {useMaterial} from "../../assets/materials";
-import Caja from "./Caja"; // Asegúrate de importar el componente Caja
+import Pieza from "./Pieza"; // Asegúrate de importar el componente Caja
 
 type PuertaProps = {
     position?: [number, number, number];
@@ -65,7 +65,7 @@ const Puerta: React.FC<PuertaProps> = ({
     return (
         <group position={position} onClick={handleClick}>
             <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
-                <Caja
+                <Pieza
                     ref={doorRef}
                     position={boxPosition}
                     width={width}

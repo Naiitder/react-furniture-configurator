@@ -6,7 +6,6 @@ import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
-import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomaticas.tsx";
 import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import TransformControlPanel from "./TransformControlPanel";
@@ -15,13 +14,11 @@ import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
-import CascoWithContext from "../components/Casco/Casco.js";
-import CascoSeccionesAutomaticasWithContext from "../components/Casco/CascoSeccionesAutomaticas.tsx";
 import {Group, Matrix4, Object3D} from "three";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
-    const {ref} = useSelectedItemProvider();
+    const {refItem} = useSelectedItemProvider();
     const {refPiece} = useSelectedPieceProvider();
 
     useEffect(() => {
@@ -38,10 +35,10 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
 
             raycaster.setFromCamera(mouse, camera);
 
-            console.log("REF", ref)
-            if (ref?.groupRef) {
-                console.log(ref.groupRef);
-                const intersects = raycaster.intersectObject(ref.groupRef, true);
+            if (refItem) {
+                console.log("REF", refItem)
+                const targetObject = refItem.groupRef ? refItem.groupRef : refItem;
+                const intersects = raycaster.intersectObject(targetObject, true);
                 if (intersects.length > 0) {
                     console.log("👉 Intersección con Casco en:", intersects[0].point);
                 }
@@ -50,7 +47,7 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
 
         gl.domElement.addEventListener("mouseup", onClick);
         return () => gl.domElement.removeEventListener("mouseup", onClick);
-    }, [camera, gl, ref?.transparentBoxRef]);
+    }, [camera, gl, refItem]);
 
     return null;
 };
@@ -59,6 +56,7 @@ export const Experience = () => {
     const groupRef = useRef([]);
     const parentGroupRef = useRef();
 
+    const {refItem} = useSelectedItemProvider();
     const {refPiece} = useSelectedPieceProvider();
     const transformRef = useRef();
     const glRef = useRef();
@@ -293,8 +291,6 @@ export const Experience = () => {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [refPiece, selectedItemProps, setRef]);
 
-    const {ref} = useSelectedItemProvider();
-
     const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         drop: (item, monitor) => {
@@ -302,7 +298,7 @@ export const Experience = () => {
             const gl = glRef.current;
             const camera = cameraRef.current;
 
-            if (!clientOffset || !gl || !camera || !ref?.groupRef) return;
+            if (!clientOffset || !gl || !camera || !refItem?.groupRef) return;
 
             const {x, y} = clientOffset;
             const bounds = gl.domElement.getBoundingClientRect();
@@ -314,19 +310,19 @@ export const Experience = () => {
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
 
-            const intersects = raycaster.intersectObject(ref.groupRef, true);
+            const intersects = raycaster.intersectObject(refItem.groupRef, true);
 
             if (intersects.length > 0) {
                 const point = intersects[0].point;
                 const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
 
-                ref.groupRef.updateMatrixWorld(true);
-                const localPosition = ref.groupRef.worldToLocal(worldPosition.clone());
+                refItem.groupRef.updateMatrixWorld(true);
+                const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
 
-                const cascoWidth = ref?.width || 2;
-                const cascoHeight = ref?.height || 2;
-                const cascoDepth = ref?.depth || 2;
-                const espesor = ref?.espesor || 0.1;
+                const cascoWidth = refItem?.width || 2;
+                const cascoHeight = refItem?.height || 2;
+                const cascoDepth = refItem?.depth || 2;
+                const espesor = refItem?.espesor || 0.1;
 
                 let adjustedWidth = cascoWidth;
                 let adjustedHeight = cascoHeight;
@@ -446,7 +442,7 @@ export const Experience = () => {
                     ],
                     relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
                     relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
-                    relativeDepth: (cascoDepth - (ref?.traseroDentro ? ref?.retranqueoTrasero || 0 : 0)) / cascoDepth,
+                    relativeDepth: (cascoDepth - (refItem?.traseroDentro ? refItem?.retranqueoTrasero || 0 : 0)) / cascoDepth,
                     color: item.color || "#8B4513",
                 };
 
@@ -460,53 +456,38 @@ export const Experience = () => {
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
         }),
-    }), [ref, droppedHorizontalCubes, droppedVerticalCubes]);
-
-
-    const interfaceComponents = {
-        "Casco": (
-            <CascoInterface
-                show={transformEnabled}
-                setShow={setTransformEnabled}
-                mode={transformMode}
-                setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
-            />
-        ),
-        "Casco Secciones": (
-            <CascoInterface
-                show={transformEnabled}
-                setShow={setTransformEnabled}
-                mode={transformMode}
-                setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
-
-            />
-        ),
-    };
+    }), [refItem, droppedHorizontalCubes, droppedVerticalCubes]);
 
     const itemComponents = {
         "Casco": (
            <>
                <group ref={(el) => (groupRef.current[0] = el)}>
-                   <CascoWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
+                   <Casco rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
                                      seccionesHorizontales={droppedHorizontalCubes}
                                      seccionesVerticales={droppedVerticalCubes}/>
                </group>
                <group ref={(el) => (groupRef.current[1] = el)}>
-                   <CascoWithContext position={[5,0,0]} rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
+                   <Casco position={[5,0,0]} rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
                                      seccionesHorizontales={droppedHorizontalCubes}
                                      seccionesVerticales={droppedVerticalCubes}/>
                </group>
            </>
         ),
-        "Casco Secciones": (
-            <group ref={(el) => (groupRef.current[0] = el)}>
-                <CascoSeccionesAutomaticasWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
-                                                      puertas={[<Puerta/>]}/>
-            </group>
-        ),
     };
+
+    useEffect(() => {
+        const interfazContainer = document.getElementById('interfaz');
+        if (!interfazContainer) {
+            const newContainer = document.createElement('div');
+            newContainer.id = 'interfaz';
+            newContainer.style.position = 'absolute';
+            newContainer.style.maxWidth = '300px';
+            newContainer.style.top = '20px';
+            newContainer.style.right = '20px';
+            newContainer.style.zIndex = '1000';
+            document.body.appendChild(newContainer);
+        }
+    }, []);
 
     return (
         <>
@@ -520,14 +501,13 @@ export const Experience = () => {
                 {transformEnabled && (
                     <TransformControls
                         ref={transformRef}
-                        object={refPiece.length > 1 ? selectionGroupRef.current : (refPiece.length === 1 ? refPiece[0] : groupRef.current)}
+                        object={refItem}
                         mode={transformMode}
                         onMouseUp={saveTransformState}
                     />
                 )}
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
-            {interfaceComponents[selectedItem]}
             <RoomConfigPanel/>
         </>
     );

@@ -3,13 +3,13 @@ import React, { createContext, useContext, useState, useRef } from 'react';
 export const SelectedItemContext = createContext();
 
 export function SelectedItemProvider({ children }) {
-    const [ref, setRefInternal] = useState(null);
+    const [refItem, setRefItemInternal] = useState(null);
     const componentRefs = useRef({});
 
-    const setRef = (newRef) => {
+    const setRefItem = (newRef) => {
         // Validar que newRef no sea null o undefined
         if (!newRef) {
-            setRefInternal(null);
+            setRefItemInternal(null);
             return;
         }
 
@@ -22,21 +22,21 @@ export function SelectedItemProvider({ children }) {
         }
 
         // Guarda las propiedades serializables en el estado
-        setRefInternal(serializableProps);
+        setRefItemInternal(serializableProps);
     };
 
     // Función para obtener tanto props serializables como componentes
     const getFullRef = () => {
-        if (!ref) return null;
+        if (!refItem) return null;
 
         return {
-            ...ref,
+            ...refItem,
             pata: componentRefs.current.pata
         };
     };
 
     return (
-        <SelectedItemContext.Provider value={{ ref, setRef, getFullRef }}>
+        <SelectedItemContext.Provider value={{ refItem, setRefItem, getFullRef }}>
             {children}
         </SelectedItemContext.Provider>
     );
