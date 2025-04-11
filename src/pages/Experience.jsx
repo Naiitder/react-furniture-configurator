@@ -8,13 +8,10 @@ import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
 import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
-import TransformControlPanel from "./TransformControlPanel";
 import {useDrop} from "react-dnd";
 import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
-import CascoWithContext from "../components/Casco/Casco.js";
-import CascoSeccionesAutomaticasWithContext from "../components/Casco/CascoSeccionesAutomaticas.tsx";
 import CascoSimple from "../components/CascoBrr/CascoSimple.js";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
