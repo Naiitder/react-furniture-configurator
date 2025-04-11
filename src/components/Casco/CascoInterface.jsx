@@ -37,8 +37,9 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
     }, [refItem]);
 
     useEffect(() => {
-        if (!refItem || !(refItem instanceof THREE.Object3D)) return;
+        if (!refItem) return;
         refItem.userData = { ...config };
+        console.log(refItem.userData);
     }, [config]);
 
     const updateConfig = (key, value) => {

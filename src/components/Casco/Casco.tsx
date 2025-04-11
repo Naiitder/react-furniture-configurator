@@ -180,17 +180,21 @@ export class CascoBase extends React.Component<
 
     calcularPosiciones() {
         const ref = this.props.contextRef || {};
-        const actualWidth = ref.width || this.props.width || 2;
-        const actualHeight = ref.height || this.props.height || 2;
-        const actualDepth = ref.depth || this.props.depth || 2;
-        const actualEspesor = ref.espesor || this.props.espesor || 0.1;
+        const userData = ref?.userData || {};
+        const actualWidth = userData.width || this.props.width || 2;
+        const actualHeight = userData.height || this.props.height || 2;
+        const actualDepth = userData.depth || this.props.depth || 2;
+        const actualEspesor = userData.espesor || this.props.espesor || 0.1;
+        const actualSueloDentro = userData.sueloDentro ?? this.props.sueloDentro ?? false;
+        const actualTechoDentro = userData.techoDentro ?? this.props.techoDentro ?? false;
+        const actualTraseroDentro = userData.traseroDentro ?? this.props.traseroDentro ?? true;
+
+        const offsetDepthTraseroDentro = actualTraseroDentro ? actualDepth : actualDepth - actualEspesor;
         const actualRetranqueoTrasero = ref.retranqueoTrasero ?? this.props.retranqueoTrasero ?? 0;
         const actualRetranquearSuelo = ref.retranquearSuelo ?? this.props.retranquearSuelo ?? false;
-        const actualSueloDentro = ref.sueloDentro ?? this.props.sueloDentro ?? false;
-        const actualTechoDentro = ref.techoDentro ?? this.props.techoDentro ?? false;
-        const actualTraseroDentro = ref.traseroDentro ?? this.props.traseroDentro ?? false;
         const actualEsquinaXTriangulada = ref.esquinaXTriangulada ?? this.props.esquinaXTriangulada ?? false;
         const actualEsquinaZTriangulada = ref.esquinaZTriangulada ?? this.props.esquinaZTriangulada ?? false;
+
         const actualAlturaPatas = ref.alturaPatas || this.props.alturaPatas || 0.5;
         const indiceActualPata = ref.indicePata ?? this.props.indicePata ?? -1;
 
