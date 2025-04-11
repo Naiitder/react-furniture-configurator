@@ -30,58 +30,41 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
         indicePuerta: 1,
     });
 
+    // Efecto para sincronizar la configuración de la interfaz:
+    // Si existe refItem.groupRef.userData, se toma esa información.
     useEffect(() => {
         if (refItem) {
-            refItem.userData = { ...config };
+            // Se prioriza refItem.groupRef.userData, si existe
+            const newConfig = refItem.groupRef && refItem.groupRef.userData
+                ? refItem.groupRef.userData
+                : (refItem.userData || {});
+            setConfig(prev => ({
+                ...prev,
+                ...newConfig,
+            }));
         }
     }, [refItem]);
 
-    useEffect(() => {
-        if (!refItem) return;
-        refItem.userData = { ...config };
-        //console.log(refItem.userData);
-    }, [config]);
-
+    // Función unificada para actualizar la configuración y modificar también el userData
+    // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)
     const updateConfig = (key, value) => {
-        setConfig((prev) => ({ ...prev, [key]: value }));
+        setConfig((prev) => {
+            const newConfig = { ...prev, [key]: value };
+            if (refItem) {
+                if (refItem.groupRef && refItem.groupRef.userData) {
+                    refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
+                } else {
+                    refItem.userData = { ...refItem.userData, [key]: value };
+                }
+            }
+            return newConfig;
+        });
     };
 
     const [disabledOptions, setDisabledOptions] = useState(false);
     const [disableSueloDentro, setDisableSueloDentro] = useState(false);
 
-    // Efecto para sincronizar la interfaz con el refItem actual
-    useEffect(() => {
-        if (refItem) {
-            // Usar refItem.groupRef si existe, de lo contrario el objeto mismo
-            const newConfig = refItem.groupRef ? refItem.groupRef : refItem;
-
-            updateConfig("width", newConfig.width || config.width);
-            updateConfig("height", newConfig.height || config.height);
-            updateConfig("depth", newConfig.depth || config.depth);
-            updateConfig("alturaPatas", newConfig.alturaPatas || config.alturaPatas);
-            updateConfig("espesor", newConfig.espesor || config.espesor);
-            updateConfig("esquinaXTriangulada", newConfig.esquinaXTriangulada || config.esquinaXTriangulada);
-            updateConfig("esquinaZTriangulada", newConfig.esquinaZTriangulada || config.esquinaZTriangulada);
-            updateConfig("sueloDentro", newConfig.sueloDentro || config.sueloDentro);
-            updateConfig("techoDentro", newConfig.techoDentro || config.techoDentro);
-            updateConfig("retranquearSuelo", newConfig.retranquearSuelo || config.retranquearSuelo);
-            updateConfig("traseroDentro", newConfig.traseroDentro !== undefined ? newConfig.traseroDentro : true);
-            updateConfig("retranqueoTrasero", newConfig.retranqueoTrasero || config.retranqueoTrasero);
-            updateConfig("texture", newConfig.texture || "./textures/oak.jpg");
-            updateConfig("indicePata", newConfig.indicePata ?? -1);
-            updateConfig("indicePuerta", newConfig.indicePuerta ?? 1);
-        }
-    }, [refItem]);
-
-    // Efecto para actualizar el objeto de configuración (refItem) cuando la interfaz cambia
-    useEffect(() => {
-        if (!refItem || !(refItem instanceof THREE.Object3D)) return;
-        refItem.groupRef = { ...config };
-    }, [config]);
-
-    // Actualizar la interfaz cuando las dimensiones controladas por TransformControls cambien
-
-    // Lógica para deshabilitar opciones según relaciones de esquina
+    // Efecto para ajustar opciones basadas en las relaciones de esquina
     useEffect(() => {
         const canUseOptions = !config.esquinaXTriangulada && !config.esquinaZTriangulada;
         setDisabledOptions(!canUseOptions);
@@ -117,8 +100,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
     }, [config.depth, config.retranqueoTrasero]);
 
     return (
-        <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode}
-                                   setMode={setMode}>
+        <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode} setMode={setMode}>
             {/* Sección de dimensiones */}
             <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px" }}>
                 <Form>
@@ -173,7 +155,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                     <Form.Item label="45º X">
                         <Checkbox
                             checked={config.esquinaXTriangulada}
-                            onChange={(e) => updateConfig("esquinaXTriangulada", e.target.checked)}                        />
+                            onChange={(e) => updateConfig("esquinaXTriangulada", e.target.checked)}
+                        />
                     </Form.Item>
                     <Form.Item label="45º Z">
                         <Checkbox
@@ -266,7 +249,6 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                                 max={15}
                                 value={config.alturaPatas * 100}
                                 onChange={(v) => updateConfig("alturaPatas", v / 100)}
-
                             />
                         </Form.Item>
                     </Form.Item>

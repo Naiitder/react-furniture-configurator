@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import * as THREE from "three";
 import Caja from "./Caja";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
@@ -36,7 +36,7 @@ const CascoFuncional = (
         materiales: any;
     }
 ) => {
-    // Definición de valores por defecto (equivalentes a defaultProps)
+    // Valores por defecto (equivalentes a defaultProps)
     const {
         width = 2,
         height = 2,
@@ -67,11 +67,29 @@ const CascoFuncional = (
     const horizontalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
     const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
 
-    const externalContext = contextRef.current || {};
+    const { refItem } = useSelectedItemProvider();
 
-    // Función que calcula las dimensiones de las cajas (suelo, techo, laterales y trasero)
+    // Definimos los valores iniciales que este casco debería tener
+    const initialData = {
+        width, height, depth, espesor,
+        sueloDentro, techoDentro, traseroDentro,
+        retranqueoTrasero, retranquearSuelo,
+        esquinaXTriangulada, esquinaZTriangulada,
+        alturaPatas, indicePata, indicePuerta
+    };
+
+    // Sólo el casco seleccionado debe usar la configuración del contexto;
+    // de lo contrario se usan sus propios datos (por ejemplo, almacenados en groupRef.current.userData).
+    const isSelected = refItem && refItem.groupRef === groupRef.current;
+    // Si el casco está seleccionado, usamos los datos en refItem; de lo contrario,
+    // intentamos obtener la configuración propia o usamos los valores iniciales.
+    const userData =
+        isSelected && refItem.groupRef.userData
+            ? refItem.groupRef.userData
+            : (groupRef.current?.userData || initialData);
+
+    // A partir de aquí se usan userData para calcular dimensiones, posiciones, etc.
     const calcularDimensiones = () => {
-        const userData = externalContext?.userData || {};
         const actualWidth = userData.width || width;
         const actualHeight = userData.height || height;
         const actualDepth = userData.depth || depth;
@@ -83,13 +101,13 @@ const CascoFuncional = (
             ? actualDepth
             : actualDepth - actualEspesor;
         const actualRetranqueoTrasero =
-            externalContext.retranqueoTrasero ?? retranqueoTrasero;
+            userData.retranqueoTrasero ?? retranqueoTrasero;
         const actualRetranquearSuelo =
-            externalContext.retranquearSuelo ?? retranquearSuelo;
+            userData.retranquearSuelo ?? retranquearSuelo;
         const actualEsquinaXTriangulada =
-            externalContext.esquinaXTriangulada ?? esquinaXTriangulada;
+            userData.esquinaXTriangulada ?? esquinaXTriangulada;
         const actualEsquinaZTriangulada =
-            externalContext.esquinaZTriangulada ?? esquinaZTriangulada;
+            userData.esquinaZTriangulada ?? esquinaZTriangulada;
 
         return {
             suelo: {
@@ -136,9 +154,7 @@ const CascoFuncional = (
         };
     };
 
-    // Función que calcula las posiciones para cada parte del Casco
     const calcularPosiciones = () => {
-        const userData = externalContext?.userData || {};
         const actualWidth = userData.width || width;
         const actualHeight = userData.height || height;
         const actualDepth = userData.depth || depth;
@@ -150,15 +166,15 @@ const CascoFuncional = (
             ? actualDepth
             : actualDepth - actualEspesor;
         const actualRetranqueoTrasero =
-            externalContext.retranqueoTrasero ?? retranqueoTrasero;
+            userData.retranqueoTrasero ?? retranqueoTrasero;
         const actualRetranquearSuelo =
-            externalContext.retranquearSuelo ?? retranquearSuelo;
+            userData.retranquearSuelo ?? retranquearSuelo;
         const actualEsquinaXTriangulada =
-            externalContext.esquinaXTriangulada ?? esquinaXTriangulada;
+            userData.esquinaXTriangulada ?? esquinaXTriangulada;
         const actualEsquinaZTriangulada =
-            externalContext.esquinaZTriangulada ?? esquinaZTriangulada;
-        const actualAlturaPatas = externalContext.alturaPatas || alturaPatas;
-        const indiceActualPata = externalContext.indicePata ?? indicePata;
+            userData.esquinaZTriangulada ?? esquinaZTriangulada;
+        const actualAlturaPatas = userData.alturaPatas || alturaPatas;
+        const indiceActualPata = userData.indicePata ?? indicePata;
 
         const mitadAncho = actualWidth / 2;
         const mitadProfundidad = actualDepth / 2;
@@ -235,17 +251,16 @@ const CascoFuncional = (
         };
     };
 
-    // Renderizado de las secciones horizontales
     const renderHorizontalSections = () => {
-        const actualWidth = externalContext.width || width;
-        const actualHeight = externalContext.height || height;
-        const actualDepth = externalContext.depth || depth;
-        const actualEspesor = externalContext.espesor || espesor;
-        const actualTraseroDentro = externalContext.traseroDentro ?? traseroDentro;
+        const actualWidth = userData.width || width;
+        const actualHeight = userData.height || height;
+        const actualDepth = userData.depth || depth;
+        const actualEspesor = userData.espesor || espesor;
+        const actualTraseroDentro = userData.traseroDentro ?? traseroDentro;
         const actualRetranqueoTrasero =
-            externalContext.retranqueoTrasero ?? retranqueoTrasero;
-        const actualAlturaPatas = externalContext.alturaPatas || alturaPatas;
-        const indiceActualPata = externalContext.indicePata ?? indicePata;
+            userData.retranqueoTrasero ?? retranqueoTrasero;
+        const actualAlturaPatas = userData.alturaPatas || alturaPatas;
+        const indiceActualPata = userData.indicePata ?? indicePata;
         const extraAltura =
             patas && indiceActualPata !== -1 ? actualAlturaPatas : 0;
 
@@ -302,17 +317,16 @@ const CascoFuncional = (
         });
     };
 
-    // Renderizado de las secciones verticales
     const renderVerticalSections = () => {
-        const actualWidth = externalContext.width || width;
-        const actualHeight = externalContext.height || height;
-        const actualDepth = externalContext.depth || depth;
-        const actualEspesor = externalContext.espesor || espesor;
-        const actualTraseroDentro = externalContext.traseroDentro ?? traseroDentro;
+        const actualWidth = userData.width || width;
+        const actualHeight = userData.height || height;
+        const actualDepth = userData.depth || depth;
+        const actualEspesor = userData.espesor || espesor;
+        const actualTraseroDentro = userData.traseroDentro ?? traseroDentro;
         const actualRetranqueoTrasero =
-            externalContext.retranqueoTrasero ?? retranqueoTrasero;
-        const actualAlturaPatas = externalContext.alturaPatas || alturaPatas;
-        const indiceActualPata = externalContext.indicePata ?? indicePata;
+            userData.retranqueoTrasero ?? retranqueoTrasero;
+        const actualAlturaPatas = userData.alturaPatas || alturaPatas;
+        const indiceActualPata = userData.indicePata ?? indicePata;
         const extraAltura =
             patas && indiceActualPata !== -1 ? actualAlturaPatas : 0;
 
@@ -368,7 +382,7 @@ const CascoFuncional = (
         });
     };
 
-    // Manejador del clic (evita la propagación y actualiza la ref de contexto)
+    // Manejador del clic: solo actualiza la ref de contexto para el casco seleccionado
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (setContextRef && groupRef.current) {
@@ -382,11 +396,44 @@ const CascoFuncional = (
     const dimensiones = calcularDimensiones();
     const posiciones = calcularPosiciones();
 
-    // Ajustes para índices (tal como se hacía en la versión de clase)
-    let indiceActualPata = externalContext.indicePata ?? indicePata;
+    // Ajustes para índices
+    let indiceActualPata = userData.indicePata ?? indicePata;
     if (indiceActualPata > 0) indiceActualPata--;
-    let indiceActualPuerta = externalContext.indicePuerta ?? indicePuerta;
+    let indiceActualPuerta = userData.indicePuerta ?? indicePuerta;
     if (indiceActualPuerta > 0) indiceActualPuerta--;
+
+    // En este efecto se actualiza el userData del grupo
+    useEffect(() => {
+        if (groupRef.current) {
+            groupRef.current.userData = {
+                width: userData.width || width,
+                height: userData.height || height,
+                depth: userData.depth || depth,
+                espesor: userData.espesor || espesor,
+                sueloDentro: userData.sueloDentro ?? sueloDentro,
+                techoDentro: userData.techoDentro ?? techoDentro,
+                traseroDentro: userData.traseroDentro ?? traseroDentro,
+                retranqueoTrasero: userData.retranqueoTrasero ?? retranqueoTrasero,
+                retranquearSuelo: userData.retranquearSuelo ?? retranquearSuelo,
+                esquinaXTriangulada: userData.esquinaXTriangulada ?? esquinaXTriangulada,
+                esquinaZTriangulada: userData.esquinaZTriangulada ?? esquinaZTriangulada,
+                alturaPatas: userData.alturaPatas || alturaPatas,
+                indicePata: userData.indicePata ?? indicePata,
+                indicePuerta: userData.indicePuerta ?? indicePuerta,
+                seccionesHorizontales,
+                seccionesVerticales,
+            };
+            console.log("Grupo UserData:", groupRef.current.userData);
+        }
+    }, [
+        width, height, depth, espesor,
+        sueloDentro, techoDentro, traseroDentro,
+        retranqueoTrasero, retranquearSuelo,
+        esquinaXTriangulada, esquinaZTriangulada,
+        alturaPatas, indicePata, indicePuerta,
+        seccionesHorizontales, seccionesVerticales,
+        userData,
+    ]);
 
     return (
         <group ref={groupRef} position={position} rotation={rotation} onClick={handleClick}>
@@ -516,8 +563,8 @@ const CascoFuncional = (
     );
 };
 
-// Componente de alto nivel que utiliza el proveedor de contexto y los materiales,
-// equivalente a la versión original de CascoWithContext.
+// Componente de alto nivel que utiliza el proveedor de contexto y los materiales.
+// Solo cuando se selecciona el casco actual se actualiza la referencia global.
 const CascoWithContext = (props: any) => {
     const { refItem, setRefItem } = useSelectedItemProvider();
     const meshRef = useRef<any>(null);

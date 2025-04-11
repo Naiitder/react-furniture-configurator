@@ -145,7 +145,6 @@ const Caja: React.FC<CajaProps> = ({
                     rotation={rotation}
                     onClick={(event) => {
                         if (stopPropagation) event.stopPropagation();
-                        console.log("REFITEM", refItem, "PARENTREF", parentRef);
                         if (refItem?.groupRef !== parentRef.current) {
                             setRefItem({ groupRef: parentRef.current });
                         }

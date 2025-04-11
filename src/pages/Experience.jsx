@@ -36,10 +36,8 @@ const RaycastClickLogger = ({ glRef, cameraRef }) => {
             if (refItem) {
                 const intersects = raycaster.intersectObject(refItem.groupRef, true);
                 if (intersects.length > 0) {
-                    //console.log("👉 Intersección con Casco en:", intersects[0].point);
+                    console.log("👉 Intersección con Casco en:", intersects[0].point);
                 }
-            } else {
-                console.warn("refItem no es un objeto Three.js válido:", refItem);
             }
         };
 
@@ -65,8 +63,6 @@ export const Experience = () => {
     const { refItem, setRefItem } = useSelectedItemProvider();
     const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
 
-    const [undoStack, setUndoStack] = useState([]);
-
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
     const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
 
@@ -90,7 +86,7 @@ export const Experience = () => {
                 name: 'Casco2',
                 position: [3, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 2, espesor: 0.1 },
+                userData: { width: 2, height: 2, depth: 3, espesor: 0.1 },
                 patas: [<Pata height={1} />],
                 puertas: [<Puerta />],
             },
@@ -111,33 +107,6 @@ export const Experience = () => {
         setRefItem(selectedObject);
     };
 
-    // Guardar estado inicial del objeto seleccionado
-    const saveTransformState = () => {
-        if (!refItem || !(refItem.groupRef instanceof THREE.Object3D)) return;
-
-        const state = {
-            position: refItem.groupRef.position.clone(),
-            rotation: refItem.groupRef.rotation.clone(),
-            scale: refItem.groupRef.scale.clone(),
-            dimensions: {
-                width: refItem.userData?.width || 1,
-                height: refItem.userData?.height || 1,
-                depth: refItem.userData?.depth || 1,
-            },
-        };
-        setUndoStack((prev) => [...prev, state]);
-    };
-
-    // Actualizar refItem al cargar el componente
-    useEffect(() => {
-        if (refItem) {
-            saveTransformState();
-           // console.log("groupRef",refItem.groupRef);
-        }
-    }, [refItem]);
-
-
-    // Manejar cambios de escala
     useEffect(() => {
         if (transformRef.current && refItem) {
             const controls = transformRef.current;
