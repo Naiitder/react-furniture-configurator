@@ -5,23 +5,22 @@ export const SelectedItemContext = createContext();
 // Example of a more optimized context provider
 export const SelectedItemProvider = ({ children }) => {
     const [refItem, setRefItemInternal] = useState(null);
+    const [selectedCascoId, setSelectedCascoId] = useState(null);
+    const [refVersion, setRefVersion] = useState(0);
 
-    // Memoize the setRefItem function
     const setRefItem = useCallback((newRef) => {
-        setRefItemInternal(prev => {
-            // Prevent unnecessary updates
-            if (prev === newRef || (prev?.groupRef === newRef?.groupRef)) {
-                return prev;
-            }
-            return newRef;
-        });
+        setRefItemInternal(newRef);
     }, []);
 
-    // Memoize the context value
     const contextValue = useMemo(() => ({
         refItem,
-        setRefItem
-    }), [refItem, setRefItem]);
+        setRefItem,
+        selectedCascoId,
+        setSelectedCascoId,
+        refVersion,
+        setRefVersion,
+    }), [refItem, setRefItem, selectedCascoId, refVersion]);
+
 
     return (
         <SelectedItemContext.Provider value={contextValue}>
@@ -29,6 +28,7 @@ export const SelectedItemProvider = ({ children }) => {
         </SelectedItemContext.Provider>
     );
 };
+
 export function useSelectedItemProvider() {
     return useContext(SelectedItemContext);
 }

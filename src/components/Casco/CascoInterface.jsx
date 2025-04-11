@@ -6,12 +6,11 @@ import { useEffect, useState } from "react";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import DraggableIntersection, { INTERSECTION_TYPES } from "./DraggableIntersection.js";
 import * as THREE from "three";
+import {useFrame} from "@react-three/fiber";
 
 const { Title } = Typography;
 
 const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1, y: 1, z: 1 } }) => {
-    const { refItem, setRefItem } = useSelectedItemProvider();
-
     const [config, setConfig] = useState({
         width: 2,
         height: 2,
@@ -29,18 +28,30 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
         indicePata: -1,
         indicePuerta: 1,
     });
+    const { refItem, selectedCascoId, setRefItem, setRefVersion } = useSelectedItemProvider();
 
     useEffect(() => {
-        if (refItem) {
-            refItem.userData = { ...config };
+        if (refItem?.current instanceof THREE.Object3D) {
+            const data = refItem.current.userData;
+            updateConfig("width", data.ancho);
+            updateConfig("height", data.altura);
+            updateConfig("depth", data.profundidad);
+            updateConfig("espesor", data.espesor);
         }
-    }, [refItem]);
+    }, [selectedCascoId]);
 
     useEffect(() => {
-        if (!refItem) return;
-        refItem.userData = { ...config };
-        //console.log(refItem.userData);
+        if (refItem?.current instanceof THREE.Object3D) {
+            refItem.current.userData.ancho = config.width;
+            refItem.current.userData.altura = config.height;
+            refItem.current.userData.profundidad = config.depth;
+            refItem.current.userData.espesor = config.espesor;
+
+            setRefItem({ current: refItem.current });
+            setRefVersion((v) => v + 1); // 🔥 fuerza re-render
+        }
     }, [config]);
+
 
     const updateConfig = (key, value) => {
         setConfig((prev) => ({ ...prev, [key]: value }));
@@ -49,35 +60,6 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
     const [disabledOptions, setDisabledOptions] = useState(false);
     const [disableSueloDentro, setDisableSueloDentro] = useState(false);
 
-    // Efecto para sincronizar la interfaz con el refItem actual
-    useEffect(() => {
-        if (refItem) {
-            // Usar refItem.groupRef si existe, de lo contrario el objeto mismo
-            const newConfig = refItem.groupRef ? refItem.groupRef : refItem;
-
-            updateConfig("width", newConfig.width || config.width);
-            updateConfig("height", newConfig.height || config.height);
-            updateConfig("depth", newConfig.depth || config.depth);
-            updateConfig("alturaPatas", newConfig.alturaPatas || config.alturaPatas);
-            updateConfig("espesor", newConfig.espesor || config.espesor);
-            updateConfig("esquinaXTriangulada", newConfig.esquinaXTriangulada || config.esquinaXTriangulada);
-            updateConfig("esquinaZTriangulada", newConfig.esquinaZTriangulada || config.esquinaZTriangulada);
-            updateConfig("sueloDentro", newConfig.sueloDentro || config.sueloDentro);
-            updateConfig("techoDentro", newConfig.techoDentro || config.techoDentro);
-            updateConfig("retranquearSuelo", newConfig.retranquearSuelo || config.retranquearSuelo);
-            updateConfig("traseroDentro", newConfig.traseroDentro !== undefined ? newConfig.traseroDentro : true);
-            updateConfig("retranqueoTrasero", newConfig.retranqueoTrasero || config.retranqueoTrasero);
-            updateConfig("texture", newConfig.texture || "./textures/oak.jpg");
-            updateConfig("indicePata", newConfig.indicePata ?? -1);
-            updateConfig("indicePuerta", newConfig.indicePuerta ?? 1);
-        }
-    }, [refItem]);
-
-    // Efecto para actualizar el objeto de configuración (refItem) cuando la interfaz cambia
-    useEffect(() => {
-        if (!refItem || !(refItem instanceof THREE.Object3D)) return;
-        refItem.groupRef = { ...config };
-    }, [config]);
 
     // Actualizar la interfaz cuando las dimensiones controladas por TransformControls cambien
 

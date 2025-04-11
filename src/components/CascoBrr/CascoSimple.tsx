@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useRef } from "react";
+import {useEffect, useRef, useState} from "react";
 import Tablon from "./Tablon";
 import * as THREE from "three";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
@@ -13,6 +13,7 @@ type CascoSimpleProps = {
     profundidad: number;
     altura: number;
     onClick: () => void;
+    version: number;
 };
 
 export default function CascoSimple({
@@ -22,7 +23,8 @@ export default function CascoSimple({
                                         espesor,
                                         ancho,
                                         profundidad,
-                                        altura
+                                        altura,
+                                        version
                                     }: CascoSimpleProps) {
     const groupRef = useRef<THREE.Group>(null);
     /*
@@ -33,58 +35,59 @@ export default function CascoSimple({
     const altura = 2;
 
      */
-    const alturaInterna = altura - espesor * 2;
-    const centroY = espesor + alturaInterna / 2;
 
-  //  const {itemRef, setItemRef} = useSelectedItemProvider()
+
+    const { setRefItem, refItem } = useSelectedItemProvider();
+
+    const [actualEspesor, setActualEspesor] = useState(espesor);
+    const [actualAncho, setActualAncho] = useState(ancho);
+    const [actualProfundidad, setActualProfundidad] = useState(profundidad);
+    const [actualAltura, setActualAltura] = useState(altura);
+
+    const alturaInterna = actualAltura - actualEspesor * 2;
+    const centroY = actualEspesor + alturaInterna / 2;
+
+
+    useEffect(() => {
+        console.log("Recalculando desde useEffect porque version cambió");
+        if (!refItem?.current?.userData || !groupRef?.current?.userData) return;
+        if (refItem?.current?.uuid !== groupRef?.current?.uuid) return;
+
+        const userData = refItem.current.userData;
+
+        setActualEspesor(userData.espesor || actualEspesor);
+        setActualAncho(userData.ancho || actualAncho);
+        setActualProfundidad(userData.profundidad || actualProfundidad);
+        setActualAltura(userData.altura || actualAltura);
+    }, [version]); // 👀 aquí reaccionas al cambio
 
     return (
-        <group ref={groupRef} position={position} onPointerDown={(e) => { e.stopPropagation(); onClick(); }}>
-            {/* Suelo */}
-            <Tablon
-                nombre="suelo"
-                width={ancho}
-                height={espesor}
-                depth={profundidad}
-                position={[0, espesor / 2, 0]}
-                color={isSelected ? "#00ff00" : "#deb887"}
-            />
-            {/* Techo */}
-            <Tablon
-                nombre="techo"
-                width={ancho}
-                height={espesor}
-                depth={profundidad}
-                position={[0, altura - espesor / 2, 0]}
-                color={isSelected ? "#00ff00" : "#deb887"}
-            />
-            {/* Lateral Izquierda */}
-            <Tablon
-                nombre="izquierda"
-                width={espesor}
-                height={alturaInterna}
-                depth={profundidad}
-                position={[(ancho - espesor) / 2, centroY, 0]}
-                color={isSelected ? "#00ff00" : "#ae9292"}
-            />
-            {/* Lateral Derecha */}
-            <Tablon
-                nombre="derecha"
-                width={espesor}
-                height={alturaInterna}
-                depth={profundidad}
-                position={[-(ancho - espesor) / 2, centroY, 0]}
-                color={isSelected ? "#00ff00" : "#ae9292"}
-            />
-            {/* Trasero */}
-            <Tablon
-                nombre="trasero"
-                width={ancho - espesor * 2}
-                height={alturaInterna}
-                depth={espesor}
-                position={[0, centroY, (profundidad - espesor) / 2]}
-                color={isSelected ? "#00ff00" : "#c5e07a"}
-            />
+        <group
+            ref={groupRef}
+            position={position}
+            onPointerDown={(e) => {
+                e.stopPropagation();
+                onClick();
+
+                if (groupRef.current) {
+                    groupRef.current.userData = {
+                        espesor: actualEspesor,
+                        ancho: actualAncho,
+                        profundidad: actualProfundidad,
+                        altura: actualAltura,
+                    };
+                    // 👇 Esto es lo que la interfaz usará
+                    setRefItem({ current: groupRef.current });
+                }
+            }}
+        >
+            {/* Tableros */}
+            <Tablon nombre="suelo" width={actualAncho} height={actualEspesor} depth={actualProfundidad} position={[0, actualEspesor / 2, 0]} color={isSelected ? "#00ff00" : "#deb887"} />
+            <Tablon nombre="techo" width={actualAncho} height={actualEspesor} depth={actualProfundidad} position={[0, actualAltura - actualEspesor / 2, 0]} color={isSelected ? "#00ff00" : "#deb887"} />
+            <Tablon nombre="izquierda" width={actualEspesor} height={alturaInterna} depth={actualProfundidad} position={[(actualAncho - actualEspesor) / 2, centroY, 0]} color={isSelected ? "#00ff00" : "#ae9292"} />
+            <Tablon nombre="derecha" width={actualEspesor} height={alturaInterna} depth={actualProfundidad} position={[-(actualAncho - actualEspesor) / 2, centroY, 0]} color={isSelected ? "#00ff00" : "#ae9292"} />
+            <Tablon nombre="trasero" width={actualAncho - actualEspesor * 2} height={alturaInterna} depth={actualEspesor} position={[0, centroY, (actualProfundidad - actualEspesor) / 2]} color={isSelected ? "#00ff00" : "#c5e07a"} />
+
         </group>
     );
 }

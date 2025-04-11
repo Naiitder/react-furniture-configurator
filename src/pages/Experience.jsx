@@ -33,13 +33,11 @@ const RaycastClickLogger = ({ glRef, cameraRef }) => {
             raycaster.setFromCamera(mouse, camera);
 
             // Asegurarse de que refItem sea un objeto Three.js válido
-            if (refItem) {
-                const intersects = raycaster.intersectObject(refItem.groupRef, true);
+            if (refItem && refItem instanceof THREE.Object3D) {
+                const intersects = raycaster.intersectObject(refItem, true);
                 if (intersects.length > 0) {
-                    //console.log("👉 Intersección con Casco en:", intersects[0].point);
+                    console.log("👉 Intersección con Casco en:", intersects[0].point);
                 }
-            } else {
-                console.warn("refItem no es un objeto Three.js válido:", refItem);
             }
         };
 
@@ -62,16 +60,13 @@ export const Experience = () => {
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
-    const { refItem, setRefItem } = useSelectedItemProvider();
+    const { refItem, setRefItem, selectedCascoId, setSelectedCascoId, refVersion } = useSelectedItemProvider();
     const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
 
     const [undoStack, setUndoStack] = useState([]);
 
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
     const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
-
-    // @Pruden
-    const [selectedCascoId, setSelectedCascoId] = useState(null);
 
 
     useEffect(() => {
@@ -369,6 +364,7 @@ export const Experience = () => {
                         if (selectedItem === "Casco brr") {
                             e.stopPropagation();
                             setSelectedCascoId(null);
+                            setRefItem(null);
                         }
                     }}
                 >
@@ -381,6 +377,7 @@ export const Experience = () => {
                         ancho={2}
                         profundidad={7}
                         altura={2}
+                        version={refVersion}
                     />
                     <CascoSimple
                         id="casco2"
@@ -391,6 +388,8 @@ export const Experience = () => {
                         ancho={2}
                         profundidad={2}
                         altura={6}
+                        version={refVersion}
+
                     />
                     <CascoSimple
                         id="casco3"
@@ -401,6 +400,7 @@ export const Experience = () => {
                         ancho={8}
                         profundidad={2}
                         altura={2}
+                        version={refVersion}
                     />
                 </group>
             </>
