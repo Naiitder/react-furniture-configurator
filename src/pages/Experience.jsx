@@ -279,6 +279,7 @@ export const Experience = () => {
     const interfaceComponents = {
         "Casco": (
             <CascoInterface
+                key={refItem?.groupRef?.uuid || "default"}
                 show={transformEnabled}
                 setShow={setTransformEnabled}
                 mode={transformMode}

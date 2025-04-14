@@ -38,6 +38,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
             const newConfig = refItem.groupRef && refItem.groupRef.userData
                 ? refItem.groupRef.userData
                 : (refItem.userData || {});
+            console.log(refItem.groupRef.userData);
             setConfig(prev => ({
                 ...prev,
                 ...newConfig,

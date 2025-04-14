@@ -90,9 +90,16 @@ const CascoFuncional = (
         indicePuerta,
     };
 
+
     // Usamos estado local para la configuración de este casco.
     // De esta forma, cada vez que se cambie la configuración se provoca un re-render.
     const [localConfig, setLocalConfig] = useState(initialData);
+
+    useEffect(() => {
+        if (groupRef.current && Object.keys(groupRef.current.userData).length === 0) {
+            groupRef.current.userData = { ...initialData };
+        }
+    }, []);
 
     // Si el casco está seleccionado (comparando referencias) y existe la configuración en el contexto,
     // sincronizamos el estado local con esos datos.
