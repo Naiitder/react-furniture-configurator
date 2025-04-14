@@ -60,7 +60,7 @@ export const Experience = () => {
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
-    const { refItem, setRefItem } = useSelectedItemProvider();
+    const { refItem, setRefItem, version } = useSelectedItemProvider();
     const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
 
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
@@ -320,7 +320,7 @@ export const Experience = () => {
                             patas={casco.patas}
                             puertas={casco.puertas}
                             onClick={handleCascoClick}
-
+                            version={version}
                         />
                     </group>
                 ))}

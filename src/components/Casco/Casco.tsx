@@ -26,6 +26,9 @@ export type CascoProps = {
     indicePuerta?: number;
     seccionesHorizontales?: any[];
     seccionesVerticales?: any[];
+    version?: any[];
+    setVersion?: (version: any) => void;
+
 };
 
 const CascoFuncional = (
@@ -60,6 +63,7 @@ const CascoFuncional = (
         contextRef,
         setContextRef,
         materiales,
+        version,
     } = props;
 
     const groupRef = useRef<THREE.Group>(null);
@@ -95,16 +99,16 @@ const CascoFuncional = (
     const isSelected = refItem && refItem.groupRef === groupRef.current;
     useEffect(() => {
         if (refItem && isSelected) {
-            const newConfig =
-                refItem.groupRef && refItem.groupRef.userData
-                    ? refItem.groupRef.userData
-                    : refItem.userData || initialData;
-            setLocalConfig((prev) => ({
-                ...prev,
-                ...newConfig,
-            }));
+            const newConfig = refItem.groupRef?.userData ?? refItem.userData ?? initialData;
+
+            setLocalConfig((prev) => {
+                const hasChanged = Object.keys(newConfig).some(
+                    key => newConfig[key] !== prev[key]
+                );
+                return hasChanged ? { ...prev, ...newConfig } : prev;
+            });
         }
-    }, [isSelected, refItem?.groupRef.userData.width]);
+    }, [refItem, isSelected, version]);
 
     // Función para actualizar la configuración tanto en el estado local
     // como en el userData del objeto Three.js
@@ -112,11 +116,10 @@ const CascoFuncional = (
         setLocalConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
             // Actualizamos el userData si existe
-            if (refItem) {
-                if (refItem.groupRef && refItem.groupRef.userData) {
-                    refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
-                } else {
-                    refItem.userData = { ...refItem.userData, [key]: value };
+            if (refItem && refItem.groupRef) {
+                refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
+                if (refItem.groupRef.setVersion) {
+                    refItem.groupRef.setVersion((prev: number) => prev + 1);
                 }
             }
             return newConfig;
@@ -377,7 +380,7 @@ const CascoFuncional = (
     // Manejador del clic: actualiza la ref de contexto para el casco seleccionado
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
-        if (setContextRef && groupRef.current) {
+        if (setContextRef && groupRef.current) {// 💥 esto es lo que faltaba
             setContextRef({ groupRef: groupRef.current });
         }
     };
@@ -530,14 +533,13 @@ const CascoFuncional = (
 
 // Componente de alto nivel: el que actualiza el contexto únicamente si es el casco seleccionado.
 const CascoWithContext = (props: any) => {
-    const { refItem, setRefItem } = useSelectedItemProvider();
+    const { refItem, setRefItem, version} = useSelectedItemProvider();
     const meshRef = useRef<any>(null);
     const materiales = useMaterial();
 
     const updateContextRef = useCallback(
         (ref: any) => {
             if (ref && (!refItem || ref.groupRef !== refItem.groupRef)) {
-                console.log("NUEVO REF", ref);
                 setRefItem(ref);
             }
         },
@@ -550,6 +552,7 @@ const CascoWithContext = (props: any) => {
             contextRef={meshRef}
             setContextRef={updateContextRef}
             materiales={materiales}
+            version={version}
         />
     );
 };

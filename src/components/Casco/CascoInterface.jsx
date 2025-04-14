@@ -10,7 +10,7 @@ import * as THREE from "three";
 const { Title } = Typography;
 
 const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1, y: 1, z: 1 } }) => {
-    const { refItem, setRefItem } = useSelectedItemProvider();
+    const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
 
     const [config, setConfig] = useState({
         width: 2,
@@ -56,6 +56,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1
                 } else {
                     refItem.userData = { ...refItem.userData, [key]: value };
                 }
+                setVersion(version+1);
             }
             return newConfig;
         });
