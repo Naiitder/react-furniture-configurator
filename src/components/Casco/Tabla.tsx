@@ -5,6 +5,7 @@ import BordeTriangular from "./BordeTriangular";
 import {useMaterial} from "../../assets/materials";
 import {useRef} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
+import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
@@ -126,6 +127,7 @@ const Tabla: React.FC<TablaProps> = ({
     };
 
     const {refItem, setRefItem} = useSelectedItemProvider();
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
 
     // Efecto para aplicar transformaciones al mesh
     React.useEffect(() => {
@@ -148,6 +150,10 @@ const Tabla: React.FC<TablaProps> = ({
                         if (stopPropagation) event.stopPropagation();
                         if (refItem?.groupRef !== parentRef.current) {
                             setRefItem({ groupRef: parentRef.current });
+                            setRefPiece(null);
+                        }
+                        else {
+                            setRefPiece(ref.current);
                         }
                     }}
                 >

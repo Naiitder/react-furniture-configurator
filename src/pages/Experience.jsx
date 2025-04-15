@@ -15,6 +15,7 @@ import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import CascoSimple from "../components/CascoBrr/CascoSimple.js";
 import TablaConfigurationInterface from "../components/TablaConfiguratorInterface.jsx";
 import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
+import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -63,6 +64,7 @@ export const Experience = () => {
     const [transformMode, setTransformMode] = useState("translate");
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
     const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
+    const { refPiece, setRefPiece} = useSelectedPieceProvider();
     const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
 
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
@@ -382,22 +384,26 @@ export const Experience = () => {
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
-                    <TransformControls ref={transformRef} object={refItem.groupRef} mode={transformMode} />
+                    <TransformControls ref={transformRef} object={ refPiece ? refPiece : refItem.groupRef} mode={transformMode} />
                 )}
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
             {interfaceComponents[selectedItem]}
 
 
-            <TablaConfigurationInterface
-                title="Tabla Configurator"
-                show={true}
-                setShow={true}
-                mode={transformMode}
-                setMode={setTransformMode}
-            >
-                <TablaConfigContent />
-            </TablaConfigurationInterface>
+            {refPiece && (
+                <TablaConfigurationInterface
+                    title="Tabla Configurator"
+                    show={true}
+                    setShow={true}
+                    mode={transformMode}
+                    setMode={setTransformMode}
+                >
+                    <TablaConfigContent />
+                </TablaConfigurationInterface>
+            )
+
+            }
 
             <RoomConfigPanel />
         </>
