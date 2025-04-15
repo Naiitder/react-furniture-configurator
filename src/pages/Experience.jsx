@@ -13,6 +13,8 @@ import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import CascoSimple from "../components/CascoBrr/CascoSimple.js";
+import TablaConfigurationInterface from "../components/TablaConfiguratorInterface.jsx";
+import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -308,6 +310,7 @@ export const Experience = () => {
                 setMode={setTransformMode}
                 scaleDimensions={scaleDimensions}
             />
+
         ),
     };
 
@@ -384,6 +387,18 @@ export const Experience = () => {
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
             {interfaceComponents[selectedItem]}
+
+
+            <TablaConfigurationInterface
+                title="Tabla Configurator"
+                show={true}
+                setShow={true}
+                mode={transformMode}
+                setMode={setTransformMode}
+            >
+                <TablaConfigContent />
+            </TablaConfigurationInterface>
+
             <RoomConfigPanel />
         </>
     );
