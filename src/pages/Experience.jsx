@@ -60,7 +60,7 @@ export const Experience = () => {
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
-    const { refItem, setRefItem, version } = useSelectedItemProvider();
+    const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
     const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
 
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
@@ -108,28 +108,31 @@ export const Experience = () => {
     };
 
     useEffect(() => {
-        if (transformRef.current && refItem) {
+        if (transformRef.current && refItem.groupRef) {
             const controls = transformRef.current;
             const onObjectChange = () => {
                 if (transformMode === "scale") {
-                    const newScale = refItem.scale;
-                    const width = refItem.userData.width || 2;
-                    const height = refItem.userData.height || 2;
-                    const depth = refItem.userData.depth || 2;
+                    console.log(refItem);
+                    console.log("USERDATA", refItem.groupRef.userData);
+                    const newScale = refItem.groupRef.scale;
+                    const width = refItem.groupRef.userData.width || 2;
+                    const height = refItem.groupRef.userData.height || 2;
+                    const depth = refItem.groupRef.userData.depth || 2;
 
                     const newWidth = Math.min(5, Math.max(1, width * newScale.x));
                     const newHeight = Math.min(6, Math.max(1, height * newScale.y));
                     const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
 
                     setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
-                    refItem.userData = { ...refItem.userData, width: newWidth, height: newHeight, depth: newDepth };
-                    refItem.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                    refItem.groupRef.userData = { ...refItem.groupRef.userData, width: newWidth, height: newHeight, depth: newDepth };
+                    refItem.groupRef.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                    setVersion(version + 1);
                 }
             };
             controls.addEventListener("objectChange", onObjectChange);
             return () => controls.removeEventListener("objectChange", onObjectChange);
         }
-    }, [transformMode, refItem])
+    }, [transformMode, refItem, version]);
 
 
     // Configuración del drop con react-dnd
