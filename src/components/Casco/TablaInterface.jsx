@@ -24,7 +24,7 @@ const TablaConfigContent = () => {
                 ...newConfig,
             }));
         }
-    }, [refPiece]);
+    }, [refPiece, version]);
 
     // Función unificada para actualizar la configuración y modificar también el userData
     // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)

@@ -66,6 +66,17 @@ const Tabla: React.FC<TablaProps> = ({
         }
     }, []);
 
+    useEffect(() => {
+        if (ref.current) {
+            ref.current.userData = {
+                width,
+                height,
+                depth,
+                espesor: espesorBase
+            };
+        }
+    }, [width, height, depth, espesorBase]);
+
 
     if(refPiece && refPiece === ref.current && refPiece.userData) width = refPiece.userData.width;
     if(refPiece && refPiece === ref.current && refPiece.userData) height = refPiece.userData.height;
