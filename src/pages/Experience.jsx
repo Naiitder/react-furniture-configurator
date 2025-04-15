@@ -330,6 +330,8 @@ export const Experience = () => {
                             puertas={casco.puertas}
                             onClick={handleCascoClick}
                             version={version}
+                            seccionesHorizontales={droppedHorizontalCubes}
+                            seccionesVerticales={droppedVerticalCubes}
                         />
                     </group>
                 ))}

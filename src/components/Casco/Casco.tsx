@@ -423,7 +423,7 @@ const CascoFuncional = (
                 depth={dimensiones.suelo.depth}
                 material={materiales.OakWood}
                 posicionCaja="bottom"
-                shape={esquinaXTriangulada ? "trapezoid" : "box"}
+                shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 bordeEjeY={false}
             />
 
@@ -437,7 +437,7 @@ const CascoFuncional = (
                 depth={dimensiones.lateral.depth}
                 material={materiales.DarkWood}
                 posicionCaja="left"
-                shape={esquinaXTriangulada ? "trapezoid" : "box"}
+                shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
             />
 
             {/* Tablon lado derecho */}
@@ -450,7 +450,7 @@ const CascoFuncional = (
                 depth={dimensiones.lateral.depth}
                 material={materiales.DarkWood}
                 posicionCaja="right"
-                shape={esquinaXTriangulada ? "trapezoid" : "box"}
+                shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
             />
 
             {/* Tablon detrás */}
@@ -475,11 +475,11 @@ const CascoFuncional = (
                 depth={dimensiones.techo.depth}
                 material={materiales.OakWood}
                 posicionCaja="top"
-                shape={esquinaXTriangulada || esquinaZTriangulada ? "trapezoid" : "box"}
+                shape={actualEsquinaXTriangulada || actualEsquinaZTriangulada ? "trapezoid" : "box"}
                 bordeEjeY={false}
-                bordeEjeZ={esquinaZTriangulada}
+                bordeEjeZ={actualEsquinaZTriangulada}
                 disableAdjustedWidth={
-                    esquinaZTriangulada || (esquinaZTriangulada && esquinaXTriangulada)
+                    actualEsquinaZTriangulada || (actualEsquinaZTriangulada && actualEsquinaXTriangulada)
                 }
             />
 

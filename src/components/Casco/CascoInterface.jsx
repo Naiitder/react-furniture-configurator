@@ -199,7 +199,7 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
                             step={0.1}
                             disabled={!config.traseroDentro}
                             min={0}
-                            max={config.retranqueoTrasero / 5}
+                            max={config.depth*100/3}
                             value={config.retranqueoTrasero * 100}
                             onChange={(v) => updateConfig("retranqueoTrasero", v / 100)}
                         />
