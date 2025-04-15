@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import * as THREE from "three";
-import Caja from "./Caja";
+import Tabla from "./Tabla";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import { useMaterial } from "../../assets/materials";
 
@@ -309,7 +309,7 @@ const CascoFuncional = (
             }
 
             return (
-                <Caja
+                <Tabla
                     key={cube.id}
                     parentRef={groupRef}
                     shape="box"
@@ -360,7 +360,7 @@ const CascoFuncional = (
             }
 
             return (
-                <Caja
+                <Tabla
                     key={cube.id}
                     parentRef={groupRef}
                     shape="box"
@@ -413,8 +413,8 @@ const CascoFuncional = (
 
     return (
         <group ref={groupRef} position={position} rotation={rotation} onClick={handleClick}>
-            {/* Caja inferior (suelo) */}
-            <Caja
+            {/* Tablon inferior (suelo) */}
+            <Tabla
                 parentRef={groupRef}
                 espesorBase={espesor}
                 position={posiciones.suelo}
@@ -427,8 +427,8 @@ const CascoFuncional = (
                 bordeEjeY={false}
             />
 
-            {/* Caja lado izquierdo */}
-            <Caja
+            {/* Tablon lado izquierdo */}
+            <Tabla
                 parentRef={groupRef}
                 espesorBase={espesor}
                 position={posiciones.izquierda}
@@ -440,8 +440,8 @@ const CascoFuncional = (
                 shape={esquinaXTriangulada ? "trapezoid" : "box"}
             />
 
-            {/* Caja lado derecho */}
-            <Caja
+            {/* Tablon lado derecho */}
+            <Tabla
                 parentRef={groupRef}
                 espesorBase={espesor}
                 position={posiciones.derecha}
@@ -453,8 +453,8 @@ const CascoFuncional = (
                 shape={esquinaXTriangulada ? "trapezoid" : "box"}
             />
 
-            {/* Caja detrás */}
-            <Caja
+            {/* Tablon detrás */}
+            <Tabla
                 parentRef={groupRef}
                 espesorBase={espesor}
                 position={posiciones.trasero}
@@ -465,8 +465,8 @@ const CascoFuncional = (
                 shape="box"
             />
 
-            {/* Caja arriba (techo) */}
-            <Caja
+            {/* Tablon arriba (techo) */}
+            <Tabla
                 parentRef={groupRef}
                 espesorBase={espesor}
                 position={posiciones.techo}

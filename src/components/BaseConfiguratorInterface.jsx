@@ -1,7 +1,7 @@
 import {Button, Space, Typography} from "antd";
 import {ArrowLeftOutlined} from "@ant-design/icons";
 import {useNavigate} from "react-router-dom";
-import TransformControlPanel from "../pages/TransformControlPanel.js";
+import TransformControlPanel from "./TransformControlPanel.tsx";
 
 const {Title} = Typography;
 

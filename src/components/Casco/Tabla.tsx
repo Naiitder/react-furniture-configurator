@@ -9,7 +9,7 @@ import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
 // Componente para una caja individual
-type CajaProps = {
+type TablaProps = {
     parentRef: React.Ref<any>;
     ref?: React.Ref<any>;
     position: [number, number, number];
@@ -31,7 +31,7 @@ type CajaProps = {
     orientacionBordeZ?: "vertical" | "front";
 }
 
-const Caja: React.FC<CajaProps> = ({
+const Tabla: React.FC<TablaProps> = ({
                                        parentRef,
                                        ref = useRef<any>(null),
                                        position,
@@ -183,4 +183,4 @@ const Caja: React.FC<CajaProps> = ({
     );
 };
 
-export default Caja;
+export default Tabla;

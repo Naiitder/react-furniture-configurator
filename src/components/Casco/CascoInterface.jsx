@@ -9,7 +9,7 @@ import * as THREE from "three";
 
 const { Title } = Typography;
 
-const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = { x: 1, y: 1, z: 1 } }) => {
+const CascoInterface = ({ show, setShow, mode, setMode}) => {
     const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
 
     const [config, setConfig] = useState({
