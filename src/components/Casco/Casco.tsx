@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useCallback, useState } from "react";
 import * as THREE from "three";
 import Tabla from "./Tabla";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
+import { useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider.jsx";
 import { useMaterial } from "../../assets/materials";
 
 // Definición de los props para el componente Casco
@@ -71,6 +72,7 @@ const CascoFuncional = (
     const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
 
     const { refItem } = useSelectedItemProvider();
+    const { version: pieceVersion } = useSelectedPieceProvider();
 
     // Valores iniciales para este casco
     const initialData = {
@@ -103,10 +105,10 @@ const CascoFuncional = (
 
     // Si el casco está seleccionado (comparando referencias) y existe la configuración en el contexto,
     // sincronizamos el estado local con esos datos.
-    const isSelected = refItem && refItem.groupRef === groupRef.current;
+    const isSelected = refItem && refItem === groupRef.current;
     useEffect(() => {
         if (refItem && isSelected) {
-            const newConfig = refItem.groupRef?.userData ?? refItem.userData ?? initialData;
+            const newConfig = refItem?.userData ?? refItem.userData ?? initialData;
 
             setLocalConfig((prev) => {
                 const hasChanged = Object.keys(newConfig).some(
@@ -310,6 +312,7 @@ const CascoFuncional = (
 
             return (
                 <Tabla
+                    version={pieceVersion}
                     key={cube.id}
                     parentRef={groupRef}
                     shape="box"
@@ -361,6 +364,7 @@ const CascoFuncional = (
 
             return (
                 <Tabla
+                    version={pieceVersion}
                     key={cube.id}
                     parentRef={groupRef}
                     shape="box"
@@ -388,7 +392,7 @@ const CascoFuncional = (
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (setContextRef && groupRef.current) {// 💥 esto es lo que faltaba
-            setContextRef({ groupRef: groupRef.current });
+            setContextRef(groupRef.current);
         }
     };
 
@@ -425,10 +429,12 @@ const CascoFuncional = (
                 posicionCaja="bottom"
                 shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 bordeEjeY={false}
+                version={pieceVersion}
             />
 
             {/* Tablon lado izquierdo */}
             <Tabla
+                version={pieceVersion}
                 parentRef={groupRef}
                 espesorBase={espesor}
                 position={posiciones.izquierda}
@@ -442,6 +448,7 @@ const CascoFuncional = (
 
             {/* Tablon lado derecho */}
             <Tabla
+                version={pieceVersion}
                 parentRef={groupRef}
                 espesorBase={espesor}
                 position={posiciones.derecha}
@@ -455,6 +462,7 @@ const CascoFuncional = (
 
             {/* Tablon detrás */}
             <Tabla
+                version={pieceVersion}
                 parentRef={groupRef}
                 espesorBase={espesor}
                 position={posiciones.trasero}
@@ -462,11 +470,13 @@ const CascoFuncional = (
                 height={dimensiones.trasero.height}
                 depth={dimensiones.trasero.depth}
                 material={materiales.DarkWood}
+                posicionCaja={"back"}
                 shape="box"
             />
 
             {/* Tablon arriba (techo) */}
             <Tabla
+                version={pieceVersion}
                 parentRef={groupRef}
                 espesorBase={espesor}
                 position={posiciones.techo}
@@ -546,7 +556,7 @@ const CascoWithContext = (props: any) => {
 
     const updateContextRef = useCallback(
         (ref: any) => {
-            if (ref && (!refItem || ref.groupRef !== refItem.groupRef)) {
+            if (ref && (!refItem || ref !== refItem)) {
                 setRefItem(ref);
             }
         },

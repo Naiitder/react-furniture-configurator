@@ -3,7 +3,7 @@ import * as THREE from "three";
 import '@react-three/fiber';
 import BordeTriangular from "./BordeTriangular";
 import {useMaterial} from "../../assets/materials";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState, useCallback} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 
@@ -20,89 +20,125 @@ type TablaProps = {
     depth: number;
     material: THREE.Material;
     stopPropagation?: boolean;
+    version?: number
 
     shape: "box" | "trapezoid";
     taperAmount?: number; // Nueva propiedad para controlar cuánto se estrecha
 
     disableAdjustedWidth?: boolean;
     espesorBase: number;
-    posicionCaja?: "top" | "bottom" | "left" | "right";
+    posicionCaja?: "top" | "bottom" | "left" | "right" | "back";
     bordeEjeY?: boolean;
     bordeEjeZ?: boolean;
     orientacionBordeZ?: "vertical" | "front";
 }
 
 const Tabla: React.FC<TablaProps> = ({
-                                       parentRef,
-                                       ref = useRef<any>(null),
-                                       position,
-                                       rotation = [0, 0, 0],
-                                       espesorBase,
-                                       width,
-                                       height,
-                                       depth,
-                                       material,
-                                       shape = "box",
-                                       bordeEjeY = true,
-                                       bordeEjeZ = false,
-                                       posicionCaja = "top",
-                                       orientacionBordeZ = "front",
-                                       disableAdjustedWidth = false,
-                                       stopPropagation = true
-                                   }) => {
+                                         parentRef,
+                                         ref = useRef<any>(null),
+                                         position,
+                                         rotation = [0, 0, 0],
+                                         version = 0,
+                                         espesorBase,
+                                         width,
+                                         height,
+                                         depth,
+                                         material,
+                                         shape = "box",
+                                         bordeEjeY = true,
+                                         bordeEjeZ = false,
+                                         posicionCaja = "top",
+                                         orientacionBordeZ = "front",
+                                         disableAdjustedWidth = false,
+                                         stopPropagation = true
+                                     }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
-    const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
 
     const initialData = {
         width,
         height,
         depth,
         espesor: espesorBase,
+        posicionCaja,
     };
+
+    const [dimensions, setDimensions] = useState({
+        width,
+        height,
+        depth,
+        espesor: espesorBase,
+    });
 
     useEffect(() => {
         if (ref.current && Object.keys(ref.current.userData).length === 0) {
-            ref.current.userData = { ...initialData };
+            ref.current.userData = {...initialData};
         }
     }, []);
 
     useEffect(() => {
         if (ref.current) {
             ref.current.userData = {
-                width,
-                height,
-                depth,
-                espesor: espesorBase
+                ...initialData,
+                width: dimensions.width,
+                height: dimensions.height,
+                depth: dimensions.depth,
+                espesor: dimensions.espesor
             };
         }
-    }, [width, height, depth, espesorBase]);
+    }, [dimensions.width, dimensions.height, dimensions.depth, dimensions.espesor]);
 
 
-    if(refPiece && refPiece === ref.current && refPiece.userData) width = refPiece.userData.width;
-    if(refPiece && refPiece === ref.current && refPiece.userData) height = refPiece.userData.height;
-    if(refPiece && refPiece === ref.current && refPiece.userData) depth = refPiece.userData.depth;
-    if(refPiece && refPiece === ref.current && refPiece.userData) espesorBase = refPiece.userData.espesor;
+    useEffect(() => {
+        if (refPiece && refPiece === ref.current && refPiece.userData) {
+            setDimensions({
+                width: refPiece.userData.width,
+                height: refPiece.userData.height,
+                depth: refPiece.userData.depth,
+                espesor: refPiece.userData.espesor,
+            });
+        }
+    }, [refPiece, version]);
 
-    const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
+    useEffect(() => {
+        if (refItem == parentRef.current) {
+            const parentDimensions = {
+                height: refItem.userData.height,
+                width: refItem.userData.width,
+                depth: refItem.userData.depth,
+            }
+
+            setDimensions({
+                    ...dimensions,
+                    height: (height) < parentDimensions.height -(dimensions.espesor * 2) && (
+                        posicionCaja !== "top" && posicionCaja !== "bottom"
+                    ) ? parentDimensions.height : height,
+                }
+            )
+        }
+
+    }, [refItem]);
+
+    const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? dimensions.width - (dimensions.espesor * 2) : dimensions.width;
     // Solo para frontal
-    const adjustedHeight = shape === "trapezoid" && bordeEjeY && bordeEjeZ && orientacionBordeZ === "vertical" ? height - (espesorBase) : height;
-    const adjustedDepth = shape === "trapezoid" && !bordeEjeY && bordeEjeZ && orientacionBordeZ === "front" ? depth - (espesorBase) : depth;
+    const adjustedHeight = shape === "trapezoid" && bordeEjeY && bordeEjeZ && orientacionBordeZ === "vertical" ? dimensions.height - (dimensions.espesor) : dimensions.height;
+    const adjustedDepth = shape === "trapezoid" && !bordeEjeY && bordeEjeZ && orientacionBordeZ === "front" ? dimensions.depth - (dimensions.espesor) : dimensions.depth;
 
-    const triangleZ = position[2] - depth / 2;
-    const triangleY = (bordeEjeY) ? (position[1] - espesorBase / 2) + (adjustedHeight / 2) + espesorBase / 2 : position[1] - adjustedHeight / 2;
+    const triangleZ = position[2] - adjustedDepth / 2;
+    const triangleY = (bordeEjeY) ? (position[1] - dimensions.espesor / 2) + (adjustedHeight / 2) + dimensions.espesor / 2 : position[1] - adjustedHeight / 2;
 
     const firstTriangleShape = (posicionCaja === "bottom" ? "topToRight" : (posicionCaja === "top") ? "bottomToRight" : (posicionCaja === "right" ? "topToRight" : "topToLeft"))
     const secondTriangleShape = (posicionCaja === "bottom" ? "topToLeft" : (posicionCaja === "left" ? "bottomToLeft" : (posicionCaja === "right" ? "bottomToRight" : "bottomToLeft")));
 
     // Función mejorada para crear geometría de trapezoide
     const createTrapezoidGeometry = () => {
-        const halfW = (adjustedWidth + ((posicionCaja !== "right" && posicionCaja !== "left") ? espesorBase : 0)) / 2;
+        const halfW = (adjustedWidth + ((posicionCaja !== "right" && posicionCaja !== "left") ? dimensions.espesor : 0)) / 2;
         const halfH = adjustedHeight / 2;
         const halfD = adjustedDepth / 2;
 
         // Taper hace que la parte superior sea más angosta
-        const topW = (posicionCaja === "bottom" ? halfW - (espesorBase / 2) : (posicionCaja === "top" ? halfW + (espesorBase / 2) : halfW - espesorBase));
-        const bottomW = (posicionCaja === "bottom" ? halfW + (espesorBase / 2) : (posicionCaja === "top" ? halfW - (espesorBase / 2) : halfW));
+        const topW = (posicionCaja === "bottom" ? halfW - (dimensions.espesor / 2) : (posicionCaja === "top" ? halfW + (dimensions.espesor / 2) : halfW - dimensions.espesor));
+        const bottomW = (posicionCaja === "bottom" ? halfW + (dimensions.espesor / 2) : (posicionCaja === "top" ? halfW - (dimensions.espesor / 2) : halfW));
 
         // Crear una geometría de buffer
         const geometry = new THREE.BufferGeometry();
@@ -178,11 +214,10 @@ const Tabla: React.FC<TablaProps> = ({
                     rotation={rotation}
                     onClick={(event) => {
                         if (stopPropagation) event.stopPropagation();
-                        if (refItem?.groupRef !== parentRef.current) {
-                            setRefItem({ groupRef: parentRef.current });
+                        if (refItem !== parentRef.current) {
+                            setRefItem(parentRef.current);
                             setRefPiece(null);
-                        }
-                        else {
+                        } else {
                             setRefPiece(ref.current);
                         }
                     }}
@@ -202,13 +237,14 @@ const Tabla: React.FC<TablaProps> = ({
 
             {(shape === "trapezoid" && !bordeEjeZ) && (
                 <>
-                    <BordeTriangular position={[position[0] - width / 2, triangleY, triangleZ]}
-                                     rotation={[0, 0, 0]} espesor={espesorBase} depth={depth} color={material}
+                    <BordeTriangular position={[position[0] - dimensions.width / 2, triangleY, triangleZ]}
+                                     rotation={[0, 0, 0]} espesor={dimensions.espesor} depth={dimensions.depth}
+                                     color={material}
                                      shapeType={firstTriangleShape}
                     />
                     <BordeTriangular
-                        position={[(position[0] + width / 2) - espesorBase, (triangleY - adjustedHeight) - (bordeEjeY ? espesorBase : -espesorBase), triangleZ]}
-                        rotation={[0, 0, 0]} espesor={espesorBase} depth={depth} color={material}
+                        position={[(position[0] + dimensions.width / 2) - dimensions.espesor, (triangleY - adjustedHeight) - (bordeEjeY ? dimensions.espesor : -dimensions.espesor), triangleZ]}
+                        rotation={[0, 0, 0]} espesor={dimensions.espesor} depth={dimensions.depth} color={material}
                         shapeType={secondTriangleShape}
                     />
                 </>

@@ -1,16 +1,16 @@
-import { Slider, Form, Checkbox, Typography, Divider, Row, Col, Card, Select } from "antd";
+import {Slider, Form, Checkbox, Typography, Divider, Row, Col, Card, Select} from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
-import { useEffect, useState } from "react";
-import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
-import DraggableIntersection, { INTERSECTION_TYPES } from "./DraggableIntersection.js";
+import {useEffect, useState} from "react";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection.js";
 import * as THREE from "three";
 
-const { Title } = Typography;
+const {Title} = Typography;
 
-const CascoInterface = ({ show, setShow, mode, setMode}) => {
-    const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
+const CascoInterface = ({show, setShow, mode, setMode}) => {
+    const {refItem, setRefItem, version, setVersion} = useSelectedItemProvider();
 
     const [config, setConfig] = useState({
         width: 2,
@@ -31,14 +31,14 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
     });
 
     // Efecto para sincronizar la configuración de la interfaz:
-    // Si existe refItem.groupRef.userData, se toma esa información.
+    // Si existe refItem.userData, se toma esa información.
     useEffect(() => {
         if (refItem) {
-            // Se prioriza refItem.groupRef.userData, si existe
-            const newConfig = refItem.groupRef && refItem.groupRef.userData
-                ? refItem.groupRef.userData
+            // Se prioriza refItem.userData, si existe
+            const newConfig = refItem && refItem.userData
+                ? refItem.userData
                 : (refItem.userData || {});
-            console.log(refItem.groupRef.userData);
+            console.log(refItem.userData);
             setConfig(prev => ({
                 ...prev,
                 ...newConfig,
@@ -47,17 +47,17 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
     }, [refItem]);
 
     // Función unificada para actualizar la configuración y modificar también el userData
-    // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)
+    // dentro de refItem (o refItem.userData si no existe groupRef)
     const updateConfig = (key, value) => {
         setConfig((prev) => {
-            const newConfig = { ...prev, [key]: value };
+            const newConfig = {...prev, [key]: value};
             if (refItem) {
-                if (refItem.groupRef && refItem.groupRef.userData) {
-                    refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
+                if (refItem && refItem.userData) {
+                    refItem.userData = {...refItem.userData, [key]: value};
                 } else {
-                    refItem.userData = { ...refItem.userData, [key]: value };
+                    refItem.userData = {...refItem.userData, [key]: value};
                 }
-                setVersion(version+1);
+                setVersion(version + 1);
             }
             return newConfig;
         });
@@ -102,9 +102,10 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
     }, [config.depth, config.retranqueoTrasero]);
 
     return (
-        <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode} setMode={setMode}>
+        <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode}
+                                   setMode={setMode}>
             {/* Sección de dimensiones */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
                 <Form>
                     <Form.Item label="Casco Width">
                         <Slider
@@ -135,13 +136,13 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
                     <Form.Item label="Espesor">
                         <Select
                             options={[
-                                { label: "10", value: 10 },
-                                { label: "12", value: 12 },
-                                { label: "14", value: 14 },
-                                { label: "16", value: 16 },
-                                { label: "18", value: 18 },
-                                { label: "20", value: 20 },
-                                { label: "22", value: 22 },
+                                {label: "10", value: 10},
+                                {label: "12", value: 12},
+                                {label: "14", value: 14},
+                                {label: "16", value: 16},
+                                {label: "18", value: 18},
+                                {label: "20", value: 20},
+                                {label: "22", value: 22},
                             ]}
                             value={config.espesor * 100}
                             onChange={(v) => updateConfig("espesor", v / 100)}
@@ -151,7 +152,7 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
             </div>
 
             {/* Sección de opciones adicionales */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
                 <Form>
                     <Title level={4}>Opciones</Title>
                     <Form.Item label="45º X">
@@ -208,18 +209,18 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
             </div>
 
             {/* Sección de Texturas */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
                 <Form.Item label="Textura">
-                    <div style={{ marginTop: "10px" }}>
+                    <div style={{marginTop: "10px"}}>
                         <ItemSelector
                             options={[
-                                { image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg" },
-                                { image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg" },
+                                {image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg"},
+                                {image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg"},
                             ]}
                             currentValue={config.texture}
                             onValueChange={(v) => updateConfig("texture", v)}
                         />
-                        <div style={{ marginTop: "10px" }}>
+                        <div style={{marginTop: "10px"}}>
                             <TextureUploader
                                 onValueChange={(v) => updateConfig("texture", v)}
                                 currentValue={config.texture}
@@ -231,15 +232,15 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
             </div>
 
             {/* Sección de Componentes (Patas y Puertas) */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
                 <Form>
                     <Title level={4}>Componentes</Title>
                     <Title level={5}>Patas</Title>
                     <Form.Item>
                         <ItemSelector
                             options={[
-                                { label: "Ninguna", value: -1 },
-                                { image: "./images/ImagenPata.png", label: "Default", value: 1 },
+                                {label: "Ninguna", value: -1},
+                                {image: "./images/ImagenPata.png", label: "Default", value: 1},
                             ]}
                             currentValue={config.indicePata}
                             onValueChange={(v) => updateConfig("indicePata", v)}
@@ -259,8 +260,8 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
                     <Form.Item>
                         <ItemSelector
                             options={[
-                                { label: "Ninguna", value: -1 },
-                                { image: "./textures/dark.jpg", label: "Default", value: 1 },
+                                {label: "Ninguna", value: -1},
+                                {image: "./textures/dark.jpg", label: "Default", value: 1},
                             ]}
                             currentValue={config.indicePuerta}
                             onValueChange={(v) => updateConfig("indicePuerta", v)}
@@ -270,7 +271,7 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
             </div>
 
             {/* Sección de Intersecciones */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
+            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
                 <Title level={4}>Intersecciones</Title>
                 <Form>
                     <Divider>Arrastra un conector a la escena</Divider>
@@ -278,13 +279,13 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
                         <Col>
                             <Card title="Conectores arrastrables" variant={"borderless"}>
                                 <p>Arrastra un conector al mueble para añadir una intersección:</p>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL} />
+                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL}/>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL} />
+                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL}/>
                                 </div>
-                                <p style={{ marginTop: '10px', fontSize: '12px', color: 'gray' }}>
+                                <p style={{marginTop: '10px', fontSize: '12px', color: 'gray'}}>
                                     Suelta el conector sobre el objeto para crear una conexión.
                                 </p>
                             </Card>

@@ -37,7 +37,7 @@ const RaycastClickLogger = ({ glRef, cameraRef }) => {
 
             // Asegurarse de que refItem sea un objeto Three.js válido
             if (refItem) {
-                const intersects = raycaster.intersectObject(refItem.groupRef, true);
+                const intersects = raycaster.intersectObject(refItem, true);
                 if (intersects.length > 0) {
                     console.log("👉 Intersección con Casco en:", intersects[0].point);
                 }
@@ -112,24 +112,22 @@ export const Experience = () => {
     };
 
     useEffect(() => {
-        if (transformRef.current && refItem.groupRef) {
+        if (transformRef.current && refItem) {
             const controls = transformRef.current;
             const onObjectChange = () => {
                 if (transformMode === "scale") {
-                    console.log(refItem);
-                    console.log("USERDATA", refItem.groupRef.userData);
-                    const newScale = refItem.groupRef.scale;
-                    const width = refItem.groupRef.userData.width || 2;
-                    const height = refItem.groupRef.userData.height || 2;
-                    const depth = refItem.groupRef.userData.depth || 2;
+                    const newScale = refItem.scale;
+                    const width = refItem.userData.width || 2;
+                    const height = refItem.userData.height || 2;
+                    const depth = refItem.userData.depth || 2;
 
                     const newWidth = Math.min(5, Math.max(1, width * newScale.x));
                     const newHeight = Math.min(6, Math.max(1, height * newScale.y));
                     const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
 
                     setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
-                    refItem.groupRef.userData = { ...refItem.groupRef.userData, width: newWidth, height: newHeight, depth: newDepth };
-                    refItem.groupRef.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                    refItem.userData = { ...refItem.userData, width: newWidth, height: newHeight, depth: newDepth };
+                    refItem.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
                     setVersion(version + 1);
                 }
             };
@@ -159,12 +157,12 @@ export const Experience = () => {
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
 
-            const intersects = raycaster.intersectObject(refItem.groupRef, true);
+            const intersects = raycaster.intersectObject(refItem, true);
             if (intersects.length > 0) {
                 const point = intersects[0].point;
                 const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
-                refItem.groupRef.updateMatrixWorld(true);
-                const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
+                refItem.updateMatrixWorld(true);
+                const localPosition = refItem.worldToLocal(worldPosition.clone());
 
                 const cascoWidth = refItem.userData?.width || 2;
                 const cascoHeight = refItem.userData?.height || 2;
@@ -312,7 +310,6 @@ export const Experience = () => {
                 setMode={setTransformMode}
                 scaleDimensions={scaleDimensions}
             />
-
         ),
     };
 
@@ -386,12 +383,11 @@ export const Experience = () => {
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
-                    <TransformControls ref={transformRef} object={ refPiece ? refPiece : refItem.groupRef} mode={transformMode} />
+                    <TransformControls ref={transformRef} object={ refPiece ? refPiece : refItem} mode={transformMode} />
                 )}
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
             {interfaceComponents[selectedItem]}
-
 
             {refPiece && (
                 <TablaConfigurationInterface
