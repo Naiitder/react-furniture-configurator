@@ -51,7 +51,7 @@ const Tabla: React.FC<TablaProps> = ({
                                        stopPropagation = true
                                    }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
-    const {refPiece, setRefPiece} = useSelectedPieceProvider();
+    const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
 
     const initialData = {
         width,

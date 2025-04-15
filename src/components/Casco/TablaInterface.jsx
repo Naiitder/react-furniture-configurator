@@ -3,7 +3,7 @@ import {useEffect, useState} from "react";
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider.jsx";
 
 const TablaConfigContent = () => {
-    const { refPiece, setRefPiece} = useSelectedPieceProvider();
+    const { refPiece, setRefPiece, version, setVersion} = useSelectedPieceProvider();
 
     const [config, setConfig] = useState({
         width: 2,
@@ -37,7 +37,7 @@ const TablaConfigContent = () => {
                 } else {
                     refPiece.userData = { ...refPiece.userData, [key]: value };
                 }
-//                setVersion(version+1);
+                setVersion(version+1);
             }
             return newConfig;
         });
