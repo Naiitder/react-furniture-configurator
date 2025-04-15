@@ -3,7 +3,7 @@ import * as THREE from "three";
 import '@react-three/fiber';
 import BordeTriangular from "./BordeTriangular";
 import {useMaterial} from "../../assets/materials";
-import {useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 
@@ -50,6 +50,28 @@ const Tabla: React.FC<TablaProps> = ({
                                        disableAdjustedWidth = false,
                                        stopPropagation = true
                                    }) => {
+    const {refItem, setRefItem} = useSelectedItemProvider();
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
+
+    const initialData = {
+        width,
+        height,
+        depth,
+        espesor: espesorBase,
+    };
+
+    useEffect(() => {
+        if (ref.current && Object.keys(ref.current.userData).length === 0) {
+            ref.current.userData = { ...initialData };
+        }
+    }, []);
+
+
+    if(refPiece && refPiece === ref.current && refPiece.userData) width = refPiece.userData.width;
+    if(refPiece && refPiece === ref.current && refPiece.userData) height = refPiece.userData.height;
+    if(refPiece && refPiece === ref.current && refPiece.userData) depth = refPiece.userData.depth;
+    if(refPiece && refPiece === ref.current && refPiece.userData) espesorBase = refPiece.userData.espesor;
+
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
     // Solo para frontal
     const adjustedHeight = shape === "trapezoid" && bordeEjeY && bordeEjeZ && orientacionBordeZ === "vertical" ? height - (espesorBase) : height;
@@ -125,9 +147,6 @@ const Tabla: React.FC<TablaProps> = ({
 
         return geometry;
     };
-
-    const {refItem, setRefItem} = useSelectedItemProvider();
-    const {refPiece, setRefPiece} = useSelectedPieceProvider();
 
     // Efecto para aplicar transformaciones al mesh
     React.useEffect(() => {

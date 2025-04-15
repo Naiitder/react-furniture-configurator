@@ -1,7 +1,10 @@
 import { Form, Slider, Select } from "antd";
-import { useState } from "react";
+import {useEffect, useState} from "react";
+import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider.jsx";
 
 const TablaConfigContent = () => {
+    const { refPiece, setRefPiece} = useSelectedPieceProvider();
+
     const [config, setConfig] = useState({
         width: 2,
         height: 2,
@@ -9,10 +12,36 @@ const TablaConfigContent = () => {
         espesor: 0.1
     });
 
-    const updateConfig = (key, value) => {
-        setConfig(prev => ({ ...prev, [key]: value }));
-    };
+    useEffect(() => {
+        if (refPiece) {
+            // Se prioriza refItem.groupRef.userData, si existe
+            const newConfig = refPiece && refPiece.userData
+                ? refPiece.userData
+                : (refPiece.userData || {});
+            console.log(refPiece.userData);
+            setConfig(prev => ({
+                ...prev,
+                ...newConfig,
+            }));
+        }
+    }, [refPiece]);
 
+    // Función unificada para actualizar la configuración y modificar también el userData
+    // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)
+    const updateConfig = (key, value) => {
+        setConfig((prev) => {
+            const newConfig = { ...prev, [key]: value };
+            if (refPiece) {
+                if (refPiece && refPiece.userData) {
+                    refPiece.userData = { ...refPiece.userData, [key]: value };
+                } else {
+                    refPiece.userData = { ...refPiece.userData, [key]: value };
+                }
+//                setVersion(version+1);
+            }
+            return newConfig;
+        });
+    };
     return (
         <div style={{
             padding: "16px",

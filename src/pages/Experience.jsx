@@ -401,9 +401,7 @@ export const Experience = () => {
                 >
                     <TablaConfigContent />
                 </TablaConfigurationInterface>
-            )
-
-            }
+            )}
 
             <RoomConfigPanel />
         </>
