@@ -320,9 +320,6 @@ const CascoFuncional = (
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
                     shape="box"
-                    ref={(ref: any) => {
-                        if (ref) horizontalSectionsRefs.current[cube.id] = ref;
-                    }}
                     position={[
                         adjustedXposition,
                         ry * actualHeight + extraAltura,
@@ -372,9 +369,6 @@ const CascoFuncional = (
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
                     shape="box"
-                    ref={(ref: any) => {
-                        if (ref) verticalSectionsRefs.current[cube.id] = ref;
-                    }}
                     position={[
                         rx * actualWidth,
                         adjustedYposition,
