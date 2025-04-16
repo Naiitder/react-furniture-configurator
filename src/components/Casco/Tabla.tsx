@@ -27,7 +27,7 @@ type TablaProps = {
 
     disableAdjustedWidth?: boolean;
     espesorBase: number;
-    posicionCaja?: "top" | "bottom" | "left" | "right" | "back";
+    posicionCaja?: "top" | "bottom" | "left" | "right" | "back" | "interior";
     bordeEjeY?: boolean;
     bordeEjeZ?: boolean;
     orientacionBordeZ?: "vertical" | "front";
@@ -47,7 +47,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          shape = "box",
                                          bordeEjeY = true,
                                          bordeEjeZ = false,
-                                         posicionCaja = "top",
+                                         posicionCaja = "interior",
                                          orientacionBordeZ = "front",
                                          disableAdjustedWidth = false,
                                          stopPropagation = true
@@ -108,16 +108,34 @@ const Tabla: React.FC<TablaProps> = ({
                 depth: refItem.userData.depth,
             }
 
+            const minCascoHeight = parentDimensions.height - (dimensions.espesor * 2)
+            const minCascoWidth = parentDimensions.width - (dimensions.espesor * 2)
+            const minCascoDepth = parentDimensions.depth - (dimensions.espesor * 2)
+
             setDimensions({
                     ...dimensions,
-                    height: (height) < parentDimensions.height -(dimensions.espesor * 2) && (
+                    height: (height) < minCascoHeight && (
                         posicionCaja !== "top" && posicionCaja !== "bottom"
-                    ) ? parentDimensions.height : height,
+                    ) ? minCascoHeight : height,
+                    width: (width) < minCascoWidth && (
+                        posicionCaja !== "left" && posicionCaja !== "right"
+                    ) ? minCascoWidth : width,
+                    depth: depth < minCascoDepth && (
+                        posicionCaja === "left" || posicionCaja === "right"
+                    ) ? minCascoDepth : depth,
+
                 }
             )
         }
 
-    }, [refItem]);
+    }, [refItem?.userData]);
+
+    useEffect(() => {
+        setDimensions({
+            ...dimensions,
+            espesor: espesorBase,
+        })
+    }, [espesorBase]);
 
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? dimensions.width - (dimensions.espesor * 2) : dimensions.width;
     // Solo para frontal
