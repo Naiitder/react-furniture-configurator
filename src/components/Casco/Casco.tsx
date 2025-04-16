@@ -67,6 +67,7 @@ const CascoFuncional = (
     } = props;
 
     const groupRef = useRef<THREE.Group>(null);
+    const detectionBoxRef = useRef<THREE.Group>(null);
     const horizontalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
     const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
 
@@ -99,7 +100,12 @@ const CascoFuncional = (
         if (groupRef.current && Object.keys(groupRef.current.userData).length === 0) {
             groupRef.current.userData = { ...initialData };
         }
+
+        if (!groupRef.current.name && props.id) {
+            groupRef.current.name = props.id; // 🔑 esto permite identificar el casco
+        }
     }, []);
+
 
     // Si el casco está seleccionado (comparando referencias) y existe la configuración en el contexto,
     // sincronizamos el estado local con esos datos.
@@ -312,6 +318,7 @@ const CascoFuncional = (
                 <Tabla
                     key={cube.id}
                     parentRef={groupRef}
+                    insideRef={detectionBoxRef}
                     shape="box"
                     ref={(ref: any) => {
                         if (ref) horizontalSectionsRefs.current[cube.id] = ref;
@@ -363,6 +370,7 @@ const CascoFuncional = (
                 <Tabla
                     key={cube.id}
                     parentRef={groupRef}
+                    insideRef={detectionBoxRef}
                     shape="box"
                     ref={(ref: any) => {
                         if (ref) verticalSectionsRefs.current[cube.id] = ref;
@@ -387,10 +395,11 @@ const CascoFuncional = (
     // Manejador del clic: actualiza la ref de contexto para el casco seleccionado
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
-        if (setContextRef && groupRef.current) {// 💥 esto es lo que faltaba
-            setContextRef({ groupRef: groupRef.current });
+        if (groupRef.current && detectionBoxRef.current) {
+            setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
         }
     };
+
 
     const dimensiones = calcularDimensiones();
     const posiciones = calcularPosiciones();
@@ -412,128 +421,148 @@ const CascoFuncional = (
 
 
     return (
-        <group ref={groupRef} position={position} rotation={rotation} onClick={handleClick}>
-            {/* Tablon inferior (suelo) */}
-            <Tabla
-                parentRef={groupRef}
-                espesorBase={espesor}
-                position={posiciones.suelo}
-                width={dimensiones.suelo.width}
-                height={dimensiones.suelo.height}
-                depth={dimensiones.suelo.depth}
-                material={materiales.OakWood}
-                posicionCaja="bottom"
-                shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
-                bordeEjeY={false}
-            />
+        <group ref={groupRef} position={position} rotation={rotation}>
+            <group onClick={handleClick}>
+                {/* Tablon inferior (suelo) */}
+                <Tabla
+                    parentRef={groupRef}
+                    insideRef={detectionBoxRef}
+                    espesorBase={espesor}
+                    position={posiciones.suelo}
+                    width={dimensiones.suelo.width}
+                    height={dimensiones.suelo.height}
+                    depth={dimensiones.suelo.depth}
+                    material={materiales.OakWood}
+                    posicionCaja="bottom"
+                    shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
+                    bordeEjeY={false}
+                />
 
-            {/* Tablon lado izquierdo */}
-            <Tabla
-                parentRef={groupRef}
-                espesorBase={espesor}
-                position={posiciones.izquierda}
-                width={dimensiones.lateral.width}
-                height={dimensiones.lateral.height}
-                depth={dimensiones.lateral.depth}
-                material={materiales.DarkWood}
-                posicionCaja="left"
-                shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
-            />
+                {/* Tablon lado izquierdo */}
+                <Tabla
+                    parentRef={groupRef}
+                    insideRef={detectionBoxRef}
+                    espesorBase={espesor}
+                    position={posiciones.izquierda}
+                    width={dimensiones.lateral.width}
+                    height={dimensiones.lateral.height}
+                    depth={dimensiones.lateral.depth}
+                    material={materiales.DarkWood}
+                    posicionCaja="left"
+                    shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
+                />
 
-            {/* Tablon lado derecho */}
-            <Tabla
-                parentRef={groupRef}
-                espesorBase={espesor}
-                position={posiciones.derecha}
-                width={dimensiones.lateral.width}
-                height={dimensiones.lateral.height}
-                depth={dimensiones.lateral.depth}
-                material={materiales.DarkWood}
-                posicionCaja="right"
-                shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
-            />
+                {/* Tablon lado derecho */}
+                <Tabla
+                    parentRef={groupRef}
+                    insideRef={detectionBoxRef}
+                    espesorBase={espesor}
+                    position={posiciones.derecha}
+                    width={dimensiones.lateral.width}
+                    height={dimensiones.lateral.height}
+                    depth={dimensiones.lateral.depth}
+                    material={materiales.DarkWood}
+                    posicionCaja="right"
+                    shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
+                />
 
-            {/* Tablon detrás */}
-            <Tabla
-                parentRef={groupRef}
-                espesorBase={espesor}
-                position={posiciones.trasero}
-                width={dimensiones.trasero.width}
-                height={dimensiones.trasero.height}
-                depth={dimensiones.trasero.depth}
-                material={materiales.DarkWood}
-                shape="box"
-            />
+                {/* Tablon detrás */}
+                <Tabla
+                    parentRef={groupRef}
+                    insideRef={detectionBoxRef}
+                    espesorBase={espesor}
+                    position={posiciones.trasero}
+                    width={dimensiones.trasero.width}
+                    height={dimensiones.trasero.height}
+                    depth={dimensiones.trasero.depth}
+                    material={materiales.DarkWood}
+                    shape="box"
+                />
 
-            {/* Tablon arriba (techo) */}
-            <Tabla
-                parentRef={groupRef}
-                espesorBase={espesor}
-                position={posiciones.techo}
-                width={dimensiones.techo.width}
-                height={dimensiones.techo.height}
-                depth={dimensiones.techo.depth}
-                material={materiales.OakWood}
-                posicionCaja="top"
-                shape={actualEsquinaXTriangulada || actualEsquinaZTriangulada ? "trapezoid" : "box"}
-                bordeEjeY={false}
-                bordeEjeZ={actualEsquinaZTriangulada}
-                disableAdjustedWidth={
-                    actualEsquinaZTriangulada || (actualEsquinaZTriangulada && actualEsquinaXTriangulada)
-                }
-            />
+                {/* Tablon arriba (techo) */}
+                <Tabla
+                    parentRef={groupRef}
+                    insideRef={detectionBoxRef}
+                    espesorBase={espesor}
+                    position={posiciones.techo}
+                    width={dimensiones.techo.width}
+                    height={dimensiones.techo.height}
+                    depth={dimensiones.techo.depth}
+                    material={materiales.OakWood}
+                    posicionCaja="top"
+                    shape={actualEsquinaXTriangulada || actualEsquinaZTriangulada ? "trapezoid" : "box"}
+                    bordeEjeY={false}
+                    bordeEjeZ={actualEsquinaZTriangulada}
+                    disableAdjustedWidth={
+                        actualEsquinaZTriangulada || (actualEsquinaZTriangulada && actualEsquinaXTriangulada)
+                    }
+                />
 
-            {/* Renderizar patas */}
-            {patas && indiceActualPata !== -1 && patas[indiceActualPata] && (
-                <group>
-                    {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
-                        position: [-actualWidth / 2 + 0.1, position[1], -actualDepth / 2 + 0.1],
-                        height: actualAlturaPatas,
-                    })}
-                    {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
-                        position: [actualWidth / 2 - 0.1, position[1], -actualDepth / 2 + 0.1],
-                        height: actualAlturaPatas,
-                    })}
-                    {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
-                        position: [-actualWidth / 2 + 0.1, position[1], actualDepth / 2 - 0.1],
-                        height: actualAlturaPatas,
-                    })}
-                    {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
-                        position: [actualWidth / 2 - 0.1, position[1], actualDepth / 2 - 0.1],
-                        height: actualAlturaPatas,
-                    })}
-                </group>
-            )}
+                {/* Renderizar patas */}
+                {patas && indiceActualPata !== -1 && patas[indiceActualPata] && (
+                    <group>
+                        {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
+                            position: [-actualWidth / 2 + 0.1, position[1], -actualDepth / 2 + 0.1],
+                            height: actualAlturaPatas,
+                        })}
+                        {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
+                            position: [actualWidth / 2 - 0.1, position[1], -actualDepth / 2 + 0.1],
+                            height: actualAlturaPatas,
+                        })}
+                        {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
+                            position: [-actualWidth / 2 + 0.1, position[1], actualDepth / 2 - 0.1],
+                            height: actualAlturaPatas,
+                        })}
+                        {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
+                            position: [actualWidth / 2 - 0.1, position[1], actualDepth / 2 - 0.1],
+                            height: actualAlturaPatas,
+                        })}
+                    </group>
+                )}
 
-            {/* Renderizar puertas */}
-            {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
-                <>
-                    {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
-                        parentRef: groupRef,
-                        position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                        width: actualWidth > 2 ? actualWidth / 2 : actualWidth,
-                        height: actualHeight,
-                        depth: actualEspesor,
-                        pivot: "right",
-                    })}
-                    {actualWidth > 2 && (
-                        <>
-                            {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
-                                parentRef: groupRef,
-                                position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                                width: actualWidth / 2,
-                                height: actualHeight,
-                                depth: actualEspesor,
-                                pivot: "left",
-                            })}
-                        </>
-                    )}
-                </>
-            )}
+                {/* Renderizar puertas */}
+                {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
+                    <>
+                        {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
+                            parentRef: groupRef,
+                            insideRef: detectionBoxRef,
+                            position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                            width: actualWidth > 2 ? actualWidth / 2 : actualWidth,
+                            height: actualHeight,
+                            depth: actualEspesor,
+                            pivot: "right",
+                        })}
+                        {actualWidth > 2 && (
+                            <>
+                                {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
+                                    parentRef: groupRef,
+                                    insideRef: detectionBoxRef,
+                                    position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                                    width: actualWidth / 2,
+                                    height: actualHeight,
+                                    depth: actualEspesor,
+                                    pivot: "left",
+                                })}
+                            </>
+                        )}
+                    </>
+                )}
 
-            {/* Renderizar secciones horizontales y verticales */}
-            {renderHorizontalSections()}
-            {renderVerticalSections()}
+
+
+                {/* Renderizar secciones horizontales y verticales */}
+                {renderHorizontalSections()}
+                {renderVerticalSections()}
+            </group>
+            <group
+                ref={detectionBoxRef}>
+                <mesh
+                    position={[0,actualHeight/2+extraAltura,actualRetranqueoTrasero/2]}
+                    material={materiales.Transparent}
+                >
+                    <boxGeometry args={[actualWidth-actualEspesor*2, actualHeight-actualEspesor*2, actualDepth-actualEspesor/4-actualRetranqueoTrasero]}/>
+                </mesh>
+            </group>
         </group>
     );
 };

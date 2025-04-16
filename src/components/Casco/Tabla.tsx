@@ -12,6 +12,7 @@ import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 // Componente para una caja individual
 type TablaProps = {
     parentRef: React.Ref<any>;
+    insideRef: React.Ref<any>;
     ref?: React.Ref<any>;
     position: [number, number, number];
     rotation?: [number, number, number];
@@ -20,7 +21,6 @@ type TablaProps = {
     depth: number;
     material: THREE.Material;
     stopPropagation?: boolean;
-
     shape: "box" | "trapezoid";
     taperAmount?: number; // Nueva propiedad para controlar cuánto se estrecha
 
@@ -34,6 +34,7 @@ type TablaProps = {
 
 const Tabla: React.FC<TablaProps> = ({
                                        parentRef,
+                                         insideRef,
                                        ref = useRef<any>(null),
                                        position,
                                        rotation = [0, 0, 0],
@@ -179,8 +180,8 @@ const Tabla: React.FC<TablaProps> = ({
                     onClick={(event) => {
                         if (stopPropagation) event.stopPropagation();
                         if (refItem?.groupRef !== parentRef.current) {
-                            setRefItem({ groupRef: parentRef.current });
                             setRefPiece(null);
+                            setRefItem({ groupRef: parentRef.current, detectionRef: insideRef.current });
                         }
                         else {
                             setRefPiece(ref.current);

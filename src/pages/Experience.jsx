@@ -37,7 +37,10 @@ const RaycastClickLogger = ({ glRef, cameraRef }) => {
 
             // Asegurarse de que refItem sea un objeto Three.js válido
             if (refItem) {
-                const intersects = raycaster.intersectObject(refItem.groupRef, true);
+                const intersects = refItem.detectionRef
+                    ? raycaster.intersectObject(refItem.detectionRef, true)
+                    : [];
+                console.log(refItem.detectionRef);
                 if (intersects.length > 0) {
                     console.log("👉 Intersección con Casco en:", intersects[0].point);
                 }
@@ -67,9 +70,6 @@ export const Experience = () => {
     const { refPiece, setRefPiece} = useSelectedPieceProvider();
     const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
 
-    const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
-    const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
-
     // @Pruden
     const [selectedCascoId, setSelectedCascoId] = useState(null);
 
@@ -84,6 +84,8 @@ export const Experience = () => {
                 userData: { width: 2, height: 2, depth: 2, espesor: 0.3 },
                 patas: [<Pata height={1} />],
                 puertas: [<Puerta />],
+                seccionesHorizontales: [],
+                seccionesVerticales: [],
             },
             casco2: {
                 id: 'casco2',
@@ -93,6 +95,8 @@ export const Experience = () => {
                 userData: { width: 2, height: 2, depth: 3, espesor: 0.1 },
                 patas: [<Pata height={1} />],
                 puertas: [<Puerta />],
+                seccionesHorizontales: [],
+                seccionesVerticales: [],
             },
             casco3: {
                 id: 'casco3',
@@ -102,6 +106,8 @@ export const Experience = () => {
                 userData: { width: 2, height: 2, depth: 2, espesor: 0.1 },
                 patas: [<Pata height={1} />],
                 puertas: [<Puerta />],
+                seccionesHorizontales: [],
+                seccionesVerticales: [],
             },
         });
     }, []);
@@ -139,7 +145,6 @@ export const Experience = () => {
     }, [transformMode, refItem, version]);
 
 
-    // Configuración del drop con react-dnd
     const [{ isOver }, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         drop: (item, monitor) => {
@@ -148,6 +153,10 @@ export const Experience = () => {
             const camera = cameraRef.current;
 
             if (!clientOffset || !gl || !camera || !refItem) return;
+
+            const cascoKey = refItem.groupRef.name;
+            const cascoData = cascoInstances[cascoKey];
+            if (!cascoData) return;
 
             const { x, y } = clientOffset;
             const bounds = gl.domElement.getBoundingClientRect();
@@ -159,129 +168,132 @@ export const Experience = () => {
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
 
-            const intersects = raycaster.intersectObject(refItem.groupRef, true);
-            if (intersects.length > 0) {
-                const point = intersects[0].point;
-                const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
-                refItem.groupRef.updateMatrixWorld(true);
-                const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
+            const intersects = refItem.detectionRef
+                ? raycaster.intersectObject(refItem.detectionRef, true)
+                : [];
+            if (intersects.length === 0) return;
 
-                const cascoWidth = refItem.userData?.width || 2;
-                const cascoHeight = refItem.userData?.height || 2;
-                const cascoDepth = refItem.userData?.depth || 2;
-                const espesor = refItem.userData?.espesor || 0.1;
+            const point = intersects[0].point;
+            const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
+            refItem.groupRef.updateMatrixWorld(true);
+            const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
 
-                let adjustedWidth = cascoWidth;
-                let adjustedHeight = cascoHeight;
-                let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
+            const { width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor } = refItem.groupRef.userData;
 
-                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                    // Lógica para secciones horizontales (sin cambios aquí)
-                    const relevantVerticals = droppedVerticalCubes.filter((cube) => {
-                        const cubeMinY = cube.relativePosition[1] * cascoHeight - (cube.relativeHeight * cascoHeight) / 2;
-                        const cubeMaxY = cube.relativePosition[1] * cascoHeight + (cube.relativeHeight * cascoHeight) / 2;
-                        return localPosition.y >= cubeMinY && localPosition.y <= cubeMaxY;
-                    });
+            let adjustedWidth = cascoWidth;
+            let adjustedHeight = cascoHeight;
+            let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
 
-                    const verticalSections = relevantVerticals
-                        .map((cube) => cube.relativePosition[0] * cascoWidth)
-                        .sort((a, b) => a - b);
+            const horizontalCubes = cascoData.seccionesHorizontales || [];
+            const verticalCubes = cascoData.seccionesVerticales || [];
 
-                    const boundaries = [-cascoWidth / 2, ...verticalSections, cascoWidth / 2];
-                    let leftBoundary = boundaries.filter((pos) => pos < localPosition.x).sort((a, b) => b - a)[0] || -cascoWidth / 2;
-                    let rightBoundary = boundaries.filter((pos) => pos > localPosition.x).sort((a, b) => a - b)[0] || cascoWidth / 2;
+            if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
+                const relevantVerticals = verticalCubes.filter((cube) => {
+                    const cubeMinY = cube.relativePosition[1] * cascoHeight - (cube.relativeHeight * cascoHeight) / 2;
+                    const cubeMaxY = cube.relativePosition[1] * cascoHeight + (cube.relativeHeight * cascoHeight) / 2;
+                    return localPosition.y >= cubeMinY && localPosition.y <= cubeMaxY;
+                });
 
-                    adjustedWidth = rightBoundary - leftBoundary;
-                    adjustedPosition[0] = (leftBoundary + rightBoundary) / 2;
+                const verticalSections = relevantVerticals
+                    .map((cube) => cube.relativePosition[0] * cascoWidth)
+                    .sort((a, b) => a - b);
 
-                    const existingSection = droppedHorizontalCubes.find((cube) => {
-                        const cubeX = cube.relativePosition[0] * cascoWidth;
-                        const cubeY = cube.relativePosition[1] * cascoHeight;
-                        const cubeWidth = cube.relativeWidth * cascoWidth;
-                        const cubeMinX = cubeX - cubeWidth / 2;
-                        const cubeMaxX = cubeX + cubeWidth / 2;
+                const boundaries = [-cascoWidth / 2, ...verticalSections, cascoWidth / 2];
+                const leftBoundary = boundaries.filter((pos) => pos < localPosition.x).sort((a, b) => b - a)[0] || -cascoWidth / 2;
+                const rightBoundary = boundaries.filter((pos) => pos > localPosition.x).sort((a, b) => a - b)[0] || cascoWidth / 2;
 
-                        const newMinX = adjustedPosition[0] - adjustedWidth / 2;
-                        const newMaxX = adjustedPosition[0] + adjustedWidth / 2;
+                adjustedWidth = rightBoundary - leftBoundary;
+                adjustedPosition[0] = (leftBoundary + rightBoundary) / 2;
 
-                        const sameY = Math.abs(cubeY - localPosition.y) < 0.1;
-                        const overlapsX = !(newMaxX <= cubeMinX || newMinX >= cubeMaxX);
+                const exists = horizontalCubes.some((cube) => {
+                    const cubeX = cube.relativePosition[0] * cascoWidth;
+                    const cubeY = cube.relativePosition[1] * cascoHeight;
+                    const cubeWidth = cube.relativeWidth * cascoWidth;
+                    const cubeMinX = cubeX - cubeWidth / 2;
+                    const cubeMaxX = cubeX + cubeWidth / 2;
+                    const newMinX = adjustedPosition[0] - adjustedWidth / 2;
+                    const newMaxX = adjustedPosition[0] + adjustedWidth / 2;
+                    const sameY = Math.abs(cubeY - localPosition.y) < 0.1;
+                    const overlapsX = !(newMaxX <= cubeMinX || newMinX >= cubeMaxX);
+                    return sameY && overlapsX;
+                });
 
-                        return sameY && overlapsX;
-                    });
-
-                    if (existingSection) {
-                        console.warn("Ya existe una sección horizontal en esta posición Y");
-                        return;
-                    }
-                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                    // Lógica para secciones verticales (sin cambios aquí)
-                    const relevantHorizontals = droppedHorizontalCubes.filter((cube) => {
-                        const cubeX = cube.relativePosition[0] * cascoWidth;
-                        const cubeWidth = cube.relativeWidth * cascoWidth;
-                        const cubeMinX = cubeX - cubeWidth / 2;
-                        const cubeMaxX = cubeX + cubeWidth / 2;
-                        return localPosition.x >= cubeMinX && localPosition.x <= cubeMaxX;
-                    });
-
-                    const horizontalSections = relevantHorizontals
-                        .map((cube) => cube.relativePosition[1] * cascoHeight)
-                        .sort((a, b) => a - b);
-
-                    const boundaries = [0, ...horizontalSections, cascoHeight];
-                    let bottomBoundary = boundaries.filter((pos) => pos < localPosition.y).sort((a, b) => b - a)[0] || 0;
-                    let topBoundary = boundaries.filter((pos) => pos > localPosition.y).sort((a, b) => a - b)[0] || cascoHeight;
-
-                    adjustedHeight = topBoundary - bottomBoundary;
-                    adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
-
-                    const existingSection = droppedVerticalCubes.find((cube) => {
-                        const cubeX = cube.relativePosition[0] * cascoWidth;
-                        const cubeY = cube.relativePosition[1] * cascoHeight;
-                        const cubeHeight = cube.relativeHeight * cascoHeight;
-
-                        const cubeMinY = cubeY - cubeHeight / 2;
-                        const cubeMaxY = cubeY + cubeHeight / 2;
-
-                        const newMinY = adjustedPosition[1] - adjustedHeight / 2;
-                        const newMaxY = adjustedPosition[1] + adjustedHeight / 2;
-
-                        const sameX = Math.abs(cubeX - localPosition.x) < 0.1;
-                        const overlapsY = !(newMaxY <= cubeMinY || newMinY >= cubeMaxY);
-
-                        return sameX && overlapsY;
-                    });
-
-                    if (existingSection) {
-                        console.warn("Ya existe una sección vertical en esta posición X");
-                        return;
-                    }
-                }
-
-                const newCube = {
-                    id: Date.now(),
-                    relativePosition: [
-                        adjustedPosition[0] / cascoWidth,
-                        adjustedPosition[1] / cascoHeight,
-                        adjustedPosition[2] / cascoDepth,
-                    ],
-                    relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
-                    relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
-                    relativeDepth: (cascoDepth - (refItem.userData?.traseroDentro ? refItem.userData?.retranqueoTrasero || 0 : 0)) / cascoDepth,
-                    color: item.color || "#8B4513",
-                };
-
-                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                    setDroppedHorizontalCubes((prev) => [...prev, newCube]);
-                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                    setDroppedVerticalCubes((prev) => [...prev, newCube]);
+                if (exists) {
+                    console.warn("Ya existe una sección horizontal en esta posición Y");
+                    return;
                 }
             }
+
+            if (item.type === INTERSECTION_TYPES.VERTICAL) {
+                const relevantHorizontals = horizontalCubes.filter((cube) => {
+                    const cubeX = cube.relativePosition[0] * cascoWidth;
+                    const cubeWidth = cube.relativeWidth * cascoWidth;
+                    const cubeMinX = cubeX - cubeWidth / 2;
+                    const cubeMaxX = cubeX + cubeWidth / 2;
+                    return localPosition.x >= cubeMinX && localPosition.x <= cubeMaxX;
+                });
+
+                const horizontalSections = relevantHorizontals
+                    .map((cube) => cube.relativePosition[1] * cascoHeight)
+                    .sort((a, b) => a - b);
+
+                const boundaries = [0, ...horizontalSections, cascoHeight];
+                const bottomBoundary = boundaries.filter((pos) => pos < localPosition.y).sort((a, b) => b - a)[0] || 0;
+                const topBoundary = boundaries.filter((pos) => pos > localPosition.y).sort((a, b) => a - b)[0] || cascoHeight;
+
+                adjustedHeight = topBoundary - bottomBoundary;
+                adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
+
+                const exists = verticalCubes.some((cube) => {
+                    const cubeX = cube.relativePosition[0] * cascoWidth;
+                    const cubeY = cube.relativePosition[1] * cascoHeight;
+                    const cubeHeight = cube.relativeHeight * cascoHeight;
+                    const cubeMinY = cubeY - cubeHeight / 2;
+                    const cubeMaxY = cubeY + cubeHeight / 2;
+                    const newMinY = adjustedPosition[1] - adjustedHeight / 2;
+                    const newMaxY = adjustedPosition[1] + adjustedHeight / 2;
+                    const sameX = Math.abs(cubeX - localPosition.x) < 0.1;
+                    const overlapsY = !(newMaxY <= cubeMinY || newMinY >= cubeMaxY);
+                    return sameX && overlapsY;
+                });
+
+                if (exists) {
+                    console.warn("Ya existe una sección vertical en esta posición X");
+                    return;
+                }
+            }
+
+            const newCube = {
+                id: Date.now(),
+                relativePosition: [
+                    adjustedPosition[0] / cascoWidth,
+                    adjustedPosition[1] / cascoHeight,
+                    adjustedPosition[2] / cascoDepth,
+                ],
+                relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
+                relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
+                relativeDepth: (cascoDepth - (refItem.userData?.traseroDentro ? refItem.userData?.retranqueoTrasero || 0 : 0)) / cascoDepth,
+                color: item.color || "#8B4513",
+            };
+
+            setCascoInstances((prev) => {
+                const updated = { ...prev };
+                const updatedCasco = { ...updated[cascoKey] };
+
+                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
+                    updatedCasco.seccionesHorizontales = [...horizontalCubes, newCube];
+                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
+                    updatedCasco.seccionesVerticales = [...verticalCubes, newCube];
+                }
+
+                updated[cascoKey] = updatedCasco;
+                return updated;
+            });
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
         }),
-    }), [refItem, droppedHorizontalCubes, droppedVerticalCubes]);
+    }), [refItem, cascoInstances]);
 
     const interfaceComponents = {
         "Casco": (
@@ -323,6 +335,7 @@ export const Experience = () => {
                     <group key={casco.id}>
                         <Casco
                             key={casco.id}
+                            id={casco.id}
                             position={casco.position}
                             rotation={casco.rotation}
                             {...casco.userData}
@@ -330,8 +343,8 @@ export const Experience = () => {
                             puertas={casco.puertas}
                             onClick={handleCascoClick}
                             version={version}
-                            seccionesHorizontales={droppedHorizontalCubes}
-                            seccionesVerticales={droppedVerticalCubes}
+                            seccionesHorizontales={casco.seccionesHorizontales}
+                            seccionesVerticales={casco.seccionesVerticales}
                         />
                     </group>
                 ))}
