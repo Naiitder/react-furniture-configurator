@@ -17,9 +17,9 @@ import TablaConfigurationInterface from "../components/TablaConfiguratorInterfac
 import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
 
-const RaycastClickLogger = ({ glRef, cameraRef }) => {
-    const { camera, gl } = useThree();
-    const { refItem } = useSelectedItemProvider();
+const RaycastClickLogger = ({glRef, cameraRef}) => {
+    const {camera, gl} = useThree();
+    const {refItem} = useSelectedItemProvider();
 
     useEffect(() => {
         if (glRef) glRef.current = gl;
@@ -63,9 +63,8 @@ export const Experience = () => {
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
-    const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
-    const { refPiece, setRefPiece} = useSelectedPieceProvider();
-    const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
+    const {refItem, setRefItem, version, setVersion} = useSelectedItemProvider();
+    const {refPiece} = useSelectedPieceProvider();
 
     const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
     const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
@@ -81,27 +80,27 @@ export const Experience = () => {
                 name: 'Casco1',
                 position: [-3, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 2, espesor: 0.3 },
-                patas: [<Pata height={1} />],
-                puertas: [<Puerta />],
+                userData: {width: 2, height: 2, depth: 2, espesor: 0.3},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
             },
             casco2: {
                 id: 'casco2',
                 name: 'Casco2',
                 position: [3, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 3, espesor: 0.1 },
-                patas: [<Pata height={1} />],
-                puertas: [<Puerta />],
+                userData: {width: 2, height: 2, depth: 3, espesor: 0.1},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
             },
             casco3: {
                 id: 'casco3',
                 name: 'Casco3',
                 position: [0, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 2, espesor: 0.1 },
-                patas: [<Pata height={1} />],
-                puertas: [<Puerta />],
+                userData: {width: 2, height: 2, depth: 2, espesor: 0.1},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
             },
         });
     }, []);
@@ -116,29 +115,43 @@ export const Experience = () => {
             const controls = transformRef.current;
             const onObjectChange = () => {
                 if (transformMode === "scale") {
-                    const newScale = refItem.scale;
-                    const width = refItem.userData.width || 2;
-                    const height = refItem.userData.height || 2;
-                    const depth = refItem.userData.depth || 2;
+                    if (!refPiece) {
+                        const newScale = refItem.scale;
+                        const width = refItem.userData.width || 2;
+                        const height = refItem.userData.height || 2;
+                        const depth = refItem.userData.depth || 2;
 
-                    const newWidth = Math.min(5, Math.max(1, width * newScale.x));
-                    const newHeight = Math.min(6, Math.max(1, height * newScale.y));
-                    const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
+                        const newWidth = Math.min(5, Math.max(1, width * newScale.x));
+                        const newHeight = Math.min(6, Math.max(1, height * newScale.y));
+                        const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
 
-                    setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
-                    refItem.userData = { ...refItem.userData, width: newWidth, height: newHeight, depth: newDepth };
-                    refItem.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                        refItem.userData = {...refItem.userData, width: newWidth, height: newHeight, depth: newDepth};
+                        refItem.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                    } else {
+                        const newScale = refPiece.scale;
+                        const width = refPiece.userData.width || 2;
+                        const height = refPiece.userData.height || 2;
+                        const depth = refPiece.userData.depth || 2;
+
+                        const newWidth = Math.min(5, Math.max(1, width * newScale.x));
+                        const newHeight = Math.min(6, Math.max(1, height * newScale.y));
+                        const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
+
+                        refPiece.userData = {...refItem.userData, width: newWidth, height: newHeight, depth: newDepth};
+                        refPiece.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                    }
+
                     setVersion(version + 1);
                 }
             };
             controls.addEventListener("objectChange", onObjectChange);
             return () => controls.removeEventListener("objectChange", onObjectChange);
         }
-    }, [transformMode, refItem, version]);
+    }, [transformMode, refItem, refPiece, version]);
 
 
     // Configuración del drop con react-dnd
-    const [{ isOver }, drop] = useDrop(() => ({
+    const [{_}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         drop: (item, monitor) => {
             const clientOffset = monitor.getClientOffset();
@@ -147,7 +160,7 @@ export const Experience = () => {
 
             if (!clientOffset || !gl || !camera || !refItem) return;
 
-            const { x, y } = clientOffset;
+            const {x, y} = clientOffset;
             const bounds = gl.domElement.getBoundingClientRect();
             const mouse = new THREE.Vector2(
                 ((x - bounds.left) / bounds.width) * 2 - 1,
@@ -289,7 +302,6 @@ export const Experience = () => {
                 setShow={setTransformEnabled}
                 mode={transformMode}
                 setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
             />
         ),
         "Casco Secciones": (
@@ -298,7 +310,6 @@ export const Experience = () => {
                 setShow={setTransformEnabled}
                 mode={transformMode}
                 setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
             />
         ),
         //@Pruden
@@ -308,7 +319,6 @@ export const Experience = () => {
                 setShow={setTransformEnabled}
                 mode={transformMode}
                 setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
             />
         ),
     };
@@ -338,8 +348,8 @@ export const Experience = () => {
         //@Pruden
         "Casco brr": (
             <>
-                <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} />
+                <ambientLight intensity={0.5}/>
+                <pointLight position={[10, 10, 10]}/>
 
                 <group
                     onPointerMissed={(e) => {
@@ -379,13 +389,13 @@ export const Experience = () => {
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
                 <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
-                    <Environment files={"/images/poly_haven_studio_4k.hdr"} />
+                    <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
-                    <TransformControls ref={transformRef} object={ refPiece ? refPiece : refItem} mode={transformMode} />
+                    <TransformControls ref={transformRef} object={refPiece ? refPiece : refItem} mode={transformMode}/>
                 )}
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
             {interfaceComponents[selectedItem]}
 
@@ -397,11 +407,11 @@ export const Experience = () => {
                     mode={transformMode}
                     setMode={setTransformMode}
                 >
-                    <TablaConfigContent />
+                    <TablaConfigContent/>
                 </TablaConfigurationInterface>
             )}
 
-            <RoomConfigPanel />
+            <RoomConfigPanel/>
         </>
     );
 };

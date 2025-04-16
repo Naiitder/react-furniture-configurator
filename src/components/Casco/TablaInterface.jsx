@@ -8,9 +8,9 @@ const TablaConfigContent = () => {
     const { refItem } = useSelectedItemProvider();
 
     const [config, setConfig] = useState({
-        width: 2,
-        height: 2,
-        depth: 2,
+        width: 1,
+        height: 1,
+        depth: 1,
         espesor: 0.1
     });
 
@@ -28,6 +28,18 @@ const TablaConfigContent = () => {
             setVersion(version + 1);
         }
     }, [refPiece, version, setVersion]);
+
+    useEffect(() => {
+        if (refPiece) {
+            setConfig({
+                ...config,
+                width: refPiece.userData.width,
+                height: refPiece.userData.height,
+                depth: refPiece.userData.depth,
+            })
+        }
+
+    }, [refPiece?.userData.width, refPiece?.userData.depth, refPiece?.userData.height])
 
     // Función unificada para actualizar la configuración y modificar también el userData
     // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)

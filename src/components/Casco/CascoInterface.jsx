@@ -6,6 +6,7 @@ import {useEffect, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
 import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection.js";
 import * as THREE from "three";
+import {userData} from "three/src/Three.TSL.js";
 
 const {Title} = Typography;
 
@@ -45,6 +46,18 @@ const CascoInterface = ({show, setShow, mode, setMode}) => {
             }));
         }
     }, [refItem]);
+
+    useEffect(() => {
+        if (refItem) {
+            setConfig({
+                ...config,
+                width: refItem.userData.width,
+                height: refItem.userData.height,
+                depth: refItem.userData.depth,
+            })
+        }
+
+    }, [refItem?.userData.width, refItem?.userData.depth, refItem?.userData.height])
 
     // Función unificada para actualizar la configuración y modificar también el userData
     // dentro de refItem (o refItem.userData si no existe groupRef)
