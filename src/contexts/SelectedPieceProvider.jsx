@@ -5,11 +5,9 @@ export const SelectedPieceContext = createContext();
 
 export function SelectedPieceProvider({ children }) {
     const [refPiece, setRefPiece] = useState(null);
-    const [version, setVersion] = useState(0);
-
 
     return (
-        <SelectedPieceContext.Provider value={{ refPiece, setRefPiece, version, setVersion }}>
+        <SelectedPieceContext.Provider value={{ refPiece, setRefPiece }}>
             {children}
         </SelectedPieceContext.Provider>
     );

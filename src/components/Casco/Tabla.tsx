@@ -14,6 +14,7 @@ type TablaProps = {
     parentRef: React.Ref<any>;
     insideRef: React.Ref<any>;
     ref?: React.Ref<any>;
+    version?: number;
     position: [number, number, number];
     rotation?: [number, number, number];
     width: number;
@@ -33,56 +34,95 @@ type TablaProps = {
 }
 
 const Tabla: React.FC<TablaProps> = ({
-                                       parentRef,
+                                         parentRef,
                                          insideRef,
-                                       ref = useRef<any>(null),
-                                       position,
-                                       rotation = [0, 0, 0],
-                                       espesorBase,
-                                       width,
-                                       height,
-                                       depth,
-                                       material,
-                                       shape = "box",
-                                       bordeEjeY = true,
-                                       bordeEjeZ = false,
-                                       posicionCaja = "top",
-                                       orientacionBordeZ = "front",
-                                       disableAdjustedWidth = false,
-                                       stopPropagation = true
-                                   }) => {
+                                         ref = useRef<any>(null),
+                                         position,
+                                         version = 0,
+                                         rotation = [0, 0, 0],
+                                         espesorBase,
+                                         width,
+                                         height,
+                                         depth,
+                                         material,
+                                         shape = "box",
+                                         bordeEjeY = true,
+                                         bordeEjeZ = false,
+                                         posicionCaja = "top",
+                                         orientacionBordeZ = "front",
+                                         disableAdjustedWidth = false,
+                                         stopPropagation = true
+                                     }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
-    const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
 
     const initialData = {
         width,
         height,
         depth,
         espesor: espesorBase,
+        posicionCaja,
     };
+
+    const [dimensions, setDimensions] = useState({
+        width,
+        height,
+        depth,
+        espesor: espesorBase,
+    });
 
     useEffect(() => {
         if (ref.current && Object.keys(ref.current.userData).length === 0) {
-            ref.current.userData = { ...initialData };
+            ref.current.userData = {...initialData};
         }
     }, []);
 
     useEffect(() => {
         if (ref.current) {
             ref.current.userData = {
-                width,
-                height,
-                depth,
-                espesor: espesorBase
+                ...initialData,
+                width: dimensions.width,
+                height: dimensions.height,
+                depth: dimensions.depth,
+                espesor: dimensions.espesor
             };
         }
-    }, [width, height, depth, espesorBase]);
+    }, [dimensions.width, dimensions.height, dimensions.depth, dimensions.espesor]);
 
+    useEffect(() => {
+        if (refPiece && refPiece === ref.current && refPiece.userData) {
+            setDimensions({
+                width: refPiece.userData.width,
+                height: refPiece.userData.height,
+                depth: refPiece.userData.depth,
+                espesor: refPiece.userData.espesor,
+            });
+        }
+    }, [refPiece, version]);
 
-    if(refPiece && refPiece === ref.current && refPiece.userData) width = refPiece.userData.width;
-    if(refPiece && refPiece === ref.current && refPiece.userData) height = refPiece.userData.height;
-    if(refPiece && refPiece === ref.current && refPiece.userData) depth = refPiece.userData.depth;
-    if(refPiece && refPiece === ref.current && refPiece.userData) espesorBase = refPiece.userData.espesor;
+    useEffect(() => {
+        if (refItem?.groupRef == parentRef.current) {
+            const parentDimensions = {
+                height: refItem.groupRef.userData.height,
+                width: refItem.groupRef.userData.width,
+                depth: refItem.groupRef.userData.depth,
+            }
+
+            setDimensions({
+                    ...dimensions,
+                    height: (height) < parentDimensions.height -(dimensions.espesor * 2) && (
+                        posicionCaja !== "top" && posicionCaja !== "bottom"
+                    ) ? parentDimensions.height : height,
+                }
+            )
+        }
+
+    }, [refItem]);
+
+    if (refPiece && refPiece === ref.current && refPiece.userData) width = refPiece.userData.width;
+    if (refPiece && refPiece === ref.current && refPiece.userData) height = refPiece.userData.height;
+    if (refPiece && refPiece === ref.current && refPiece.userData) depth = refPiece.userData.depth;
+    if (refPiece && refPiece === ref.current && refPiece.userData) espesorBase = refPiece.userData.espesor;
 
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
     // Solo para frontal
@@ -181,9 +221,8 @@ const Tabla: React.FC<TablaProps> = ({
                         if (stopPropagation) event.stopPropagation();
                         if (refItem?.groupRef !== parentRef.current) {
                             setRefPiece(null);
-                            setRefItem({ groupRef: parentRef.current, detectionRef: insideRef.current });
-                        }
-                        else {
+                            setRefItem({groupRef: parentRef.current, detectionRef: insideRef.current});
+                        } else {
                             setRefPiece(ref.current);
                         }
                     }}

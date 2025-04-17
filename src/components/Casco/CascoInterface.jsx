@@ -30,6 +30,18 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
         indicePuerta: 1,
     });
 
+    useEffect(() => {
+        if (refItem?.groupRef) {
+            setConfig({
+                ...config,
+                width: refItem.groupRef.userData.width,
+                height: refItem.groupRef.userData.height,
+                depth: refItem.groupRef.userData.depth,
+            })
+        }
+
+    }, [refItem?.groupRef?.userData.width, refItem?.groupRef?.userData.depth, refItem?.groupRef?.userData.height])
+
     // Efecto para sincronizar la configuración de la interfaz:
     // Si existe refItem.groupRef.userData, se toma esa información.
     useEffect(() => {

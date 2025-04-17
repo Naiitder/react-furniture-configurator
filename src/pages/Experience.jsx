@@ -122,27 +122,39 @@ export const Experience = () => {
             const controls = transformRef.current;
             const onObjectChange = () => {
                 if (transformMode === "scale") {
-                    console.log(refItem);
-                    console.log("USERDATA", refItem.groupRef.userData);
-                    const newScale = refItem.groupRef.scale;
-                    const width = refItem.groupRef.userData.width || 2;
-                    const height = refItem.groupRef.userData.height || 2;
-                    const depth = refItem.groupRef.userData.depth || 2;
+                    if (!refPiece) {
+                        const newScale = refItem.scale;
+                        const width = refItem.groupRef.userData.width || 1;
+                        const height = refItem.groupRef.userData.height || 1;
+                        const depth = refItem.groupRef.userData.depth || 1;
 
-                    const newWidth = Math.min(5, Math.max(1, width * newScale.x));
-                    const newHeight = Math.min(6, Math.max(1, height * newScale.y));
-                    const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
+                        const newWidth = Math.min(5, Math.max(1, width * newScale.x));
+                        const newHeight = Math.min(6, Math.max(1, height * newScale.y));
+                        const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
 
-                    setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
-                    refItem.groupRef.userData = { ...refItem.groupRef.userData, width: newWidth, height: newHeight, depth: newDepth };
-                    refItem.groupRef.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                        refItem.userData = {...refItem.userData, width: newWidth, height: newHeight, depth: newDepth};
+                        refItem.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                    } else {
+                        const newScale = refPiece.scale;
+                        const width = refPiece.userData.width;
+                        const height = refPiece.userData.height;
+                        const depth = refPiece.userData.depth;
+
+                        // LA ESCALA MINIMA ES EL ESPESOR BASE DEL CASCO
+                        const newWidth = Math.min(3, Math.max(refItem.groupRef.userData.espesor, width * newScale.x));
+                        const newHeight = Math.min(3, Math.max(refItem.groupRef.userData.espesor, height * newScale.y));
+                        const newDepth = Math.min(3, Math.max(refItem.groupRef.userData.espesor, depth * newScale.z));
+
+                        refPiece.userData = {...refItem.userData, width: newWidth, height: newHeight, depth: newDepth};
+                        refPiece.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                    }
                     setVersion(version + 1);
                 }
             };
             controls.addEventListener("objectChange", onObjectChange);
             return () => controls.removeEventListener("objectChange", onObjectChange);
         }
-    }, [transformMode, refItem, version]);
+    }, [transformMode, refItem, refPiece, version]);
 
 
     const [{ isOver }, drop] = useDrop(() => ({
@@ -407,13 +419,7 @@ export const Experience = () => {
 
 
             {refPiece && (
-                <TablaConfigurationInterface
-                    title="Tabla Configurator"
-                    show={true}
-                    setShow={true}
-                    mode={transformMode}
-                    setMode={setTransformMode}
-                >
+                <TablaConfigurationInterface title="Tabla Configurator">
                     <TablaConfigContent />
                 </TablaConfigurationInterface>
             )}
