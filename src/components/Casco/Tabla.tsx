@@ -27,7 +27,7 @@ type TablaProps = {
 
     disableAdjustedWidth?: boolean;
     espesorBase: number;
-    posicionCaja?: "top" | "bottom" | "left" | "right";
+    posicionCaja?: "top" | "bottom" | "left" | "right" | "interior" | "puerta";
     bordeEjeY?: boolean;
     bordeEjeZ?: boolean;
     orientacionBordeZ?: "vertical" | "front";
@@ -48,7 +48,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          shape = "box",
                                          bordeEjeY = true,
                                          bordeEjeZ = false,
-                                         posicionCaja = "top",
+                                         posicionCaja = "interior",
                                          orientacionBordeZ = "front",
                                          disableAdjustedWidth = false,
                                          stopPropagation = true

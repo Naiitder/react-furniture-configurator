@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, {useRef, useEffect, useCallback, useState} from "react";
 import * as THREE from "three";
 import Tabla from "./Tabla";
-import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
-import { useMaterial } from "../../assets/materials";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import {useMaterial} from "../../assets/materials";
 
 // Definición de los props para el componente Casco
 export type CascoProps = {
@@ -71,7 +71,7 @@ const CascoFuncional = (
     const horizontalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
     const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
 
-    const { refItem } = useSelectedItemProvider();
+    const {refItem} = useSelectedItemProvider();
 
     // Valores iniciales para este casco
     const initialData = {
@@ -98,7 +98,7 @@ const CascoFuncional = (
 
     useEffect(() => {
         if (groupRef.current && Object.keys(groupRef.current.userData).length === 0) {
-            groupRef.current.userData = { ...initialData };
+            groupRef.current.userData = {...initialData};
         }
 
         if (!groupRef.current.name && props.id) {
@@ -118,7 +118,7 @@ const CascoFuncional = (
                 const hasChanged = Object.keys(newConfig).some(
                     key => newConfig[key] !== prev[key]
                 );
-                return hasChanged ? { ...prev, ...newConfig } : prev;
+                return hasChanged ? {...prev, ...newConfig} : prev;
             });
         }
     }, [refItem, isSelected, version]);
@@ -127,10 +127,10 @@ const CascoFuncional = (
     // como en el userData del objeto Three.js
     const updateConfig = (key: string, value: any) => {
         setLocalConfig((prev) => {
-            const newConfig = { ...prev, [key]: value };
+            const newConfig = {...prev, [key]: value};
             // Actualizamos el userData si existe
             if (refItem && refItem.groupRef) {
-                refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
+                refItem.groupRef.userData = {...refItem.groupRef.userData, [key]: value};
                 if (refItem.groupRef.setVersion) {
                     refItem.groupRef.setVersion((prev: number) => prev + 1);
                 }
@@ -320,6 +320,7 @@ const CascoFuncional = (
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
                     shape="box"
+                    posicionCaja="interior"
                     position={[
                         adjustedXposition,
                         ry * actualHeight + extraAltura,
@@ -369,6 +370,7 @@ const CascoFuncional = (
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
                     shape="box"
+                    posicionCaja="interior"
                     position={[
                         rx * actualWidth,
                         adjustedYposition,
@@ -390,7 +392,7 @@ const CascoFuncional = (
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (groupRef.current && detectionBoxRef.current) {
-            setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
+            setContextRef({groupRef: groupRef.current, detectionRef: detectionBoxRef.current});
         }
     };
 
@@ -407,11 +409,10 @@ const CascoFuncional = (
                 const hasChanged = Object.keys(newConfig).some(
                     key => newConfig[key] !== prev[key]
                 );
-                return hasChanged ? { ...prev, ...newConfig } : prev;
+                return hasChanged ? {...prev, ...newConfig} : prev;
             });
         }
     }, [refItem, isSelected]);
-
 
 
     return (
@@ -520,6 +521,7 @@ const CascoFuncional = (
                         {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
                             parentRef: groupRef,
                             insideRef: detectionBoxRef,
+                            posicionCaja: "puerta", // TODO Recibir parametro en el componente
                             position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
                             width: actualWidth > 2 ? actualWidth / 2 : actualWidth,
                             height: actualHeight,
@@ -531,6 +533,7 @@ const CascoFuncional = (
                                 {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
                                     parentRef: groupRef,
                                     insideRef: detectionBoxRef,
+                                    posicionCaja: "puerta", // TODO Recibir parametro en el componente
                                     position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
                                     width: actualWidth / 2,
                                     height: actualHeight,
@@ -543,7 +546,6 @@ const CascoFuncional = (
                 )}
 
 
-
                 {/* Renderizar secciones horizontales y verticales */}
                 {renderHorizontalSections()}
                 {renderVerticalSections()}
@@ -551,10 +553,11 @@ const CascoFuncional = (
             <group
                 ref={detectionBoxRef}>
                 <mesh
-                    position={[0,actualHeight/2+extraAltura,actualRetranqueoTrasero/2]}
+                    position={[0, actualHeight / 2 + extraAltura, actualRetranqueoTrasero / 2]}
                     material={materiales.Transparent}
                 >
-                    <boxGeometry args={[actualWidth-actualEspesor*2, actualHeight-actualEspesor*2, actualDepth-actualEspesor/4-actualRetranqueoTrasero]}/>
+                    <boxGeometry
+                        args={[actualWidth - actualEspesor * 2, actualHeight - actualEspesor * 2, actualDepth - actualEspesor / 4 - actualRetranqueoTrasero]}/>
                 </mesh>
             </group>
         </group>
@@ -563,7 +566,7 @@ const CascoFuncional = (
 
 // Componente de alto nivel: el que actualiza el contexto únicamente si es el casco seleccionado.
 const CascoWithContext = (props: any) => {
-    const { refItem, setRefItem, version} = useSelectedItemProvider();
+    const {refItem, setRefItem, version} = useSelectedItemProvider();
     const meshRef = useRef<any>(null);
     const materiales = useMaterial();
 
