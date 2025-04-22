@@ -107,6 +107,15 @@ const CascoFuncional = (
     }, []);
 
 
+    useEffect(() => {
+        if (groupRef.current && groupRef.current.userData) {
+            setLocalConfig((prev) => ({
+                ...prev,
+                ...groupRef.current.userData,
+            }));
+        }
+    }, [version]);
+
     // Si el casco está seleccionado (comparando referencias) y existe la configuración en el contexto,
     // sincronizamos el estado local con esos datos.
     const isSelected = refItem && refItem.groupRef === groupRef.current;
@@ -123,17 +132,11 @@ const CascoFuncional = (
         }
     }, [refItem, isSelected, version]);
 
-    // Función para actualizar la configuración tanto en el estado local
-    // como en el userData del objeto Three.js
     const updateConfig = (key: string, value: any) => {
         setLocalConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
-            // Actualizamos el userData si existe
             if (refItem && refItem.groupRef) {
                 refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
-                if (refItem.groupRef.setVersion) {
-                    refItem.groupRef.setVersion((prev: number) => prev + 1);
-                }
             }
             return newConfig;
         });

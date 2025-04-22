@@ -2,7 +2,7 @@ import { Form, Slider, Select } from "antd";
 import {useEffect, useState} from "react";
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider.jsx";
 
-const TablaConfigContent = () => {
+const TablaConfigContent = ({ setNeedsSnapshot }) => {
     const { refPiece, setRefPiece, version, setVersion} = useSelectedPieceProvider();
 
     const [config, setConfig] = useState({
@@ -14,11 +14,9 @@ const TablaConfigContent = () => {
 
     useEffect(() => {
         if (refPiece) {
-            // Se prioriza refItem.groupRef.userData, si existe
             const newConfig = refPiece && refPiece.userData
                 ? refPiece.userData
                 : (refPiece.userData || {});
-            console.log(refPiece.userData);
             setConfig(prev => ({
                 ...prev,
                 ...newConfig,
@@ -26,25 +24,22 @@ const TablaConfigContent = () => {
         }
     }, [refPiece, version]);
 
-    // Función unificada para actualizar la configuración y modificar también el userData
-    // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)
     const updateConfig = (key, value) => {
         setConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
-
-            // Solo actualiza refPiece fuera del render
             if (refPiece && refPiece.userData) {
                 refPiece.userData[key] = value;
             }
-
-            // Asegura que el re-render ocurra correctamente
+            console.log(`Configuración de tabla actualizada (${key}: ${value}), activando snapshot`); // Depuración
             requestAnimationFrame(() => {
                 setVersion((v) => v + 1);
+                setNeedsSnapshot(true);
             });
-
             return newConfig;
         });
     };
+
+
     return (
         <div style={{
             padding: "16px",

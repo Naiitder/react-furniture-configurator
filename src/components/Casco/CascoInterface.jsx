@@ -5,11 +5,10 @@ import TextureUploader from "../TextureUploader.jsx";
 import { useEffect, useState } from "react";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import DraggableIntersection, { INTERSECTION_TYPES } from "./DraggableIntersection.js";
-import * as THREE from "three";
 
 const { Title } = Typography;
 
-const CascoInterface = ({ show, setShow, mode, setMode}) => {
+const CascoInterface = ({ show, setShow, mode, setMode, setNeedsSnapshot }) => {
     const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
 
     const [config, setConfig] = useState({
@@ -34,11 +33,9 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
     // Si existe refItem.groupRef.userData, se toma esa información.
     useEffect(() => {
         if (refItem) {
-            // Se prioriza refItem.groupRef.userData, si existe
             const newConfig = refItem.groupRef && refItem.groupRef.userData
                 ? refItem.groupRef.userData
                 : (refItem.userData || {});
-            console.log(refItem.groupRef.userData);
             setConfig(prev => ({
                 ...prev,
                 ...newConfig,
@@ -46,8 +43,6 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
         }
     }, [refItem]);
 
-    // Función unificada para actualizar la configuración y modificar también el userData
-    // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)
     const updateConfig = (key, value) => {
         setConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
@@ -57,7 +52,9 @@ const CascoInterface = ({ show, setShow, mode, setMode}) => {
                 } else {
                     refItem.userData = { ...refItem.userData, [key]: value };
                 }
-                setVersion(version+1);
+                console.log(`Configuración actualizada (${key}: ${value}), activando snapshot`); // Depuración
+                setVersion(version + 1);
+                setNeedsSnapshot(true);
             }
             return newConfig;
         });
