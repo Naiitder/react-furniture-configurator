@@ -83,29 +83,29 @@ const Tabla: React.FC<TablaProps> = ({
             };
         }
     }, [widthExtra, heightExtra, depthExtra, espesorBase]);
-
-    if(refPiece && refPiece === ref.current && refPiece.userData)
-    {
-        width = width + refPiece.userData.widthExtra;
-        height = height + refPiece.userData.heightExtra;
-        depth = depth + refPiece.userData.depthExtra;
-        console.log("width", widthExtra);
-        console.log(refPiece.userData);
-    }
-    const [extra, setExtra] = useState({ widthExtra: 0, heightExtra: 0, depthExtra: 0, espesor: espesorBase });
+    
+    const [extra, setExtra] = useState({
+        widthExtra: 0,
+        heightExtra: 0,
+        depthExtra: 0,
+        espesor: espesorBase
+    });
 
     useEffect(() => {
         if (refPiece && refPiece === ref.current && refPiece.userData) {
             setExtra({
-                widthExtra: refPiece.userData.widthExtra,
-                heightExtra: refPiece.userData.heightExtra,
-                depthExtra: refPiece.userData.depthExtra,
-                espesor: refPiece.userData.espesor,
+                widthExtra: refPiece.userData.widthExtra || 0,
+                heightExtra: refPiece.userData.heightExtra || 0,
+                depthExtra: refPiece.userData.depthExtra || 0,
+                espesor: refPiece.userData.espesor || espesorBase
             });
         }
     }, [refPiece, version]);
 
-    if(refPiece && refPiece === ref.current && refPiece.userData) espesorBase = refPiece.userData.espesor;
+    width = width + extra.widthExtra;
+    height = height + extra.heightExtra;
+    depth = depth + extra.depthExtra;
+    espesorBase = extra.espesor;
 
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
     // Solo para frontal
