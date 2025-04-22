@@ -1,12 +1,12 @@
-import { useRef, useState, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
-import { useLocation } from "react-router-dom";
-import { useDrop } from "react-dnd";
+import {useRef, useState, useEffect} from "react";
+import {Canvas} from "@react-three/fiber";
+import {useLocation} from "react-router-dom";
+import {useDrop} from "react-dnd";
 import * as THREE from "three";
-import { useSelectedItemProvider } from "../contexts/SelectedItemProvider.jsx";
-import { useSelectedPieceProvider } from "../contexts/SelectedPieceProvider.jsx";
-import { useActionHistory } from "../contexts/ActionHistoryProvider.jsx";
-import { INTERSECTION_TYPES } from "../components/Casco/DraggableIntersection.js";
+import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
+import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
+import {useActionHistory} from "../contexts/ActionHistoryProvider.jsx";
+import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
@@ -26,13 +26,12 @@ export const Experience = () => {
     const params = new URLSearchParams(location.search);
     const selectedItem = params.get("item");
 
-    const { addSceneAction, undoAction, redoAction, sceneState } = useActionHistory();
+    const {addSceneAction, undoAction, redoAction, sceneState} = useActionHistory();
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
     const [cascoInstances, setCascoInstances] = useState({});
-    const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
-    const { refPiece, setRefPiece } = useSelectedPieceProvider();
-    const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
+    const {refItem, setRefItem, version, setVersion} = useSelectedItemProvider();
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
     const [cascoVersions, setCascoVersions] = useState({});
     const [needsSnapshot, setNeedsSnapshot] = useState(false);
     const [selectedCascoId, setSelectedCascoId] = useState(null);
@@ -61,7 +60,7 @@ export const Experience = () => {
                     position: casco.position.clone(),
                     rotation: casco.rotation.clone(),
                     scale: casco.scale.clone(),
-                    userData: { ...casco.userData },
+                    userData: {...casco.userData},
                 };
             });
             console.log("Capturando estado en Experience:", objectsMap);
@@ -78,9 +77,9 @@ export const Experience = () => {
                 name: 'casco1',
                 position: [-3, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 2, espesor: 0.3, isCasco: true },
-                patas: [<Pata height={1} />],
-                puertas: [<Puerta />],
+                userData: {width: 2, height: 2, depth: 2, espesor: 0.3, isCasco: true},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
                 seccionesHorizontales: [],
                 seccionesVerticales: [],
             },
@@ -89,9 +88,9 @@ export const Experience = () => {
                 name: 'casco2',
                 position: [3, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 3, espesor: 0.1, isCasco: true },
-                patas: [<Pata height={1} />],
-                puertas: [<Puerta />],
+                userData: {width: 2, height: 2, depth: 3, espesor: 0.1, isCasco: true},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
                 seccionesHorizontales: [],
                 seccionesVerticales: [],
             },
@@ -100,9 +99,9 @@ export const Experience = () => {
                 name: 'casco3',
                 position: [0, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 2, espesor: 0.1, isCasco: true },
-                patas: [<Pata height={1} />],
-                puertas: [<Puerta />],
+                userData: {width: 2, height: 2, depth: 2, espesor: 0.1, isCasco: true},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
                 seccionesHorizontales: [],
                 seccionesVerticales: [],
             },
@@ -124,8 +123,12 @@ export const Experience = () => {
                     const newHeight = Math.min(6, Math.max(1, height * newScale.y));
                     const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
 
-                    setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
-                    refItem.groupRef.userData = { ...refItem.groupRef.userData, width: newWidth, height: newHeight, depth: newDepth };
+                    refItem.groupRef.userData = {
+                        ...refItem.groupRef.userData,
+                        width: newWidth,
+                        height: newHeight,
+                        depth: newDepth
+                    };
                     refItem.groupRef.scale.set(1, 1, 1);
                     setVersion(version + 1);
                 }
@@ -151,15 +154,15 @@ export const Experience = () => {
                 redoAction();
             }
         };
-        window.addEventListener('keydown', handleKeyDown, { capture: true });
-        return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+        window.addEventListener('keydown', handleKeyDown, {capture: true});
+        return () => window.removeEventListener('keydown', handleKeyDown, {capture: true});
     }, [undoAction, redoAction]);
 
     const handleCascoClick = (selectedObject) => {
         setRefItem(selectedObject);
     };
 
-    const [{ isOver }, drop] = useDrop(() => ({
+    const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         drop: (item, monitor) => {
             const clientOffset = monitor.getClientOffset();
@@ -172,7 +175,7 @@ export const Experience = () => {
             const cascoData = cascoInstances[cascoKey];
             if (!cascoData) return;
 
-            const { x, y } = clientOffset;
+            const {x, y} = clientOffset;
             const bounds = gl.domElement.getBoundingClientRect();
             const mouse = new THREE.Vector2(
                 ((x - bounds.left) / bounds.width) * 2 - 1,
@@ -192,7 +195,7 @@ export const Experience = () => {
             refItem.groupRef.updateMatrixWorld(true);
             const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
 
-            const { width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor } = refItem.groupRef.userData;
+            const {width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor} = refItem.groupRef.userData;
 
             let adjustedWidth = cascoWidth;
             let adjustedHeight = cascoHeight;
@@ -291,8 +294,8 @@ export const Experience = () => {
             };
 
             setCascoInstances((prev) => {
-                const updated = { ...prev };
-                const updatedCasco = { ...updated[cascoKey] };
+                const updated = {...prev};
+                const updatedCasco = {...updated[cascoKey]};
 
                 if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
                     updatedCasco.seccionesHorizontales = [...horizontalCubes, newCube];
@@ -366,8 +369,8 @@ export const Experience = () => {
         ),
         "Casco brr": (
             <>
-                <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} />
+                <ambientLight intensity={0.5}/>
+                <pointLight position={[10, 10, 10]}/>
                 <group
                     onPointerMissed={(e) => {
                         if (selectedItem === "Casco brr") {
@@ -421,7 +424,7 @@ export const Experience = () => {
 
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{ position: [4, 4, -12], fov: 35 }} tabIndex={0}>
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}} tabIndex={0}>
                 <SceneContent
                     transformRef={transformRef}
                     glRef={glRef}
@@ -447,18 +450,14 @@ export const Experience = () => {
             {refPiece && (
                 <TablaConfigurationInterface
                     title="Tabla Configurator"
-                    show={true}
-                    setShow={true}
-                    mode={transformMode}
-                    setMode={setTransformMode}
                 >
-                    <TablaConfigContent setNeedsSnapshot={setNeedsSnapshot} />
+                    <TablaConfigContent setNeedsSnapshot={setNeedsSnapshot}/>
                 </TablaConfigurationInterface>
             )}
-            <RoomConfigPanel />
-            <div style={{ position: "absolute", top: 10, left: 10 }}>
+            <RoomConfigPanel/>
+            <div style={{position: "absolute", top: 10, left: 10}}>
                 <button onClick={handleUndoClick}>Deshacer</button>
-                <button onClick={handleRedoClick} style={{ marginLeft: 10 }}>Rehacer</button>
+                <button onClick={handleRedoClick} style={{marginLeft: 10}}>Rehacer</button>
             </div>
         </>
     );
