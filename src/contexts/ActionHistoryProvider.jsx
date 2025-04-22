@@ -4,7 +4,7 @@ import { UndoRedoHistory } from './history/UndoRedoHistory.js';
 export const ActionHistoryContext = createContext();
 
 export const ActionHistoryProvider = ({ children }) => {
-  const [history] = useState(new UndoRedoHistory(25));
+  const [history] = useState(new UndoRedoHistory(100));
   const [sceneState, setSceneState] = useState({});
 
   const captureSceneState = useCallback((objectsMap) => {

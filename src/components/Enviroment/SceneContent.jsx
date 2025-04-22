@@ -8,7 +8,6 @@ const SceneContent = ({
                           transformRef,
                           glRef,
                           cameraRef,
-
                           selectedItem,
                           cascoInstances,
                           refItem,
@@ -25,31 +24,61 @@ const SceneContent = ({
                           onSceneUpdate,
                           sceneRef,
                       }) => {
-    const { scene } = useThree();
+    const { gl, camera, scene } = useThree();
 
+    // Set camera reference
     useEffect(() => {
-        if (scene) {
-            console.log("SceneContent - Enviando escena:", scene);
-            sceneRef.current = scene;
-            onSceneUpdate(scene);
+        if (camera && cameraRef) {
+            cameraRef.current = camera;
         }
-    }, [scene, onSceneUpdate]);
+    }, [camera, cameraRef]);
 
+    // Set gl (WebGLRenderer) reference
     useEffect(() => {
-        if (sceneState) {
+        if (gl && glRef) {
+            glRef.current = gl;
+        }
+    }, [gl, glRef]);
+
+    // Set scene reference only once to prevent circular updates
+    useEffect(() => {
+        if (scene && sceneRef && !sceneRef.current) {
+            console.log("SceneContent - Setting scene reference");
+            sceneRef.current = scene;
+
+            // Only call onSceneUpdate if it's a function
+            if (typeof onSceneUpdate === 'function') {
+                onSceneUpdate(scene);
+            }
+        }
+    }, [scene, sceneRef, onSceneUpdate]);
+
+    // Handle scene state updates for undo/redo
+    useEffect(() => {
+        if (sceneState && Object.keys(sceneState).length > 0 && scene) {
+            console.log("Applying scene state:", sceneState);
+
             Object.entries(sceneState).forEach(([id, state]) => {
-                console.log(id)
                 const original = scene.getObjectByName(id);
                 if (original) {
-                    console.log(`Restaurando casco ${id}:`, state);
+                    console.log(`Restoring casco ${id}:`, state);
+                    // Apply position, rotation, and scale
                     original.position.copy(state.position);
                     original.rotation.copy(state.rotation);
                     original.scale.copy(state.scale);
-                    original.userData = { ...state.userData };
+
+                    // Deep copy userData to avoid reference issues
+                    original.userData = JSON.parse(JSON.stringify(state.userData));
+
+                    // Update matrices to ensure proper rendering
                     original.updateMatrix();
-                    original.updateMatrixWorld();
+                    original.updateMatrixWorld(true);
+                } else {
+                    console.warn(`Could not find object with name ${id} in scene`);
                 }
             });
+
+            // Update version numbers to trigger re-renders
             setCascoVersions((prev) => {
                 const newVersions = { ...prev };
                 Object.keys(sceneState).forEach((id) => {
@@ -57,8 +86,11 @@ const SceneContent = ({
                 });
                 return newVersions;
             });
+
+            // Request a snapshot after state is applied
+            setNeedsSnapshot(false);
         }
-    }, [sceneState, scene, setCascoVersions]);
+    }, [sceneState, scene, setCascoVersions, setNeedsSnapshot]);
 
     return (
         <>
