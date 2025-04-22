@@ -17,8 +17,11 @@ type TablaProps = {
     position: [number, number, number];
     rotation?: [number, number, number];
     width: number;
+    widthExtra?: number;
     height: number;
+    heightExtra?: number;
     depth: number;
+    depthExtra?: number;
     material: THREE.Material;
     stopPropagation?: boolean;
     shape: "box" | "trapezoid";
@@ -40,8 +43,11 @@ const Tabla: React.FC<TablaProps> = ({
                                        rotation = [0, 0, 0],
                                        espesorBase,
                                        width,
+                                         widthExtra = 0,
                                        height,
+                                         heightExtra = 0,
                                        depth,
+                                         depthExtra = 0,
                                        material,
                                        shape = "box",
                                        bordeEjeY = true,
@@ -55,9 +61,9 @@ const Tabla: React.FC<TablaProps> = ({
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
 
     const initialData = {
-        width,
-        height,
-        depth,
+        widthExtra,
+        heightExtra,
+        depthExtra,
         espesor: espesorBase,
     };
 
@@ -70,18 +76,35 @@ const Tabla: React.FC<TablaProps> = ({
     useEffect(() => {
         if (ref.current) {
             ref.current.userData = {
-                width,
-                height,
-                depth,
+                widthExtra,
+                heightExtra,
+                depthExtra,
                 espesor: espesorBase
             };
         }
-    }, [width, height, depth, espesorBase]);
+    }, [widthExtra, heightExtra, depthExtra, espesorBase]);
 
+    if(refPiece && refPiece === ref.current && refPiece.userData)
+    {
+        width = width + refPiece.userData.widthExtra;
+        height = height + refPiece.userData.heightExtra;
+        depth = depth + refPiece.userData.depthExtra;
+        console.log("width", widthExtra);
+        console.log(refPiece.userData);
+    }
+    const [extra, setExtra] = useState({ widthExtra: 0, heightExtra: 0, depthExtra: 0, espesor: espesorBase });
 
-    if(refPiece && refPiece === ref.current && refPiece.userData) width = refPiece.userData.width;
-    if(refPiece && refPiece === ref.current && refPiece.userData) height = refPiece.userData.height;
-    if(refPiece && refPiece === ref.current && refPiece.userData) depth = refPiece.userData.depth;
+    useEffect(() => {
+        if (refPiece && refPiece === ref.current && refPiece.userData) {
+            setExtra({
+                widthExtra: refPiece.userData.widthExtra,
+                heightExtra: refPiece.userData.heightExtra,
+                depthExtra: refPiece.userData.depthExtra,
+                espesor: refPiece.userData.espesor,
+            });
+        }
+    }, [refPiece, version]);
+
     if(refPiece && refPiece === ref.current && refPiece.userData) espesorBase = refPiece.userData.espesor;
 
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
@@ -188,7 +211,7 @@ const Tabla: React.FC<TablaProps> = ({
                         }
                     }}
                 >
-                    <boxGeometry args={[adjustedWidth, adjustedHeight, adjustedDepth]}/>
+                    <boxGeometry key={`${adjustedWidth}-${adjustedHeight}-${adjustedDepth}`} args={[adjustedWidth, adjustedHeight, adjustedDepth]} />
                 </mesh>
             )}
 

@@ -6,9 +6,9 @@ const TablaConfigContent = () => {
     const { refPiece, setRefPiece, version, setVersion} = useSelectedPieceProvider();
 
     const [config, setConfig] = useState({
-        width: 2,
-        height: 2,
-        depth: 2,
+        widthExtra: 0,
+        heightExtra: 0,
+        depthExtra: 0,
         espesor: 0.1
     });
 
@@ -31,14 +31,17 @@ const TablaConfigContent = () => {
     const updateConfig = (key, value) => {
         setConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
-            if (refPiece) {
-                if (refPiece && refPiece.userData) {
-                    refPiece.userData = { ...refPiece.userData, [key]: value };
-                } else {
-                    refPiece.userData = { ...refPiece.userData, [key]: value };
-                }
-                setVersion(version+1);
+
+            // Solo actualiza refPiece fuera del render
+            if (refPiece && refPiece.userData) {
+                refPiece.userData[key] = value;
             }
+
+            // Asegura que el re-render ocurra correctamente
+            requestAnimationFrame(() => {
+                setVersion((v) => v + 1);
+            });
+
             return newConfig;
         });
     };
@@ -53,28 +56,28 @@ const TablaConfigContent = () => {
             <Form>
                 <Form.Item label="Tabla Width">
                     <Slider
-                        min={100}
-                        max={500}
-                        value={config.width * 100}
-                        onChange={(v) => updateConfig("width", v / 100)}
+                        min={0}
+                        max={30}
+                        value={config.widthExtra * 100}
+                        onChange={(v) => updateConfig("widthExtra", v / 100)}
                     />
                 </Form.Item>
                 <Form.Item label="Tabla Height">
                     <Slider
                         step={1}
-                        min={100}
-                        max={600}
-                        value={config.height * 100}
-                        onChange={(v) => updateConfig("height", v / 100)}
+                        min={0}
+                        max={20}
+                        value={config.heightExtra * 100}
+                        onChange={(v) => updateConfig("heightExtra", v / 100)}
                     />
                 </Form.Item>
                 <Form.Item label="Tabla Depth">
                     <Slider
                         step={1}
-                        min={100}
-                        max={400}
-                        value={config.depth * 100}
-                        onChange={(v) => updateConfig("depth", v / 100)}
+                        min={0}
+                        max={30}
+                        value={config.depthExtra * 100}
+                        onChange={(v) => updateConfig("depthExtra", v / 100)}
                     />
                 </Form.Item>
                 <Form.Item label="Espesor">
