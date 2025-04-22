@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
-import { UndoRedoHistory } from './UndoRedoHistory';
+import { UndoRedoHistory } from './history/UndoRedoHistory.js';
 
 export const ActionHistoryContext = createContext();
 
