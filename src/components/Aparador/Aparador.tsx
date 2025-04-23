@@ -4,6 +4,7 @@ import Tabla from "../Casco/Tabla";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import { useMaterial } from "../../assets/materials";
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
+import Cajon from "./Cajon";
 
 
 // Definición de los props para el componente Casco
@@ -346,7 +347,9 @@ const AparadorFuncional = (
 
                 sections.push(
                     <group key={`grid-section-${ix}-${iy}g`}>
-                        <Tabla parentRef={groupRef} insideRef={detectionBoxRef} position={[x,y,z+sectionDepth/2-0.05/2]} width={sectionWidth-0.01} height={sectionHeight-0.01} depth={0.05} material={materiales.WoodWorn} />
+                        <Cajon parentRef={groupRef} insideRef={detectionBoxRef}
+                               position={[x,y,z+sectionDepth/2-0.05/2]}
+                               width={sectionWidth-0.01} height={sectionHeight-0.01} depth={0.05}/>
                         <mesh
                             key={`grid-section-${ix}-${iy}1`}
                             position={[x, y+sectionHeight/2-0.005/2, z]}
@@ -403,7 +406,7 @@ const AparadorFuncional = (
                     width={dimensiones.suelo.width}
                     height={dimensiones.suelo.height}
                     depth={dimensiones.suelo.depth}
-                    material={materiales.OakWood}
+                    material={materiales.WoodBatch}
                     posicionCaja="bottom"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                     bordeEjeY={false}
@@ -418,7 +421,7 @@ const AparadorFuncional = (
                     width={dimensiones.lateral.width}
                     height={dimensiones.lateral.height}
                     depth={dimensiones.lateral.depth}
-                    material={materiales.DarkWood}
+                    material={materiales.WoodBatch}
                     posicionCaja="left"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
@@ -432,7 +435,7 @@ const AparadorFuncional = (
                     width={dimensiones.lateral.width}
                     height={dimensiones.lateral.height}
                     depth={dimensiones.lateral.depth}
-                    material={materiales.DarkWood}
+                    material={materiales.WoodBatch}
                     posicionCaja="right"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
@@ -446,7 +449,7 @@ const AparadorFuncional = (
                     width={dimensiones.trasero.width}
                     height={dimensiones.trasero.height}
                     depth={dimensiones.trasero.depth}
-                    material={materiales.DarkWood}
+                    material={materiales.WoodBatch}
                     shape="box"
                 />
 
@@ -459,7 +462,7 @@ const AparadorFuncional = (
                     width={dimensiones.techo.width}
                     height={dimensiones.techo.height}
                     depth={dimensiones.techo.depth}
-                    material={materiales.OakWood}
+                    material={materiales.WoodBatch}
                     posicionCaja="top"
                     shape={actualEsquinaXTriangulada || actualEsquinaZTriangulada ? "trapezoid" : "box"}
                     bordeEjeY={false}

@@ -19,6 +19,8 @@ import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
 import PataAparador from "../components/Aparador/PataAparador.js";
 import Aparador from "../components/Aparador/Aparador.js";
 import AparadorInterface from "../components/Aparador/AparadorInterface.jsx";
+import {useSelectedCajonProvider} from "../contexts/SelectedCajonProvider.jsx";
+import CajonConfigContent from "../components/Aparador/CajonInterface.jsx";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -71,6 +73,7 @@ export const Experience = () => {
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
     const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
     const { refPiece, setRefPiece} = useSelectedPieceProvider();
+    const { refCajon} = useSelectedCajonProvider();
     const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
 
     // @Pruden
@@ -463,6 +466,19 @@ export const Experience = () => {
                     <TablaConfigContent />
                 </TablaConfigurationInterface>
             )}
+
+            {refCajon && (
+                <TablaConfigurationInterface
+                    title="Cajon Configurator"
+                    show={true}
+                    setShow={true}
+                    mode={transformMode}
+                    setMode={setTransformMode}
+                >
+                    <CajonConfigContent />
+                </TablaConfigurationInterface>
+            )}
+
 
             <RoomConfigPanel />
         </>
