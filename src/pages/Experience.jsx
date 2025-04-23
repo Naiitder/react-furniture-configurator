@@ -48,6 +48,21 @@ export const Experience = () => {
         return cascos;
     };
 
+    // En Experience.jsx
+    useEffect(() => {
+        if (sceneState && Object.keys(sceneState).length > 0 && refItem?.groupRef && sceneRef.current) {
+            const updatedCasco = sceneRef.current.getObjectByName(refItem.groupRef.name);
+            if (updatedCasco) {
+                setRefItem({
+                    ...refItem,
+                    groupRef: updatedCasco,
+                    userData: { ...updatedCasco.userData },
+                });
+                console.log("refItem actualizado después de sceneState:", updatedCasco.userData);
+            }
+        }
+    }, [sceneState, refItem, setRefItem, sceneRef]);
+
     // Capturar el estado cuando needsSnapshot es true
     useEffect(() => {
         if (needsSnapshot && sceneRef.current) {

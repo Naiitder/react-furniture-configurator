@@ -44,12 +44,16 @@ const CascoInterface = ({ show, setShow, mode, setMode, setNeedsSnapshot }) => {
             const newConfig = refItem.groupRef && refItem.groupRef.userData
                 ? refItem.groupRef.userData
                 : (refItem.userData || {});
-            setConfig(prev => ({
-                ...prev,
-                ...newConfig,
-            }));
+            setConfig((prev) => {
+                const updatedConfig = {
+                    ...prev,
+                    ...newConfig,
+                };
+                console.log("Configuración de la interfaz actualizada:", updatedConfig); // Depuración
+                return updatedConfig;
+            });
         }
-    }, [refItem]);
+    }, [refItem, version]);
 
     const updateConfig = (key, value) => {
         setConfig((prev) => {

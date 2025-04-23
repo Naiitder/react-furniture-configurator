@@ -122,21 +122,6 @@ const CascoFuncional = (
         }
     }, [version, groupRef.current?.userData]); // Dependencia directa en userData
 
-    // Si el casco está seleccionado (comparando referencias) y existe la configuración en el contexto,
-    // sincronizamos el estado local con esos datos.
-    const isSelected = refItem && refItem.groupRef === groupRef.current;
-    useEffect(() => {
-        if (refItem && isSelected) {
-            const newConfig = refItem.groupRef?.userData ?? refItem.userData ?? initialData;
-
-            setLocalConfig((prev) => {
-                const hasChanged = Object.keys(newConfig).some(
-                    key => newConfig[key] !== prev[key]
-                );
-                return hasChanged ? {...prev, ...newConfig} : prev;
-            });
-        }
-    }, [refItem, isSelected, version]);
 
     // Extraemos las variables desde el estado local (localConfig)
     const actualWidth = localConfig.width || width;
@@ -396,20 +381,6 @@ const CascoFuncional = (
 
     const dimensiones = calcularDimensiones();
     const posiciones = calcularPosiciones();
-
-    // Actualizamos el userData del grupo cuando cambia la configuración
-    useEffect(() => {
-        if (refItem && isSelected) {
-            const newConfig = refItem.groupRef?.userData ?? refItem.userData ?? initialData;
-
-            setLocalConfig((prev) => {
-                const hasChanged = Object.keys(newConfig).some(
-                    key => newConfig[key] !== prev[key]
-                );
-                return hasChanged ? {...prev, ...newConfig} : prev;
-            });
-        }
-    }, [refItem, isSelected]);
 
 
     return (

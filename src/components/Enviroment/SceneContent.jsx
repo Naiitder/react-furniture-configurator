@@ -3,6 +3,7 @@ import { TransformControls, OrbitControls, Environment, Stage } from "@react-thr
 import { useEffect } from "react";
 import { Room } from "./Room.jsx";
 import * as THREE from "three";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
 
 const SceneContent = ({
                           transformRef,
@@ -32,6 +33,39 @@ const SceneContent = ({
             cameraRef.current = camera;
         }
     }, [camera, cameraRef]);
+
+    const {setVersion} = useSelectedItemProvider();
+
+    useEffect(() => {
+        if (sceneState && Object.keys(sceneState).length > 0 && scene) {
+            console.log("Applying scene state:", sceneState);
+
+            Object.entries(sceneState).forEach(([id, state]) => {
+                const original = scene.getObjectByName(id);
+                if (original) {
+                    console.log(`Restoring casco ${id}:`, state);
+                    original.position.copy(state.position);
+                    original.rotation.copy(state.rotation);
+                    original.scale.copy(state.scale);
+                    original.userData = JSON.parse(JSON.stringify(state.userData));
+                    original.updateMatrix();
+                    original.updateMatrixWorld(true);
+                    console.log(`Updated userData for ${id}:`, original.userData); // Log adicional
+                }
+            });
+
+            setCascoVersions((prev) => {
+                const newVersions = { ...prev };
+                Object.keys(sceneState).forEach((id) => {
+                    newVersions[id] = (newVersions[id] || 0) + 1;
+                });
+                return newVersions;
+            });
+
+            setVersion((prev) => prev + 1);
+            setNeedsSnapshot(false);
+        }
+    }, [sceneState, scene, setCascoVersions, setNeedsSnapshot, setVersion]);
 
     // Set gl (WebGLRenderer) reference
     useEffect(() => {
