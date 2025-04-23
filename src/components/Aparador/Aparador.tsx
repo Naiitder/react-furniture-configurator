@@ -1,11 +1,13 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import * as THREE from "three";
-import Tabla from "./Tabla";
+import Tabla from "../Casco/Tabla";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import { useMaterial } from "../../assets/materials";
+import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
+
 
 // Definición de los props para el componente Casco
-export type CascoProps = {
+export type AparadorProps = {
     width?: number;
     height?: number;
     depth?: number;
@@ -24,15 +26,15 @@ export type CascoProps = {
     indicePata?: number;
     puertas?: React.ReactNode[];
     indicePuerta?: number;
-    seccionesHorizontales?: any[];
-    seccionesVerticales?: any[];
     version?: any[];
     setVersion?: (version: any) => void;
+    seccionesHorizontales?: number;
+    seccionesVerticales?: number;
 
 };
 
-const CascoFuncional = (
-    props: CascoProps & {
+const AparadorFuncional = (
+    props: AparadorProps & {
         contextRef: React.MutableRefObject<any>;
         setContextRef: (ref: any) => void;
         materiales: any;
@@ -58,12 +60,12 @@ const CascoFuncional = (
         indicePata = -1,
         puertas = [],
         indicePuerta = 0,
-        seccionesHorizontales = [],
-        seccionesVerticales = [],
         contextRef,
         setContextRef,
         materiales,
         version,
+        seccionesHorizontales = 2,
+        seccionesVerticales = 3,
     } = props;
 
     const groupRef = useRef<THREE.Group>(null);
@@ -89,6 +91,8 @@ const CascoFuncional = (
         alturaPatas,
         indicePata,
         indicePuerta,
+        seccionesHorizontales,
+        seccionesVerticales,
     };
 
 
@@ -287,110 +291,21 @@ const CascoFuncional = (
         };
     };
 
-    const renderHorizontalSections = () => {
-        return (seccionesHorizontales || []).map((cube: any) => {
-            const [rx, ry] = cube.relativePosition;
-            const halfWidth = (cube.relativeWidth * actualWidth) / 2;
-            const leftEdge = (rx + 0.5) * actualWidth + halfWidth;
-            const rightEdge = (rx + 0.5) * actualWidth - halfWidth;
-            const tolerance = 0.1;
-            const touchesLeftEdge = Math.abs(leftEdge - actualWidth) < tolerance;
-            const touchesRightEdge = Math.abs(rightEdge) < tolerance;
-
-            let adjustedWidth = cube.relativeWidth * actualWidth - actualEspesor / 2;
-            let adjustedXposition = 0;
-
-            if (!touchesLeftEdge && !touchesRightEdge) {
-                adjustedWidth -= actualEspesor / 2;
-                adjustedXposition = rx * actualWidth;
-            } else if (touchesRightEdge && !touchesLeftEdge) {
-                adjustedWidth -= actualEspesor;
-                adjustedXposition = rx * actualWidth + actualEspesor / 4;
-            } else if (touchesLeftEdge && !touchesRightEdge) {
-                adjustedWidth -= actualEspesor;
-                adjustedXposition = rx * actualWidth - actualEspesor / 4;
-            } else {
-                adjustedWidth -= actualEspesor * 1.5;
-                adjustedXposition = rx * actualWidth;
-            }
-
-            return (
-                <Tabla
-                    key={cube.id}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[
-                        adjustedXposition,
-                        ry * actualHeight + extraAltura,
-                        actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
-                    ]}
-                    width={adjustedWidth}
-                    height={actualEspesor}
-                    depth={
-                        cube.relativeDepth * actualDepth - actualRetranqueoTrasero - actualEspesor
-                    }
-                    material={materiales.OakWood}
-                    espesorBase={actualEspesor}
-                />
-            );
-        });
-    };
-
-    const renderVerticalSections = () => {
-        return (seccionesVerticales || []).map((cube: any) => {
-            const [rx, ry] = cube.relativePosition;
-            const touchesTopEdge =
-                Math.abs(ry * actualHeight + (cube.relativeHeight * actualHeight) / 2 - actualHeight) <
-                0.01;
-            const touchesBottomEdge =
-                Math.abs(ry * actualHeight - (cube.relativeHeight * actualHeight) / 2) < 0.01;
-
-            let adjustedHeight = cube.relativeHeight * actualHeight - actualEspesor / 2;
-            let adjustedYposition = 0;
-
-            if (!touchesTopEdge && !touchesBottomEdge) {
-                adjustedHeight -= actualEspesor / 2;
-                adjustedYposition = ry * actualHeight + extraAltura;
-            } else if (touchesBottomEdge && !touchesTopEdge) {
-                adjustedHeight -= actualEspesor;
-                adjustedYposition = ry * actualHeight + actualEspesor / 4 + extraAltura;
-            } else if (touchesTopEdge && !touchesBottomEdge) {
-                adjustedHeight -= actualEspesor;
-                adjustedYposition = ry * actualHeight - actualEspesor / 4 + extraAltura;
-            } else {
-                adjustedHeight -= actualEspesor * 1.5;
-                adjustedYposition = ry * actualHeight + extraAltura;
-            }
-
-            return (
-                <Tabla
-                    key={cube.id}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[
-                        rx * actualWidth,
-                        adjustedYposition,
-                        actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
-                    ]}
-                    width={actualEspesor}
-                    height={adjustedHeight}
-                    depth={
-                        cube.relativeDepth * actualDepth - actualRetranqueoTrasero - actualEspesor
-                    }
-                    material={materiales.OakWood}
-                    espesorBase={actualEspesor}
-                />
-            );
-        });
-    };
-
     // Manejador del clic: actualiza la ref de contexto para el casco seleccionado
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (groupRef.current && detectionBoxRef.current) {
             setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
+        }
+    };
+
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
+
+    const handleSectionClick = (event: React.PointerEvent) => {
+        event.stopPropagation();
+        if (groupRef.current && detectionBoxRef.current) {
+            setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
+            setRefPiece(sectionDoor.current)
         }
     };
 
@@ -412,12 +327,74 @@ const CascoFuncional = (
         }
     }, [refItem, isSelected]);
 
+    const sectionDoor = useRef(null);
+
+    const renderGridSections = () => {
+        const seccionesX = localConfig.seccionesHorizontales;
+        const seccionesY = localConfig.seccionesVerticales;
+        const sectionWidth = (actualWidth - actualEspesor * 2) / seccionesX;
+        const sectionHeight = (actualHeight - actualEspesor * 2) / seccionesY;
+        const sectionDepth = actualDepth - actualEspesor - actualRetranqueoTrasero;
+
+        const sections = [];
+
+        for (let ix = 0; ix < seccionesX; ix++) {
+            for (let iy = 0; iy < seccionesY; iy++) {
+                const x = -actualWidth / 2 + actualEspesor + sectionWidth / 2 + ix * sectionWidth;
+                const y = actualEspesor + sectionHeight / 2 + iy * sectionHeight + extraAltura;
+                const z = actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0);
+
+                sections.push(
+                    <group key={`grid-section-${ix}-${iy}g`}>
+                        <Tabla parentRef={groupRef} insideRef={detectionBoxRef} position={[x,y,z+sectionDepth/2-0.05/2]} width={sectionWidth-0.01} height={sectionHeight-0.01} depth={0.05} material={materiales.WoodWorn} />
+                        <mesh
+                            key={`grid-section-${ix}-${iy}1`}
+                            position={[x, y+sectionHeight/2-0.005/2, z]}
+                            material={materiales.Goma}
+                        >
+                            <boxGeometry args={[sectionWidth - 0.01, 0.005, sectionDepth]} />
+                        </mesh>
+                        <mesh
+                            key={`grid-section-${ix}-${iy}2`}
+                            position={[x, y-sectionHeight/2+0.005/2, z]}
+                            material={materiales.Goma}
+                        >
+                            <boxGeometry args={[sectionWidth - 0.01, 0.005, sectionDepth]} />
+                        </mesh>
+
+                        <mesh
+                            key={`grid-section-${ix}-${iy}3`}
+                            position={[x+sectionWidth/2-0.005/2, y, z]}
+                            material={materiales.Goma}
+                        >
+                            <boxGeometry args={[0.005, sectionHeight, sectionDepth]} />
+                        </mesh>
+                        <mesh
+                            key={`grid-section-${ix}-${iy}4`}
+                            position={[x-sectionWidth/2+0.005/2, y, z]}
+                            material={materiales.Goma}
+                        >
+                            <boxGeometry args={[0.005, sectionHeight, sectionDepth]} />
+                        </mesh>
+                    </group>
+                );
+            }
+        }
+
+        return sections;
+    };
+
 
 
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
             <group onClick={handleClick}>
                 {/* Tablon inferior (suelo) */}
+                {/*Secciones*/}
+                <group>
+                    {renderGridSections()}
+                </group>
+
                 <Tabla
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
@@ -542,11 +519,6 @@ const CascoFuncional = (
                     </>
                 )}
 
-
-
-                {/* Renderizar secciones horizontales y verticales */}
-                {renderHorizontalSections()}
-                {renderVerticalSections()}
             </group>
             <group
                 ref={detectionBoxRef}>
@@ -557,12 +529,13 @@ const CascoFuncional = (
                     <boxGeometry args={[actualWidth-actualEspesor*2, actualHeight-actualEspesor*2, actualDepth-actualEspesor/4-actualRetranqueoTrasero]}/>
                 </mesh>
             </group>
+
         </group>
     );
 };
 
 // Componente de alto nivel: el que actualiza el contexto únicamente si es el casco seleccionado.
-const CascoWithContext = (props: any) => {
+const AparadorWithContext = (props: any) => {
     const { refItem, setRefItem, version} = useSelectedItemProvider();
     const meshRef = useRef<any>(null);
     const materiales = useMaterial();
@@ -577,7 +550,7 @@ const CascoWithContext = (props: any) => {
     );
 
     return (
-        <CascoFuncional
+        <AparadorFuncional
             {...props}
             contextRef={meshRef}
             setContextRef={updateContextRef}
@@ -587,4 +560,4 @@ const CascoWithContext = (props: any) => {
     );
 };
 
-export default CascoWithContext;
+export default AparadorWithContext;

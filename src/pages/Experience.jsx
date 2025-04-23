@@ -16,6 +16,9 @@ import CascoSimple from "../components/CascoBrr/CascoSimple.js";
 import TablaConfigurationInterface from "../components/TablaConfiguratorInterface.jsx";
 import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
+import PataAparador from "../components/Aparador/PataAparador.js";
+import Aparador from "../components/Aparador/Aparador.js";
+import AparadorInterface from "../components/Aparador/AparadorInterface.jsx";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -108,6 +111,15 @@ export const Experience = () => {
                 puertas: [<Puerta />],
                 seccionesHorizontales: [],
                 seccionesVerticales: [],
+            },
+            casco4: {
+                id: 'casco4',
+                name: 'Casco4',
+                position: [0, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: { width: 1.54, height: .93, depth: .6, espesor: 0.05 },
+                patas: [<PataAparador height={.1} />],
+                puertas: [<Puerta />],
             },
         });
     }, []);
@@ -326,28 +338,39 @@ export const Experience = () => {
             />
 
         ),
+        "Aparador":(
+            <AparadorInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
+            />
+        ),
     };
 
     const itemComponents = {
         "Casco": (
             <>
-                {Object.values(cascoInstances).map((casco) => (
-                    <group key={casco.id}>
-                        <Casco
-                            key={casco.id}
-                            id={casco.id}
-                            position={casco.position}
-                            rotation={casco.rotation}
-                            {...casco.userData}
-                            patas={casco.patas}
-                            puertas={casco.puertas}
-                            onClick={handleCascoClick}
-                            version={version}
-                            seccionesHorizontales={casco.seccionesHorizontales}
-                            seccionesVerticales={casco.seccionesVerticales}
-                        />
-                    </group>
-                ))}
+                {Object.values(cascoInstances)
+                    .filter((casco) => ["casco1", "casco2", "casco3"].includes(casco.id))
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Casco
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                seccionesHorizontales={casco.seccionesHorizontales}
+                                seccionesVerticales={casco.seccionesVerticales}
+                            />
+                        </group>
+                    ))}
             </>
         ),
 
@@ -384,6 +407,29 @@ export const Experience = () => {
                         onClick={() => setSelectedCascoId("casco3")}
                     />
                 </group>
+            </>
+        ),
+        "Aparador": (
+            <>
+                {Object.values(cascoInstances)
+                    .filter((casco) => casco.id === "casco4")
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Aparador
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                indicePuerta = {-1}
+                                indicePata = {0}
+                            />
+                        </group>
+                    ))}
             </>
         ),
 
