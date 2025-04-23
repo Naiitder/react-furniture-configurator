@@ -1,6 +1,6 @@
 import {useRef, useState, useEffect} from "react";
 import {Canvas, useThree} from "@react-three/fiber";
-import {TransformControls, OrbitControls, Environment, Stage, OrthographicCamera} from "@react-three/drei";
+import {TransformControls, OrbitControls, Environment, Stage, OrthographicCamera, SpotLight} from "@react-three/drei";
 import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
@@ -443,8 +443,7 @@ export const Experience = () => {
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
-                <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
-                    <Environment files={"/images/poly_haven_studio_4k.hdr"} />
+                <Stage intensity={1} environment={"warehouse"} shadows="contact" adjustCamera={1}>
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
