@@ -6,7 +6,6 @@ import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
 import {useActionHistory} from "../contexts/ActionHistoryProvider.jsx";
-import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
@@ -119,34 +118,58 @@ export const Experience = () => {
 
     // Manejar cambios de transformación
     useEffect(() => {
-        if (transformRef.current && refItem?.groupRef) {
-            const controls = transformRef.current;
-            const onObjectChange = () => {
-                if (transformMode === "scale") {
-                    const newScale = refItem.groupRef.scale;
-                    const width = refItem.groupRef.userData.width || 2;
-                    const height = refItem.groupRef.userData.height || 2;
-                    const depth = refItem.groupRef.userData.depth || 2;
+        setTimeout( () => {
+            if (!transformRef.current || !refItem?.groupRef) {
+                console.warn("transformRef o refItem.groupRef no están definidos");
+                return;
+            }
+            if (transformRef.current && refItem?.groupRef) {
+                const controls = transformRef.current;
+                let isDragging = false;
 
-                    const newWidth = Math.min(5, Math.max(1, width * newScale.x));
-                    const newHeight = Math.min(6, Math.max(1, height * newScale.y));
-                    const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
+                const onDragStart = () => {
+                    isDragging = true;
+                    console.log("Comenzó la transformación");
+                };
 
-                    refItem.groupRef.userData = {
-                        ...refItem.groupRef.userData,
-                        width: newWidth,
-                        height: newHeight,
-                        depth: newDepth
-                    };
-                    refItem.groupRef.scale.set(1, 1, 1);
-                    setVersion(version + 1);
-                }
-                console.log("Transformación detectada, activando snapshot");
-                setNeedsSnapshot(true);
-            };
-            controls.addEventListener("objectChange", onObjectChange);
-            return () => controls.removeEventListener("objectChange", onObjectChange);
-        }
+                // Detectar cuando termina el arrastre
+                const onMouseUp = () => {
+                    isDragging = false;
+                    console.log("Terminó la transformación, activando snapshot");
+                    setNeedsSnapshot(true);
+                };
+
+                const onObjectChange = () => {
+                    if (transformMode === "scale") {
+                        const newScale = refItem.groupRef.scale;
+                        const width = refItem.groupRef.userData.width || 2;
+                        const height = refItem.groupRef.userData.height || 2;
+                        const depth = refItem.groupRef.userData.depth || 2;
+
+                        const newWidth = Math.min(5, Math.max(1, width * newScale.x));
+                        const newHeight = Math.min(6, Math.max(1, height * newScale.y));
+                        const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
+
+                        refItem.groupRef.userData = {
+                            ...refItem.groupRef.userData,
+                            width: newWidth,
+                            height: newHeight,
+                            depth: newDepth
+                        };
+                        refItem.groupRef.scale.set(1, 1, 1);
+                        setVersion(version + 1);
+                    }
+                };
+                controls.addEventListener("mouseUp", onMouseUp);
+                controls.addEventListener("mouseDown", onDragStart);
+                controls.addEventListener("objectChange", onObjectChange);
+                return () => {
+                    controls.removeEventListener("mouseUp", onMouseUp);
+                    controls.removeEventListener("mouseDown", onDragStart);
+                    controls.removeEventListener("objectChange", onObjectChange);
+                };
+            }
+        }, 200);
     }, [transformMode, refItem, version, setVersion]);
 
     // Atajos de teclado para deshacer y rehacer
@@ -156,11 +179,13 @@ export const Experience = () => {
                 event.preventDefault();
                 console.log("Deshacer activado");
                 undoAction();
+                setVersion(version + 1);
             } else if ((event.ctrlKey && event.key.toLowerCase() === 'y') ||
                 (event.metaKey && event.shiftKey && event.key.toLowerCase() === 'z')) {
                 event.preventDefault();
                 console.log("Rehacer activado");
                 redoAction();
+                setVersion(version + 1);
             }
         };
         window.addEventListener('keydown', handleKeyDown, {capture: true});
@@ -328,16 +353,6 @@ export const Experience = () => {
         ),
     };
 
-    const handleUndoClick = () => {
-        console.log("Botón Deshacer clicado");
-        undoAction();
-    };
-
-    const handleRedoClick = () => {
-        console.log("Botón Rehacer clicado");
-        redoAction();
-    };
-
     const handleSceneUpdate = (scene) => {
         console.log("handleSceneUpdate - sceneRef:", sceneRef);
         console.log("handleSceneUpdate - scene:", scene);
@@ -381,10 +396,6 @@ export const Experience = () => {
                 </TablaConfigurationInterface>
             )}
             <RoomConfigPanel/>
-            <div style={{position: "absolute", top: 10, left: 10}}>
-                <button onClick={handleUndoClick}>Deshacer</button>
-                <button onClick={handleRedoClick} style={{marginLeft: 10}}>Rehacer</button>
-            </div>
         </>
     );
 };

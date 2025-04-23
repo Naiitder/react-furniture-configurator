@@ -2,9 +2,10 @@ import { Slider, Form, Checkbox, Typography, Divider, Row, Col, Card, Select } f
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
-import { useEffect, useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import DraggableIntersection, { INTERSECTION_TYPES } from "./DraggableIntersection.js";
+import debounce from "../../debounce.js";
 
 const { Title } = Typography;
 
@@ -28,6 +29,13 @@ const CascoInterface = ({ show, setShow, mode, setMode, setNeedsSnapshot }) => {
         indicePata: -1,
         indicePuerta: 1,
     });
+
+    const debouncedSnapshot = useRef(
+        debounce(() => {
+            console.log("Snapshot activado después del debounce");
+            setNeedsSnapshot(true);
+        }, 300) // 300ms de espera
+    ).current;
 
     // Efecto para sincronizar la configuración de la interfaz:
     // Si existe refItem.groupRef.userData, se toma esa información.
@@ -54,7 +62,7 @@ const CascoInterface = ({ show, setShow, mode, setMode, setNeedsSnapshot }) => {
                 }
                 console.log(`Configuración actualizada (${key}: ${value}), activando snapshot`); // Depuración
                 setVersion(version + 1);
-                setNeedsSnapshot(true);
+                debouncedSnapshot();
             }
             return newConfig;
         });
