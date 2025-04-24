@@ -81,10 +81,10 @@ const Cajon: React.FC<CajonProps> = ({
             setExtra({
                 cajon: refCajon.userData.cajon || 0,
             });
-            console.log(refCajon);
         }
     }, [refCajon, versionCajon]);
 
+    cajon = extra.cajon;
 
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
     // Solo para frontal
@@ -174,7 +174,7 @@ const Cajon: React.FC<CajonProps> = ({
 
     return (
         <>
-            {extra.cajon === 0 && (
+            {cajon === 0 && (
                 <mesh
                     ref={ref}
                     position={position}
@@ -188,13 +188,15 @@ const Cajon: React.FC<CajonProps> = ({
                         }
                         else {
                             setRefCajon(ref.current);
+                            setVersionCajon(v => v + 1);
+                            console.log("userData after selection:", ref.current.userData);
                         }
                     }}
                 >
                     <boxGeometry key={`${adjustedWidth}-${adjustedHeight}-${adjustedDepth}`} args={[adjustedWidth, adjustedHeight, adjustedDepth]} />
                 </mesh>
             )}
-            {extra.cajon === -1 && (
+            {cajon === -1 && (
                 <mesh
                     ref={ref}
                     position={position}
