@@ -1,4 +1,4 @@
-import { Slider, Form, Checkbox, Typography, Divider, Row, Col, Card, Select } from "antd";
+import { Slider, Form, Checkbox, Typography, Divider, Row, Col, Card, Select, Input, InputNumber, Tabs } from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
@@ -8,13 +8,14 @@ import DraggableIntersection, { INTERSECTION_TYPES } from "../Casco/DraggableInt
 import * as THREE from "three";
 
 const { Title } = Typography;
+const { TabPane } = Tabs;
 
-const AparadorInterface = ({ show, setShow, mode, setMode}) => {
+const AparadorInterface = ({ show, setShow, mode, setMode }) => {
     const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
 
     const [config, setConfig] = useState({
         width: 1.54,
-        height: .93,
+        height: 0.93,
         depth: 2,
         espesor: 0.05,
         alturaPatas: 0.01,
@@ -30,17 +31,16 @@ const AparadorInterface = ({ show, setShow, mode, setMode}) => {
         indicePuerta: 1,
         seccionesHorizontales: 2,
         seccionesVerticales: 3,
+        ratiosHorizontales: "1/1",
+        ratiosVerticales: "1/1/1",
     });
 
-    // Efecto para sincronizar la configuración de la interfaz:
-    // Si existe refItem.groupRef.userData, se toma esa información.
+    // Efecto para sincronizar la configuración de la interfaz
     useEffect(() => {
         if (refItem) {
-            // Se prioriza refItem.groupRef.userData, si existe
             const newConfig = refItem.groupRef && refItem.groupRef.userData
                 ? refItem.groupRef.userData
                 : (refItem.userData || {});
-            console.log(refItem.groupRef.userData);
             setConfig(prev => ({
                 ...prev,
                 ...newConfig,
@@ -48,8 +48,7 @@ const AparadorInterface = ({ show, setShow, mode, setMode}) => {
         }
     }, [refItem]);
 
-    // Función unificada para actualizar la configuración y modificar también el userData
-    // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)
+    // Función para actualizar la configuración y userData
     const updateConfig = (key, value) => {
         setConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
@@ -59,7 +58,7 @@ const AparadorInterface = ({ show, setShow, mode, setMode}) => {
                 } else {
                     refItem.userData = { ...refItem.userData, [key]: value };
                 }
-                setVersion(version+1);
+                setVersion(version + 1);
             }
             return newConfig;
         });
@@ -102,6 +101,111 @@ const AparadorInterface = ({ show, setShow, mode, setMode}) => {
             updateConfig("retranqueoTrasero", maxOffset);
         }
     }, [config.depth, config.retranqueoTrasero]);
+
+    // Ajustar los ratios cuando cambian las secciones
+    useEffect(() => {
+        // Ajustar ratios horizontales
+        const currentHorizontalRatios = config.ratiosHorizontales.split('/').map(Number);
+        if (currentHorizontalRatios.length !== config.seccionesHorizontales) {
+            const defaultRatios = Array(config.seccionesHorizontales).fill(1).join('/');
+            updateConfig("ratiosHorizontales", defaultRatios);
+        }
+
+        // Ajustar ratios verticales
+        const currentVerticalRatios = config.ratiosVerticales.split('/').map(Number);
+        if (currentVerticalRatios.length !== config.seccionesVerticales) {
+            const defaultRatios = Array(config.seccionesVerticales).fill(1).join('/');
+            updateConfig("ratiosVerticales", defaultRatios);
+        }
+    }, [config.seccionesHorizontales, config.seccionesVerticales]);
+
+    // Funciones para manejar los cambios en los InputNumber
+    const handleHorizontalRatioChange = (index, value) => {
+        const currentRatios = config.ratiosHorizontales.split('/').map(Number);
+        currentRatios[index] = value || 1; // Si el valor es null, usamos 1 como predeterminado
+        const newRatiosString = currentRatios.join('/');
+        updateConfig("ratiosHorizontales", newRatiosString);
+    };
+
+    const handleVerticalRatioChange = (index, value) => {
+        const currentRatios = config.ratiosVerticales.split('/').map(Number);
+        currentRatios[index] = value || 1; // Si el valor es null, usamos 1 como predeterminado
+        const newRatiosString = currentRatios.join('/');
+        updateConfig("ratiosVerticales", newRatiosString);
+    };
+
+    // Estado para manejar la pestaña activa
+    const [activeHorizontalTab, setActiveHorizontalTab] = useState("0");
+    const [activeVerticalTab, setActiveVerticalTab] = useState("0");
+
+    // Ajustar la pestaña activa cuando cambian las secciones
+    useEffect(() => {
+        if (parseInt(activeHorizontalTab) >= config.seccionesHorizontales) {
+            setActiveHorizontalTab("0");
+        }
+    }, [config.seccionesHorizontales]);
+
+    useEffect(() => {
+        if (parseInt(activeVerticalTab) >= config.seccionesVerticales) {
+            setActiveVerticalTab("0");
+        }
+    }, [config.seccionesVerticales]);
+
+    // Renderizar las pestañas para secciones horizontales
+    const renderHorizontalTabs = () => {
+        const numSections = config.seccionesHorizontales;
+        const currentRatios = config.ratiosHorizontales.split('/').map(Number);
+
+        return (
+            <Tabs
+                activeKey={activeHorizontalTab}
+                onChange={(key) => setActiveHorizontalTab(key)}
+                style={{ marginTop: 8 }}
+            >
+                {Array.from({ length: numSections }).map((_, index) => (
+                    <TabPane tab={`Sección ${index + 1}`} key={index.toString()}>
+                        <Form.Item label={`Tamaño de Sección ${index + 1}`}>
+                            <Slider
+                                min={1}
+                                step={0.1}
+                                max={3}
+                                value={currentRatios[index]}
+                                onChange={(value) => handleHorizontalRatioChange(index, value)}
+                                />
+                        </Form.Item>
+                    </TabPane>
+                ))}
+            </Tabs>
+        );
+    };
+
+    // Renderizar las pestañas para secciones verticales
+    const renderVerticalTabs = () => {
+        const numSections = config.seccionesVerticales;
+        const currentRatios = config.ratiosVerticales.split('/').map(Number);
+
+        return (
+            <Tabs
+                activeKey={activeVerticalTab}
+                onChange={(key) => setActiveVerticalTab(key)}
+                style={{ marginTop: 8 }}
+            >
+                {Array.from({ length: numSections }).map((_, index) => (
+                    <TabPane tab={`Sección ${index + 1}`} key={index.toString()}>
+                        <Form.Item label={`Tamaño de Sección ${index + 1}`}>
+                            <Slider
+                                min={1}
+                                step={0.1}
+                                max={3}
+                                value={currentRatios[index]}
+                                onChange={(value) => handleVerticalRatioChange(index, value)}
+                            />
+                        </Form.Item>
+                    </TabPane>
+                ))}
+            </Tabs>
+        );
+    };
 
     return (
         <BaseConfiguratorInterface title="Aparador Configurator" show={show} setShow={setShow} mode={mode} setMode={setMode}>
@@ -201,7 +305,7 @@ const AparadorInterface = ({ show, setShow, mode, setMode}) => {
                             step={0.1}
                             disabled={!config.traseroDentro}
                             min={0}
-                            max={config.depth*100/3}
+                            max={config.depth * 100 / 3}
                             value={config.retranqueoTrasero * 100}
                             onChange={(v) => updateConfig("retranqueoTrasero", v / 100)}
                         />
@@ -272,7 +376,7 @@ const AparadorInterface = ({ show, setShow, mode, setMode}) => {
             </div>
 
             {/* Sección de Intersecciones */}
-            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px", maxWidth: "260px" }}>
                 <Title level={4}>Secciones</Title>
                 <Form>
                     <Form.Item label="Secciones Horizontales">
@@ -284,6 +388,15 @@ const AparadorInterface = ({ show, setShow, mode, setMode}) => {
                             onChange={(v) => updateConfig("seccionesHorizontales", v)}
                         />
                     </Form.Item>
+                    {config.seccionesHorizontales > 1 && (
+                        <div style={{ marginBottom: 16 }}>
+                            <Title level={5} style={{ marginBottom: 8 }}>
+                                Tamaños de Secciones Horizontales
+                            </Title>
+                            {renderHorizontalTabs()}
+                        </div>
+                    )}
+                    <Divider />
                     <Form.Item label="Secciones Verticales">
                         <Slider
                             step={1}
@@ -293,6 +406,14 @@ const AparadorInterface = ({ show, setShow, mode, setMode}) => {
                             onChange={(v) => updateConfig("seccionesVerticales", v)}
                         />
                     </Form.Item>
+                    {config.seccionesVerticales > 1 && (
+                        <div style={{ marginBottom: 16 }}>
+                            <Title level={5} style={{ marginBottom: 8 }}>
+                                Tamaños de Secciones Verticales
+                            </Title>
+                            {renderVerticalTabs()}
+                        </div>
+                    )}
                 </Form>
             </div>
         </BaseConfiguratorInterface>

@@ -3,9 +3,8 @@ import * as THREE from "three";
 import Tabla from "../Casco/Tabla";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import { useMaterial } from "../../assets/materials";
-import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
+import { useSelectedPieceProvider } from "../../contexts/SelectedPieceProvider";
 import Cajon from "./Cajon";
-
 
 // Definición de los props para el componente Casco
 export type AparadorProps = {
@@ -31,7 +30,8 @@ export type AparadorProps = {
     setVersion?: (version: any) => void;
     seccionesHorizontales?: number;
     seccionesVerticales?: number;
-
+    ratiosHorizontales?: string; // Nuevo prop para ratios horizontales
+    ratiosVerticales?: string;   // Nuevo prop para ratios verticales
 };
 
 const AparadorFuncional = (
@@ -67,6 +67,8 @@ const AparadorFuncional = (
         version,
         seccionesHorizontales = 2,
         seccionesVerticales = 3,
+        ratiosHorizontales = "1/1", // Valor por defecto
+        ratiosVerticales = "1/1/1", // Valor por defecto
     } = props;
 
     const groupRef = useRef<THREE.Group>(null);
@@ -94,11 +96,11 @@ const AparadorFuncional = (
         indicePuerta,
         seccionesHorizontales,
         seccionesVerticales,
+        ratiosHorizontales, // Añadido al estado inicial
+        ratiosVerticales,   // Añadido al estado inicial
     };
 
-
     // Usamos estado local para la configuración de este casco.
-    // De esta forma, cada vez que se cambie la configuración se provoca un re-render.
     const [localConfig, setLocalConfig] = useState(initialData);
 
     useEffect(() => {
@@ -111,9 +113,7 @@ const AparadorFuncional = (
         }
     }, []);
 
-
-    // Si el casco está seleccionado (comparando referencias) y existe la configuración en el contexto,
-    // sincronizamos el estado local con esos datos.
+    // Sincronizamos el estado local con userData cuando el casco está seleccionado
     const isSelected = refItem && refItem.groupRef === groupRef.current;
     useEffect(() => {
         if (refItem && isSelected) {
@@ -128,12 +128,10 @@ const AparadorFuncional = (
         }
     }, [refItem, isSelected, version]);
 
-    // Función para actualizar la configuración tanto en el estado local
-    // como en el userData del objeto Three.js
+    // Función para actualizar la configuración tanto en el estado local como en el userData
     const updateConfig = (key: string, value: any) => {
         setLocalConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
-            // Actualizamos el userData si existe
             if (refItem && refItem.groupRef) {
                 refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
                 if (refItem.groupRef.setVersion) {
@@ -155,15 +153,13 @@ const AparadorFuncional = (
     const offsetDepthTraseroDentro = actualTraseroDentro
         ? actualDepth
         : actualDepth - actualEspesor;
-    const actualRetranqueoTrasero =
-        localConfig.retranqueoTrasero ?? retranqueoTrasero;
-    const actualRetranquearSuelo =
-        localConfig.retranquearSuelo ?? retranquearSuelo;
-    const actualEsquinaXTriangulada =
-        localConfig.esquinaXTriangulada ?? esquinaXTriangulada;
-    const actualEsquinaZTriangulada =
-        localConfig.esquinaZTriangulada ?? esquinaZTriangulada;
+    const actualRetranqueoTrasero = localConfig.retranqueoTrasero ?? retranqueoTrasero;
+    const actualRetranquearSuelo = localConfig.retranquearSuelo ?? retranquearSuelo;
+    const actualEsquinaXTriangulada = localConfig.esquinaXTriangulada ?? esquinaXTriangulada;
+    const actualEsquinaZTriangulada = localConfig.esquinaZTriangulada ?? esquinaZTriangulada;
     const actualAlturaPatas = localConfig.alturaPatas || alturaPatas;
+    const actualRatiosHorizontales = localConfig.ratiosHorizontales ?? ratiosHorizontales; // Extraemos del estado
+    const actualRatiosVerticales = localConfig.ratiosVerticales ?? ratiosVerticales;     // Extraemos del estado
     let indiceActualPata = localConfig.indicePata ?? indicePata;
     const extraAltura = patas && indiceActualPata !== -1 ? actualAlturaPatas : 0;
     if (indiceActualPata > 0) indiceActualPata--;
@@ -238,7 +234,7 @@ const AparadorFuncional = (
                 (actualSueloDentro && !actualTraseroDentro
                     ? actualEspesor / 2
                     : 0) + (actualRetranquearSuelo ? actualRetranqueoTrasero / 2 : 0),
-            ] as [number, number, number],
+            ],
             techo: [
                 0,
                 actualHeight - actualEspesor / 2 + extraAltura,
@@ -249,17 +245,17 @@ const AparadorFuncional = (
                         : 0) - (actualEsquinaZTriangulada && actualTraseroDentro
                     ? actualEspesor / 2
                     : 0),
-            ] as [number, number, number],
+            ],
             izquierda: [
                 -mitadAncho + actualEspesor / 2,
                 alturaLaterales + extraAltura,
                 !actualTraseroDentro ? actualEspesor / 2 : 0,
-            ] as [number, number, number],
+            ],
             derecha: [
                 mitadAncho - actualEspesor / 2,
                 alturaLaterales + extraAltura,
                 !actualTraseroDentro ? actualEspesor / 2 : 0,
-            ] as [number, number, number],
+            ],
             trasero: [
                 0,
                 (actualHeight -
@@ -281,14 +277,14 @@ const AparadorFuncional = (
                     : actualEspesor) +
                 extraAltura,
                 -mitadProfundidad + actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero : 0),
-            ] as [number, number, number],
+            ],
             puerta: [
                 actualWidth / 2,
                 (actualHeight - actualEspesor - actualEspesor) / 2 +
                 actualEspesor +
                 extraAltura,
                 actualDepth / 2 + actualEspesor / 2,
-            ] as [number, number, number],
+            ],
         };
     };
 
@@ -300,16 +296,15 @@ const AparadorFuncional = (
         }
     };
 
-    const {refPiece, setRefPiece} = useSelectedPieceProvider();
+    const { refPiece, setRefPiece } = useSelectedPieceProvider();
 
     const handleSectionClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (groupRef.current && detectionBoxRef.current) {
             setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
-            setRefPiece(sectionDoor.current)
+            setRefPiece(sectionDoor.current);
         }
     };
-
 
     const dimensiones = calcularDimensiones();
     const posiciones = calcularPosiciones();
@@ -333,51 +328,97 @@ const AparadorFuncional = (
     const renderGridSections = () => {
         const seccionesX = localConfig.seccionesHorizontales;
         const seccionesY = localConfig.seccionesVerticales;
-        const sectionWidth = (actualWidth - actualEspesor * 2) / seccionesX;
-        const sectionHeight = (actualHeight - actualEspesor * 2) / seccionesY;
+
+        // Usar los ratios del estado local
+        const ratioArrayX = actualRatiosHorizontales
+            ? actualRatiosHorizontales.split('/').map(Number)
+            : Array(seccionesX).fill(1);
+        if (ratioArrayX.length !== seccionesX) {
+            console.warn(`Los ratios horizontales (${ratioArrayX.length}) no coinciden con seccionesX (${seccionesX}). Usando ratios por defecto.`);
+            ratioArrayX.length = 0;
+            ratioArrayX.push(...Array(seccionesX).fill(1));
+        }
+
+        const ratioArrayY = actualRatiosVerticales
+            ? actualRatiosVerticales.split('/').map(Number)
+            : Array(seccionesY).fill(1);
+        if (ratioArrayY.length !== seccionesY) {
+            console.warn(`Los ratios verticales (${ratioArrayY.length}) no coinciden con seccionesY (${seccionesY}). Usando ratios por defecto.`);
+            ratioArrayY.length = 0;
+            ratioArrayY.push(...Array(seccionesY).fill(1));
+        }
+
+        // Calcular anchos horizontales
+        const totalAvailableWidth = actualWidth - actualEspesor * 2;
+        const totalRatioX = ratioArrayX.reduce((sum, ratio) => sum + ratio, 0);
+        const unitWidth = totalAvailableWidth / totalRatioX;
+        const sectionWidths = ratioArrayX.map(ratio => ratio * unitWidth);
+
+        // Calcular alturas verticales
+        const totalAvailableHeight = actualHeight - actualEspesor - (actualSueloDentro ? 0 : actualEspesor);
+        const totalRatioY = ratioArrayY.reduce((sum, ratio) => sum + ratio, 0);
+        const unitHeight = totalAvailableHeight / totalRatioY;
+        const sectionHeights = ratioArrayY.map(ratio => ratio * unitHeight);
+
         const sectionDepth = actualDepth - actualEspesor - actualRetranqueoTrasero;
 
         const sections = [];
 
         for (let ix = 0; ix < seccionesX; ix++) {
             for (let iy = 0; iy < seccionesY; iy++) {
-                const x = -actualWidth / 2 + actualEspesor + sectionWidth / 2 + ix * sectionWidth;
-                const y = actualEspesor + sectionHeight / 2 + iy * sectionHeight + extraAltura;
+                // Calcular posición X (centro de la sección)
+                let x = -actualWidth / 2 + actualEspesor;
+                for (let i = 0; i < ix; i++) {
+                    x += sectionWidths[i];
+                }
+                x += sectionWidths[ix] / 2;
+
+                // Calcular posición Y (centro de la sección)
+                let y = (actualSueloDentro ? actualEspesor / 2 : actualEspesor) + extraAltura;
+                for (let i = 0; i < iy; i++) {
+                    y += sectionHeights[i];
+                }
+                y += sectionHeights[iy] / 2;
+
                 const z = actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0);
 
                 sections.push(
                     <group key={`grid-section-${ix}-${iy}g`}>
-                        <Cajon parentRef={groupRef} insideRef={detectionBoxRef}
-                               position={[x,y,z+sectionDepth/2-0.05/2]}
-                               width={sectionWidth-0.01} height={sectionHeight-0.01} depth={0.05}/>
+                        <Cajon
+                            parentRef={groupRef}
+                            insideRef={detectionBoxRef}
+                            position={[x, y, z + sectionDepth / 2 - 0.05 / 2]}
+                            width={sectionWidths[ix] - 0.01}
+                            height={sectionHeights[iy] - 0.01}
+                            depth={0.05}
+                        />
                         <mesh
                             key={`grid-section-${ix}-${iy}1`}
-                            position={[x, y+sectionHeight/2-0.005/2, z]}
+                            position={[x, y + sectionHeights[iy] / 2 - 0.005 / 2, z]}
                             material={materiales.Goma}
                         >
-                            <boxGeometry args={[sectionWidth - 0.01, 0.005, sectionDepth]} />
+                            <boxGeometry args={[sectionWidths[ix] - 0.01, 0.005, sectionDepth]} />
                         </mesh>
                         <mesh
                             key={`grid-section-${ix}-${iy}2`}
-                            position={[x, y-sectionHeight/2+0.005/2, z]}
+                            position={[x, y - sectionHeights[iy] / 2 + 0.005 / 2, z]}
                             material={materiales.Goma}
                         >
-                            <boxGeometry args={[sectionWidth - 0.01, 0.005, sectionDepth]} />
+                            <boxGeometry args={[sectionWidths[ix] - 0.01, 0.005, sectionDepth]} />
                         </mesh>
-
                         <mesh
                             key={`grid-section-${ix}-${iy}3`}
-                            position={[x+sectionWidth/2-0.005/2, y, z]}
+                            position={[x + sectionWidths[ix] / 2 - 0.005 / 2, y, z]}
                             material={materiales.Goma}
                         >
-                            <boxGeometry args={[0.005, sectionHeight, sectionDepth]} />
+                            <boxGeometry args={[0.005, sectionHeights[iy], sectionDepth]} />
                         </mesh>
                         <mesh
                             key={`grid-section-${ix}-${iy}4`}
-                            position={[x-sectionWidth/2+0.005/2, y, z]}
+                            position={[x - sectionWidths[ix] / 2 + 0.005 / 2, y, z]}
                             material={materiales.Goma}
                         >
-                            <boxGeometry args={[0.005, sectionHeight, sectionDepth]} />
+                            <boxGeometry args={[0.005, sectionHeights[iy], sectionDepth]} />
                         </mesh>
                     </group>
                 );
@@ -386,8 +427,6 @@ const AparadorFuncional = (
 
         return sections;
     };
-
-
 
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
@@ -475,19 +514,19 @@ const AparadorFuncional = (
                 {/* Renderizar patas */}
                 {patas && indiceActualPata !== -1 && patas[indiceActualPata] && (
                     <group>
-                        {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
+                        {React.cloneElement(patas[indiceActualPata], {
                             position: [-actualWidth / 2 + 0.1, position[1], -actualDepth / 2 + 0.1],
                             height: actualAlturaPatas,
                         })}
-                        {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
+                        {React.cloneElement(patas[indiceActualPata], {
                             position: [actualWidth / 2 - 0.1, position[1], -actualDepth / 2 + 0.1],
                             height: actualAlturaPatas,
                         })}
-                        {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
+                        {React.cloneElement(patas[indiceActualPata], {
                             position: [-actualWidth / 2 + 0.1, position[1], actualDepth / 2 - 0.1],
                             height: actualAlturaPatas,
                         })}
-                        {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
+                        {React.cloneElement(patas[indiceActualPata], {
                             position: [actualWidth / 2 - 0.1, position[1], actualDepth / 2 - 0.1],
                             height: actualAlturaPatas,
                         })}
@@ -497,7 +536,7 @@ const AparadorFuncional = (
                 {/* Renderizar puertas */}
                 {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
                     <>
-                        {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
+                        {React.cloneElement(puertas[indiceActualPuerta], {
                             parentRef: groupRef,
                             insideRef: detectionBoxRef,
                             position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
@@ -508,7 +547,7 @@ const AparadorFuncional = (
                         })}
                         {actualWidth > 2 && (
                             <>
-                                {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
+                                {React.cloneElement(puertas[indiceActualPuerta], {
                                     parentRef: groupRef,
                                     insideRef: detectionBoxRef,
                                     position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
@@ -521,25 +560,24 @@ const AparadorFuncional = (
                         )}
                     </>
                 )}
-
             </group>
-            <group
-                ref={detectionBoxRef}>
+            <group ref={detectionBoxRef}>
                 <mesh
-                    position={[0,actualHeight/2+extraAltura,actualRetranqueoTrasero/2]}
+                    position={[0, actualHeight / 2 + extraAltura, actualRetranqueoTrasero / 2]}
                     material={materiales.Transparent}
                 >
-                    <boxGeometry args={[actualWidth-actualEspesor*2, actualHeight-actualEspesor*2, actualDepth-actualEspesor/4-actualRetranqueoTrasero]}/>
+                    <boxGeometry
+                        args={[actualWidth - actualEspesor * 2, actualHeight - actualEspesor * 2, actualDepth - actualEspesor / 4 - actualRetranqueoTrasero]}
+                    />
                 </mesh>
             </group>
-
         </group>
     );
 };
 
 // Componente de alto nivel: el que actualiza el contexto únicamente si es el casco seleccionado.
 const AparadorWithContext = (props: any) => {
-    const { refItem, setRefItem, version} = useSelectedItemProvider();
+    const { refItem, setRefItem, version } = useSelectedItemProvider();
     const meshRef = useRef<any>(null);
     const materiales = useMaterial();
 
