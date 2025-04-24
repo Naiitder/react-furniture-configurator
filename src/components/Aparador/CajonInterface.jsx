@@ -12,7 +12,8 @@ const CajonConfigContent = () => {
 
     useEffect(() => {
         if (refCajon) {
-            // Se prioriza refItem.groupRef.userData, si existe
+
+            console.log(refCajon);
             const newConfig = refCajon && refCajon.userData
                 ? refCajon.userData
                 : (refCajon.userData || {});
@@ -58,6 +59,7 @@ const CajonConfigContent = () => {
                             options={[
                                 { label: "Transparente", value: -1 },
                                 { image: "./textures/dark.jpg", label: "Default", value: 0 },
+                                { image: "./textures/oak.jpg", label: "Oak", value: 1 },
                             ]}
                             currentValue={config.cajon}
                             onValueChange={(v) => updateConfig("cajon", v)}

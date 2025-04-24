@@ -67,13 +67,14 @@ const Cajon: React.FC<CajonProps> = ({
     useEffect(() => {
         if (ref.current) {
             ref.current.userData = {
+                ...ref.current.userData,
                 cajon
             };
         }
     }, [cajon]);
 
     const [extra, setExtra] = useState({
-        cajon
+        cajon: cajon || 0
     });
 
     useEffect(() => {
@@ -172,13 +173,18 @@ const Cajon: React.FC<CajonProps> = ({
 
     const materiales = useMaterial()
 
+    let materialBueno = materiales.WoodBatch;
+
+    if (cajon === 0) materialBueno = materiales.WoodBatch;
+    else if (cajon === -1) materialBueno = materiales.Transparent;
+    else if (cajon === 1) materialBueno = materiales.OakWood;
+
     return (
         <>
-            {cajon === 0 && (
                 <mesh
                     ref={ref}
                     position={position}
-                    material={materiales.WoodBatch}
+                    material={materialBueno}
                     rotation={rotation}
                     onClick={(event) => {
                         if (stopPropagation) event.stopPropagation();
@@ -189,33 +195,11 @@ const Cajon: React.FC<CajonProps> = ({
                         else {
                             setRefCajon(ref.current);
                             setVersionCajon(v => v + 1);
-                            console.log("userData after selection:", ref.current.userData);
                         }
                     }}
                 >
                     <boxGeometry key={`${adjustedWidth}-${adjustedHeight}-${adjustedDepth}`} args={[adjustedWidth, adjustedHeight, adjustedDepth]} />
                 </mesh>
-            )}
-            {cajon === -1 && (
-                <mesh
-                    ref={ref}
-                    position={position}
-                    material={materiales.Transparent}
-                    rotation={rotation}
-                    onClick={(event) => {
-                        if (stopPropagation) event.stopPropagation();
-                        if (refItem?.groupRef !== parentRef.current) {
-                            setRefCajon(null);
-                            setRefItem({ groupRef: parentRef.current, detectionRef: insideRef.current });
-                        }
-                        else {
-                            setRefCajon(ref.current);
-                        }
-                    }}
-                >
-                    <boxGeometry key={`${adjustedWidth}-${adjustedHeight}-${adjustedDepth}`} args={[adjustedWidth, adjustedHeight, adjustedDepth]} />
-                </mesh>
-            )}
         </>
     );
 };
