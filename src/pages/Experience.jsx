@@ -119,7 +119,7 @@ export const Experience = () => {
                 id: 'casco4',
                 name: 'Casco4',
                 position: [0, 0, 0],
-                rotation: [0, Math.PI, 0],
+                rotation: [0, 0, 0],
                 userData: { width: 1.54, height: .93, depth: .6, espesor: 0.05 },
                 patas: [<PataAparador height={.1} />],
                 puertas: [<Puerta />],
@@ -440,10 +440,10 @@ export const Experience = () => {
 
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0,2,5], fov: 35}}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
-                <Stage intensity={1} environment={"warehouse"} shadows="contact" adjustCamera={1}>
+                <Stage intensity={.1} environment={"warehouse"} shadows="contact" adjustCamera={1}>
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
