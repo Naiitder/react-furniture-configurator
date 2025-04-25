@@ -16,7 +16,7 @@ const PataAparador: React.FC<PataProps> = ({ position = [0, 0, 0], height, color
     return (
         <group>
             <group position={[position[0], position[1] + height / 2, position[2]]}>
-                <mesh  material={materials.Goma}>
+                <mesh  material={materials.Interior}>
                     <boxGeometry args={[0.075, height, 0.075]} />
                 </mesh>
             </group>

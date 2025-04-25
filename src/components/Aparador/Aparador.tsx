@@ -394,29 +394,29 @@ const AparadorFuncional = (
                         />
                         <mesh
                             key={`grid-section-${ix}-${iy}1`}
-                            position={[x, y + sectionHeights[iy] / 2 - 0.005 / 2, z]}
-                            material={materiales.Goma}
+                            position={[x, y + sectionHeights[iy] / 2 - 0.005 / 2, z-0.005]}
+                            material={materiales.Interior}
                         >
                             <boxGeometry args={[sectionWidths[ix] - 0.01, 0.005, sectionDepth]} />
                         </mesh>
                         <mesh
                             key={`grid-section-${ix}-${iy}2`}
-                            position={[x, y - sectionHeights[iy] / 2 + 0.005 / 2, z]}
-                            material={materiales.Goma}
+                            position={[x, y - sectionHeights[iy] / 2 + 0.005 / 2, z-0.005]}
+                            material={materiales.Interior}
                         >
                             <boxGeometry args={[sectionWidths[ix] - 0.01, 0.005, sectionDepth]} />
                         </mesh>
                         <mesh
                             key={`grid-section-${ix}-${iy}3`}
-                            position={[x + sectionWidths[ix] / 2 - 0.005 / 2, y, z]}
-                            material={materiales.Goma}
+                            position={[x + sectionWidths[ix] / 2 - 0.005 / 2, y, z-0.005]}
+                            material={materiales.Interior}
                         >
                             <boxGeometry args={[0.005, sectionHeights[iy], sectionDepth]} />
                         </mesh>
                         <mesh
                             key={`grid-section-${ix}-${iy}4`}
-                            position={[x - sectionWidths[ix] / 2 + 0.005 / 2, y, z]}
-                            material={materiales.Goma}
+                            position={[x - sectionWidths[ix] / 2 + 0.005 / 2, y, z-0.005]}
+                            material={materiales.Interior}
                         >
                             <boxGeometry args={[0.005, sectionHeights[iy], sectionDepth]} />
                         </mesh>
@@ -522,6 +522,9 @@ const AparadorFuncional = (
                             position: [actualWidth / 2 - 0.1, position[1], -actualDepth / 2 + 0.1],
                             height: actualAlturaPatas,
                         })}
+                        <mesh position={[-actualWidth/2 +0.1 , position[1]+actualAlturaPatas, actualDepth/256]} material={materiales.Interior}>
+                            <boxGeometry args={[.075,actualAlturaPatas/1.5,actualDepth-0.075*4]}  />
+                        </mesh>
                         {React.cloneElement(patas[indiceActualPata], {
                             position: [-actualWidth / 2 + 0.1, position[1], actualDepth / 2 - 0.1],
                             height: actualAlturaPatas,

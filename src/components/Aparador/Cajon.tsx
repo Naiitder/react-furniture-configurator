@@ -176,7 +176,7 @@ const Cajon: React.FC<CajonProps> = ({
     let materialBueno = materiales.WoodBatch;
 
     if (cajon === 0) materialBueno = materiales.WoodBatch;
-    else if (cajon === -1) materialBueno = materiales.Transparent;
+    else if (cajon === -1) materialBueno = materiales.Vidrio;
     else if (cajon === 1) materialBueno = materiales.OakWood;
 
     return (
