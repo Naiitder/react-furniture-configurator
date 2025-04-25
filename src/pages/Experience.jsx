@@ -13,7 +13,7 @@ import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import CascoSimple from "../components/CascoBrr/CascoSimple.js";
-import TablaConfigurationInterface from "../components/TablaConfiguratorInterface.jsx";
+import ChildItemConfigurationInterface from "../components/ChildItemConfigurationInterface.jsx";
 import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
 import PataAparador from "../components/Aparador/PataAparador.js";
@@ -455,7 +455,7 @@ export const Experience = () => {
 
 
             {refPiece && (
-                <TablaConfigurationInterface
+                <ChildItemConfigurationInterface
                     title="Tabla Configurator"
                     show={true}
                     setShow={true}
@@ -463,19 +463,13 @@ export const Experience = () => {
                     setMode={setTransformMode}
                 >
                     <TablaConfigContent />
-                </TablaConfigurationInterface>
+                </ChildItemConfigurationInterface>
             )}
 
             {refCajon && (
-                <TablaConfigurationInterface
-                    title="Cajon Configurator"
-                    show={true}
-                    setShow={true}
-                    mode={transformMode}
-                    setMode={setTransformMode}
-                >
+                <ChildItemConfigurationInterface title="Cajon Configurator">
                     <CajonConfigContent />
-                </TablaConfigurationInterface>
+                </ChildItemConfigurationInterface>
             )}
 
 

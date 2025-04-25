@@ -1,17 +1,15 @@
 import {Button, FloatButton, Space, Typography} from "antd";
-import {ArrowLeftOutlined, MoreOutlined} from "@ant-design/icons";
+import {ArrowLeftOutlined, EyeInvisibleOutlined, EyeOutlined, MoreOutlined} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import React, {useState} from "react";
 
 const { Title } = Typography;
 
-const TablaConfigurationInterface = ({
+const ChildItemConfigurationInterface = ({
                                          title,
                                          children,
                                          width = "300px",
-                                         show, setShow, mode, setMode
                                      }) => {
-    const navigate = useNavigate();
 
     const [visible, setVisible] = useState(true);
 
@@ -26,7 +24,7 @@ const TablaConfigurationInterface = ({
                 type="primary"
                 shape="circle"
                 size="large"
-                icon={<MoreOutlined />}
+                icon={visible ? <EyeOutlined /> : <EyeInvisibleOutlined />}
                 style={{
                     position: 'fixed',
                     top: '20px',
@@ -48,7 +46,9 @@ const TablaConfigurationInterface = ({
                     borderRadius: "8px",
                     margin: "10px",
                     boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
-                    zIndex: 20
+                    zIndex: 20,
+                    transition: "all 0.3s ease",
+                    opacity: visible ? 1 : 0,
                 }}
             >
 
@@ -61,5 +61,5 @@ const TablaConfigurationInterface = ({
     );
 };
 
-export default TablaConfigurationInterface;
+export default ChildItemConfigurationInterface;
 
