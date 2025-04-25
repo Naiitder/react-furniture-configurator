@@ -388,8 +388,8 @@ const AparadorFuncional = (
                             parentRef={groupRef}
                             insideRef={detectionBoxRef}
                             position={[x, y, z + sectionDepth / 2 - 0.05 / 2]}
-                            width={sectionWidths[ix] - 0.01}
-                            height={sectionHeights[iy] - 0.01}
+                            width={sectionWidths[ix] - 0.011}
+                            height={sectionHeights[iy] - 0.011} // Añado otro decimal para evitar clipping de intersecciones
                             depth={0.05}
                         />
                         <mesh
