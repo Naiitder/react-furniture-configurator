@@ -67,8 +67,8 @@ const AparadorFuncional = (
         version,
         seccionesHorizontales = 2,
         seccionesVerticales = 3,
-        ratiosHorizontales = "1/1", // Valor por defecto
-        ratiosVerticales = "1/1/1", // Valor por defecto
+        ratiosHorizontales = "1.4/1", // Valor por defecto
+        ratiosVerticales = "1.8/1.8/1", // Valor por defecto
     } = props;
 
     const groupRef = useRef<THREE.Group>(null);
@@ -385,6 +385,7 @@ const AparadorFuncional = (
                 sections.push(
                     <group key={`grid-section-${ix}-${iy}g`}>
                         <Cajon
+                            cajon={(ix == 0 && iy == 1) ? -1 : null}
                             parentRef={groupRef}
                             insideRef={detectionBoxRef}
                             position={[x, y, z + sectionDepth / 2 - 0.05 / 2]}

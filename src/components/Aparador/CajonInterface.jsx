@@ -57,7 +57,7 @@ const CajonConfigContent = () => {
                     <div style={{ marginTop: "10px" }}>
                         <ItemSelector
                             options={[
-                                { label: "Transparente", value: -1 },
+                                { label: "Cristal", value: -1 },
                                 { image: "./textures/dark.jpg", label: "Default", value: 0 },
                                 { image: "./textures/oak.jpg", label: "Oak", value: 1 },
                             ]}

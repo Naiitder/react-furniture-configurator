@@ -1,6 +1,5 @@
-import {Button, FloatButton, Space, Typography} from "antd";
-import {ArrowLeftOutlined, EyeInvisibleOutlined, EyeOutlined, MoreOutlined} from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import {FloatButton, Space, Typography} from "antd";
+import {EyeInvisibleOutlined, EyeOutlined, MoreOutlined} from "@ant-design/icons";
 import React, {useState} from "react";
 
 const { Title } = Typography;

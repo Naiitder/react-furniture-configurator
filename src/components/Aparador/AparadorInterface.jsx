@@ -31,7 +31,7 @@ const AparadorInterface = ({ show, setShow, mode, setMode }) => {
         indicePuerta: 1,
         seccionesHorizontales: 2,
         seccionesVerticales: 3,
-        ratiosHorizontales: "1/1",
+        ratiosHorizontales: "2/1",
         ratiosVerticales: "1/1/1",
     });
 
