@@ -48,6 +48,7 @@ const ChildItemConfigurationInterface = ({
                     zIndex: 20,
                     transition: "all 0.3s ease",
                     opacity: visible ? 1 : 0,
+                    display: visible ? "block" : "none",
                 }}
             >
 

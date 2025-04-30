@@ -523,11 +523,11 @@ const AparadorFuncional = (
                             position: [actualWidth / 2 - 0.1, position[1], -actualDepth / 2 + 0.1],
                             height: actualAlturaPatas,
                         })}
-                        <mesh position={[-actualWidth/2 +0.1 , position[1]+actualAlturaPatas, actualDepth/256]} material={materiales.Interior}>
-                            <boxGeometry args={[.075,actualAlturaPatas/1.5,actualDepth-0.075*4]}  />
+                        <mesh position={[-actualWidth/2 +0.1 , (position[1] + actualAlturaPatas) - (actualEspesor / 2.9), actualDepth/256]} material={materiales.Interior}>
+                            <boxGeometry args={[.075,actualAlturaPatas * 0.25,actualDepth-0.075*2]}  />
                         </mesh>
-                        <mesh position={[actualWidth/2 -0.1 , position[1]+actualAlturaPatas, actualDepth/256]} material={materiales.Interior}>
-                            <boxGeometry args={[.075,actualAlturaPatas/1.5,actualDepth-0.075*4]}  />
+                        <mesh position={[actualWidth/2 -0.1 , (position[1] + actualAlturaPatas) - (actualEspesor / 2.9), actualDepth/256]} material={materiales.Interior}>
+                            <boxGeometry args={[.075,actualAlturaPatas * 0.25 ,actualDepth-0.075*2]}  />
                         </mesh>
                         {React.cloneElement(patas[indiceActualPata], {
                             position: [0, position[1], 0],
