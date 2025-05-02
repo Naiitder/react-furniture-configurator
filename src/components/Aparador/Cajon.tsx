@@ -5,6 +5,7 @@ import BordeTriangular from "../Casco/BordeTriangular";
 import {useMaterial} from "../../assets/materials";
 import {useEffect, useRef, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
+import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 import {useSelectedCajonProvider} from "../../contexts/SelectedCajonProvider"
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
@@ -51,6 +52,7 @@ const Cajon: React.FC<CajonProps> = ({
                                          stopPropagation = true
                                      }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
 
     const {refCajon, setRefCajon, versionCajon, setVersionCajon} = useSelectedCajonProvider();
 
@@ -191,8 +193,10 @@ const Cajon: React.FC<CajonProps> = ({
                         if (refItem?.groupRef !== parentRef.current) {
                             setRefCajon(null);
                             setRefItem({ groupRef: parentRef.current, detectionRef: insideRef.current });
+                            setRefPiece(null);
                         }
                         else {
+                            setRefPiece(null);
                             setRefCajon(ref.current);
                             setVersionCajon(v => v + 1);
                         }
