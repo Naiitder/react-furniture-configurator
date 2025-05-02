@@ -181,6 +181,17 @@ const Cajon: React.FC<CajonProps> = ({
     else if (cajon === -1) materialBueno = materiales.Vidrio;
     else if (cajon === 1) materialBueno = materiales.OakWood;
 
+    const isSelected = refCajon != null && ref.current != null && refCajon === ref.current;
+    const borderRef = useRef<THREE.Group>(null);
+
+    useEffect(() => {
+        if (borderRef.current) {
+            borderRef.current.traverse((obj) => {
+                obj.raycast = () => null; // 🔕 Ignora clicks
+            });
+        }
+    }, [isSelected]);
+
     return (
         <>
                 <mesh
@@ -204,6 +215,23 @@ const Cajon: React.FC<CajonProps> = ({
                 >
                     <boxGeometry key={`${adjustedWidth}-${adjustedHeight}-${adjustedDepth}`} args={[adjustedWidth, adjustedHeight, adjustedDepth]} />
                 </mesh>
+            {isSelected && (
+                <group ref={borderRef} position={position}>
+                    <lineSegments>
+                        <edgesGeometry
+                            attach="geometry"
+                            args={[new THREE.BoxGeometry(adjustedWidth, adjustedHeight, adjustedDepth)]}
+                        />
+                        <lineBasicMaterial
+                            attach="material"
+                            color="#dedede"
+                            depthTest={false}
+                            transparent
+                            opacity={1}
+                        />
+                    </lineSegments>
+                </group>
+            )}
         </>
     );
 };
