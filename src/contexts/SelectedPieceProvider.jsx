@@ -1,28 +1,15 @@
 // En tu SelectedItemProvider.jsx
-import React, { createContext, useContext, useState, useRef } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 export const SelectedPieceContext = createContext();
 
 export function SelectedPieceProvider({ children }) {
-    const [refPiece, setRefInternal] = useState(null);
+    const [refPiece, setRefPiece] = useState(null);
+    const [version, setVersion] = useState(0);
 
-    const setRef = (newRef) => {
-        // Extrae cualquier componente React antes de guardarlo en el estado
-        const { ...serializableProps } = newRef;
-
-        // Guarda las propiedades serializables en el estado
-        setRefInternal(serializableProps);
-    };
-
-    // Función para obtener tanto props serializables como componentes
-    const getFullRef = () => {
-        return {
-            ...refPiece
-        };
-    };
 
     return (
-        <SelectedPieceContext.Provider value={{ refPiece, setRef, getFullRef }}>
+        <SelectedPieceContext.Provider value={{ refPiece, setRefPiece, version, setVersion }}>
             {children}
         </SelectedPieceContext.Provider>
     );

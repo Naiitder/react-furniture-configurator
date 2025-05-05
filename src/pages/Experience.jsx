@@ -1,27 +1,30 @@
 import {useRef, useState, useEffect} from "react";
 import {Canvas, useThree} from "@react-three/fiber";
-import {TransformControls, OrbitControls, Environment, Stage, OrthographicCamera} from "@react-three/drei";
+import {TransformControls, OrbitControls, Environment, Stage, OrthographicCamera, SpotLight} from "@react-three/drei";
 import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
-import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomaticas.tsx";
 import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
-import TransformControlPanel from "./TransformControlPanel";
 import {useDrop} from "react-dnd";
 import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
+import CascoSimple from "../components/CascoBrr/CascoSimple.js";
+import ChildItemConfigurationInterface from "../components/ChildItemConfigurationInterface.jsx";
+import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
-import CascoWithContext from "../components/Casco/Casco.js";
-import CascoSeccionesAutomaticasWithContext from "../components/Casco/CascoSeccionesAutomaticas.tsx";
+import PataAparador from "../components/Aparador/PataAparador.js";
+import Aparador from "../components/Aparador/Aparador.js";
+import AparadorInterface from "../components/Aparador/AparadorInterface.jsx";
+import {useSelectedCajonProvider} from "../contexts/SelectedCajonProvider.jsx";
+import CajonConfigContent from "../components/Aparador/CajonInterface.jsx";
 
-const RaycastClickLogger = ({glRef, cameraRef}) => {
-    const {camera, gl} = useThree();
-    const {ref} = useSelectedItemProvider();
-    const {refPiece} = useSelectedPieceProvider();
+const RaycastClickLogger = ({ glRef, cameraRef }) => {
+    const { camera, gl } = useThree();
+    const { refItem } = useSelectedItemProvider();
 
     useEffect(() => {
         if (glRef) glRef.current = gl;
@@ -37,10 +40,12 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
 
             raycaster.setFromCamera(mouse, camera);
 
-            console.log("REF", ref)
-            if (ref?.groupRef) {
-                console.log(ref.groupRef);
-                const intersects = raycaster.intersectObject(ref.groupRef, true);
+            // Asegurarse de que refItem sea un objeto Three.js válido
+            if (refItem) {
+                const intersects = refItem.detectionRef
+                    ? raycaster.intersectObject(refItem.detectionRef, true)
+                    : [];
+                console.log(refItem.detectionRef);
                 if (intersects.length > 0) {
                     console.log("👉 Intersección con Casco en:", intersects[0].point);
                 }
@@ -49,13 +54,13 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
 
         gl.domElement.addEventListener("mouseup", onClick);
         return () => gl.domElement.removeEventListener("mouseup", onClick);
-    }, [camera, gl, ref?.transparentBoxRef]);
+    }, [camera, gl, refItem]); // Añadimos refItem como dependencia
 
     return null;
 };
 
+
 export const Experience = () => {
-    const groupRef = useRef();
     const transformRef = useRef();
     const glRef = useRef();
     const cameraRef = useRef();
@@ -65,148 +70,114 @@ export const Experience = () => {
 
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
-    const [undoStack, setUndoStack] = useState([]);
-    const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
-    const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
+    const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
+    const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
+    const { refPiece, setRefPiece} = useSelectedPieceProvider();
+    const { refCajon} = useSelectedCajonProvider();
+    const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
+
+    // @Pruden
+    const [selectedCascoId, setSelectedCascoId] = useState(null);
+
 
     useEffect(() => {
-        let saved = false;
-        const checkAndSave = () => {
-            if (groupRef.current && !saved) {
-                saveTransformState();
-                saved = true;
-            } else {
-                requestAnimationFrame(checkAndSave);
-            }
-        };
-        requestAnimationFrame(checkAndSave);
+        setCascoInstances({
+            casco1: {
+                id: 'casco1',
+                name: 'Casco1',
+                position: [-3, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: { width: 2, height: 2, depth: 2, espesor: 0.3 },
+                patas: [<Pata height={1} />],
+                puertas: [<Puerta />],
+                seccionesHorizontales: [],
+                seccionesVerticales: [],
+            },
+            casco2: {
+                id: 'casco2',
+                name: 'Casco2',
+                position: [3, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: { width: 2, height: 2, depth: 3, espesor: 0.1 },
+                patas: [<Pata height={1} />],
+                puertas: [<Puerta />],
+                seccionesHorizontales: [],
+                seccionesVerticales: [],
+            },
+            casco3: {
+                id: 'casco3',
+                name: 'Casco3',
+                position: [0, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: { width: 2, height: 2, depth: 2, espesor: 0.1 },
+                patas: [<Pata height={1} />],
+                puertas: [<Puerta />],
+                seccionesHorizontales: [],
+                seccionesVerticales: [],
+            },
+            casco4: {
+                id: 'casco4',
+                name: 'Casco4',
+                position: [0, 0, 0],
+                rotation: [0, 0, 0],
+                userData: { width: 1.54, height: .93, depth: .6, espesor: 0.05 },
+                patas: [<PataAparador height={.1} />],
+                puertas: [<Puerta />],
+            },
+        });
     }, []);
 
-    const {ref: selectedItemProps, setRef} = useSelectedItemProvider();
-
-    const [originalScale] = useState({x: 1, y: 1, z: 1});
-    const [scaleDimensions, setScaleDimensions] = useState(originalScale)
-
-    // Guarda el estado actual del objeto
-    const saveTransformState = () => {
-        const obj = groupRef.current;
-        if (!obj || !selectedItemProps) return;
-
-        const state = {
-            position: obj.position.clone(),
-            rotation: obj.rotation.clone(),
-            scale: obj.scale.clone(),
-            dimensions: {
-                width: selectedItemProps.width,
-                height: selectedItemProps.height,
-                depth: selectedItemProps.depth
-            }
-        };
-
-        setUndoStack(prev => [...prev, state]);
+    // Actualizar refItem al hacer clic en un casco
+    const handleCascoClick = (selectedObject) => {
+        setRefItem(selectedObject);
     };
 
     useEffect(() => {
-        if (groupRef.current) saveTransformState();
-    }, [groupRef.current]);
-
-    // Capturar cambios en la escala cuando se usa TransformControls
-    useEffect(() => {
-        if (transformRef.current && groupRef.current) {
+        if (
+            transformRef.current &&
+            refItem &&
+            refItem.groupRef
+        ) {
             const controls = transformRef.current;
 
             const onObjectChange = () => {
-                if (groupRef.current && transformMode === 'scale' && selectedItemProps) {
-                    // Obtener la escala actual
-                    const newScale = groupRef.current.scale;
+                if (transformMode === "scale") {
+                    const newScale = refItem.groupRef.scale;
+                    const width = refItem.groupRef.userData.width || 2;
+                    const height = refItem.groupRef.userData.height || 2;
+                    const depth = refItem.groupRef.userData.depth || 2;
 
-                    // Calcular nuevas dimensiones basadas en la escala relativa
-                    const width = selectedItemProps.width || 1;
-                    const height = selectedItemProps.height || 1;
-                    const depth = selectedItemProps.depth || 1;
+                    const newWidth = Math.min(5, Math.max(1, width * newScale.x));
+                    const newHeight = Math.min(6, Math.max(1, height * newScale.y));
+                    const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
 
-                    const newWidth = Math.min(5, Math.max(1, width * (newScale.x / originalScale.x)));
-                    const newHeight = Math.min(6, Math.max(1, height * (newScale.y / originalScale.y)));
-                    const newDepth = Math.min(4, Math.max(1, depth * (newScale.z / originalScale.z)));
-
-                    setScaleDimensions({x: newWidth, y: newHeight, z: newDepth});
-
-                    // Actualizar el objeto seleccionado con las nuevas dimensiones
-                    setRef({
-                        ...selectedItemProps,
-                        width: newWidth,
-                        height: newHeight,
-                        depth: newDepth
-                    });
-
-                    // Restaurar la escala original
-                    groupRef.current.scale.set(originalScale.x, originalScale.y, originalScale.z);
+                    setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
+                    refItem.groupRef.userData = { ...refItem.groupRef.userData, width: newWidth, height: newHeight, depth: newDepth };
+                    refItem.groupRef.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                    setVersion((v) => v + 1);
                 }
             };
 
-            controls.addEventListener('objectChange', onObjectChange);
-            return () => controls.removeEventListener('objectChange', onObjectChange);
+            controls.addEventListener("objectChange", onObjectChange);
+            return () => controls.removeEventListener("objectChange", onObjectChange);
         }
-    }, [transformMode, selectedItemProps, setRef]);
-
-    // Escucha eventos del teclado
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === 'Escape') {
-                setTransformEnabled(false);
-            } else if (e.key.toLowerCase() === 'e') {
-                setTransformMode('rotate');
-                setTransformEnabled(true);
-            } else if (e.key.toLowerCase() === 'r') {
-                setTransformMode('scale');
-                setTransformEnabled(true);
-            } else if (e.key.toLowerCase() === 'w') {
-                setTransformMode('translate');
-                setTransformEnabled(true);
-            } else if (e.key.toLowerCase() === 'z' && (e.ctrlKey || e.metaKey)) {
-                setUndoStack(prev => {
-                    if (prev.length < 2) return prev;
-                    const newStack = [...prev];
-                    newStack.pop(); // Elimina el actual
-                    const last = newStack[newStack.length - 1];
-                    if (groupRef.current) {
-                        groupRef.current.position.copy(last.position);
-                        groupRef.current.rotation.copy(last.rotation);
+    }, [transformMode, refItem, version]);
 
 
-                        setRef({
-                            ...selectedItemProps,
-                            width: last.dimensions.width,
-                            height: last.dimensions.height,
-                            depth: last.dimensions.depth
-                        });
-
-                        setScaleDimensions({
-                            x: last.dimensions.width,
-                            y: last.dimensions.height,
-                            z: last.dimensions.depth
-                        });
-                    }
-                    return newStack;
-                });
-            }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, []);
-
-    const {ref} = useSelectedItemProvider();
-
-    const [{isOver}, drop] = useDrop(() => ({
+    const [{ isOver }, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         drop: (item, monitor) => {
             const clientOffset = monitor.getClientOffset();
             const gl = glRef.current;
             const camera = cameraRef.current;
 
-            if (!clientOffset || !gl || !camera || !ref?.groupRef) return;
+            if (!clientOffset || !gl || !camera || !refItem) return;
 
-            const {x, y} = clientOffset;
+            const cascoKey = refItem.groupRef.name;
+            const cascoData = cascoInstances[cascoKey];
+            if (!cascoData) return;
+
+            const { x, y } = clientOffset;
             const bounds = gl.domElement.getBoundingClientRect();
             const mouse = new THREE.Vector2(
                 ((x - bounds.left) / bounds.width) * 2 - 1,
@@ -216,158 +187,137 @@ export const Experience = () => {
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
 
-            const intersects = raycaster.intersectObject(ref.groupRef, true);
+            const intersects = refItem.detectionRef
+                ? raycaster.intersectObject(refItem.detectionRef, true)
+                : [];
+            if (intersects.length === 0) return;
 
-            if (intersects.length > 0) {
-                const point = intersects[0].point;
-                const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
+            const point = intersects[0].point;
+            const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
+            refItem.groupRef.updateMatrixWorld(true);
+            const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
 
-                ref.groupRef.updateMatrixWorld(true);
-                const localPosition = ref.groupRef.worldToLocal(worldPosition.clone());
+            const { width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor } = refItem.groupRef.userData;
 
-                const cascoWidth = ref?.width || 2;
-                const cascoHeight = ref?.height || 2;
-                const cascoDepth = ref?.depth || 2;
-                const espesor = ref?.espesor || 0.1;
+            let adjustedWidth = cascoWidth;
+            let adjustedHeight = cascoHeight;
+            let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
 
-                let adjustedWidth = cascoWidth;
-                let adjustedHeight = cascoHeight;
-                let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
+            const horizontalCubes = cascoData.seccionesHorizontales || [];
+            const verticalCubes = cascoData.seccionesVerticales || [];
 
-                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                    const relevantVerticals = droppedVerticalCubes.filter((cube) => {
-                        const cubeMinY = cube.relativePosition[1] * cascoHeight - (cube.relativeHeight * cascoHeight) / 2;
-                        const cubeMaxY = cube.relativePosition[1] * cascoHeight + (cube.relativeHeight * cascoHeight) / 2;
-                        return localPosition.y >= cubeMinY && localPosition.y <= cubeMaxY;
-                    });
+            if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
+                const relevantVerticals = verticalCubes.filter((cube) => {
+                    const cubeMinY = cube.relativePosition[1] * cascoHeight - (cube.relativeHeight * cascoHeight) / 2;
+                    const cubeMaxY = cube.relativePosition[1] * cascoHeight + (cube.relativeHeight * cascoHeight) / 2;
+                    return localPosition.y >= cubeMinY && localPosition.y <= cubeMaxY;
+                });
 
-                    const verticalSections = relevantVerticals
-                        .map((cube) => cube.relativePosition[0] * cascoWidth)
-                        .sort((a, b) => a - b);
+                const verticalSections = relevantVerticals
+                    .map((cube) => cube.relativePosition[0] * cascoWidth)
+                    .sort((a, b) => a - b);
 
-                    const boundaries = [
-                        (-cascoWidth) / 2,
-                        ...verticalSections,
-                        (cascoWidth) / 2,
-                    ];
+                const boundaries = [-cascoWidth / 2, ...verticalSections, cascoWidth / 2];
+                const leftBoundary = boundaries.filter((pos) => pos < localPosition.x).sort((a, b) => b - a)[0] || -cascoWidth / 2;
+                const rightBoundary = boundaries.filter((pos) => pos > localPosition.x).sort((a, b) => a - b)[0] || cascoWidth / 2;
 
-                    // Determinar los límites
-                    let leftBoundary = boundaries
-                        .filter((pos) => pos < localPosition.x)
-                        .sort((a, b) => b - a)[0] || -cascoWidth / 2;
-                    let rightBoundary = boundaries
-                        .filter((pos) => pos > localPosition.x)
-                        .sort((a, b) => a - b)[0] || cascoWidth / 2;
+                adjustedWidth = rightBoundary - leftBoundary;
+                adjustedPosition[0] = (leftBoundary + rightBoundary) / 2;
 
-                    // Calcular el ancho y la posición sin ajustes adicionales
-                    adjustedWidth = (rightBoundary - leftBoundary); // Simplemente la distancia entre los límites
-                    adjustedPosition[0] = (leftBoundary + rightBoundary) / 2; // Punto medio entre los límites
+                const exists = horizontalCubes.some((cube) => {
+                    const cubeX = cube.relativePosition[0] * cascoWidth;
+                    const cubeY = cube.relativePosition[1] * cascoHeight;
+                    const cubeWidth = cube.relativeWidth * cascoWidth;
+                    const cubeMinX = cubeX - cubeWidth / 2;
+                    const cubeMaxX = cubeX + cubeWidth / 2;
+                    const newMinX = adjustedPosition[0] - adjustedWidth / 2;
+                    const newMaxX = adjustedPosition[0] + adjustedWidth / 2;
+                    const sameY = Math.abs(cubeY - localPosition.y) < 0.1;
+                    const overlapsX = !(newMaxX <= cubeMinX || newMinX >= cubeMaxX);
+                    return sameY && overlapsX;
+                });
 
-                    console.log("Horizontal Pos Y", localPosition.y, "Adjusted Position Y", adjustedPosition[1]);
-
-                    // Verificar si ya existe una sección en esta posición
-                    const existingSection = droppedHorizontalCubes.find((cube) => {
-                        const cubeX = cube.relativePosition[0] * cascoWidth;
-                        const cubeY = cube.relativePosition[1] * cascoHeight;
-                        const cubeWidth = cube.relativeWidth * cascoWidth;
-
-                        const cubeMinX = cubeX - cubeWidth / 2;
-                        const cubeMaxX = cubeX + cubeWidth / 2;
-
-                        const newMinX = adjustedPosition[0] - adjustedWidth / 2;
-                        const newMaxX = adjustedPosition[0] + adjustedWidth / 2;
-
-                        const sameY = Math.abs(cubeY - localPosition.y) < 0.1;
-                        const overlapsX = !(newMaxX <= cubeMinX || newMinX >= cubeMaxX);
-
-                        return sameY && overlapsX;
-                    });
-
-                    if (existingSection) {
-                        console.warn("Ya existe una sección horizontal en esta posición Y");
-                        return;
-                    }
-                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                    const relevantHorizontals = droppedHorizontalCubes.filter((cube) => {
-                        const cubeX = cube.relativePosition[0] * cascoWidth;
-                        const cubeWidth = cube.relativeWidth * cascoWidth;
-                        const cubeMinX = cubeX - cubeWidth / 2;
-                        const cubeMaxX = cubeX + cubeWidth / 2;
-                        return localPosition.x >= cubeMinX && localPosition.x <= cubeMaxX;
-                    });
-
-                    const horizontalSections = relevantHorizontals
-                        .map((cube) => cube.relativePosition[1] * cascoHeight)
-                        .sort((a, b) => a - b);
-
-                    const boundaries = [
-                        0,
-                        ...horizontalSections,
-                        cascoHeight,
-                    ];
-
-                    let bottomBoundary = boundaries
-                        .filter((pos) => pos < localPosition.y)
-                        .sort((a, b) => b - a)[0] || 0;
-                    let topBoundary = boundaries
-                        .filter((pos) => pos > localPosition.y)
-                        .sort((a, b) => a - b)[0] || cascoHeight ;
-
-                    adjustedHeight = (topBoundary - bottomBoundary);
-                    adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
-
-                    const existingSection = droppedVerticalCubes.find((cube) => {
-                        const cubeX = cube.relativePosition[0] * cascoWidth;
-                        const cubeY = cube.relativePosition[1] * cascoHeight;
-                        const cubeHeight = cube.relativeHeight * cascoHeight;
-
-                        const cubeMinY = cubeY - cubeHeight / 2;
-                        const cubeMaxY = cubeY + cubeHeight / 2;
-
-                        const newMinY = adjustedPosition[1] - adjustedHeight / 2;
-                        const newMaxY = adjustedPosition[1] + adjustedHeight / 2;
-
-                        const sameX = Math.abs(cubeX - localPosition.x) < 0.1;
-                        const overlapsY = !(newMaxY <= cubeMinY || newMinY >= cubeMaxY);
-
-                        return sameX && overlapsY;
-                    });
-
-                    if (existingSection) {
-                        console.warn("Ya existe una sección vertical en esta posición X");
-                        return;
-                    }
-                }
-
-                const newCube = {
-                    id: Date.now(),
-                    relativePosition: [
-                        adjustedPosition[0] / cascoWidth,
-                        adjustedPosition[1] / cascoHeight,
-                        adjustedPosition[2] / cascoDepth
-                    ],
-                    relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
-                    relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
-                    relativeDepth: (cascoDepth - (ref?.traseroDentro ? ref?.retranqueoTrasero || 0 : 0)) / cascoDepth,
-                    color: item.color || "#8B4513",
-                };
-
-                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                    setDroppedHorizontalCubes((prev) => [...prev, newCube]);
-                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                    setDroppedVerticalCubes((prev) => [...prev, newCube]);
+                if (exists) {
+                    console.warn("Ya existe una sección horizontal en esta posición Y");
+                    return;
                 }
             }
+
+            if (item.type === INTERSECTION_TYPES.VERTICAL) {
+                const relevantHorizontals = horizontalCubes.filter((cube) => {
+                    const cubeX = cube.relativePosition[0] * cascoWidth;
+                    const cubeWidth = cube.relativeWidth * cascoWidth;
+                    const cubeMinX = cubeX - cubeWidth / 2;
+                    const cubeMaxX = cubeX + cubeWidth / 2;
+                    return localPosition.x >= cubeMinX && localPosition.x <= cubeMaxX;
+                });
+
+                const horizontalSections = relevantHorizontals
+                    .map((cube) => cube.relativePosition[1] * cascoHeight)
+                    .sort((a, b) => a - b);
+
+                const boundaries = [0, ...horizontalSections, cascoHeight];
+                const bottomBoundary = boundaries.filter((pos) => pos < localPosition.y).sort((a, b) => b - a)[0] || 0;
+                const topBoundary = boundaries.filter((pos) => pos > localPosition.y).sort((a, b) => a - b)[0] || cascoHeight;
+
+                adjustedHeight = topBoundary - bottomBoundary;
+                adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
+
+                const exists = verticalCubes.some((cube) => {
+                    const cubeX = cube.relativePosition[0] * cascoWidth;
+                    const cubeY = cube.relativePosition[1] * cascoHeight;
+                    const cubeHeight = cube.relativeHeight * cascoHeight;
+                    const cubeMinY = cubeY - cubeHeight / 2;
+                    const cubeMaxY = cubeY + cubeHeight / 2;
+                    const newMinY = adjustedPosition[1] - adjustedHeight / 2;
+                    const newMaxY = adjustedPosition[1] + adjustedHeight / 2;
+                    const sameX = Math.abs(cubeX - localPosition.x) < 0.1;
+                    const overlapsY = !(newMaxY <= cubeMinY || newMinY >= cubeMaxY);
+                    return sameX && overlapsY;
+                });
+
+                if (exists) {
+                    console.warn("Ya existe una sección vertical en esta posición X");
+                    return;
+                }
+            }
+
+            const newCube = {
+                id: Date.now(),
+                relativePosition: [
+                    adjustedPosition[0] / cascoWidth,
+                    adjustedPosition[1] / cascoHeight,
+                    adjustedPosition[2] / cascoDepth,
+                ],
+                relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
+                relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
+                relativeDepth: (cascoDepth - (refItem.userData?.traseroDentro ? refItem.userData?.retranqueoTrasero || 0 : 0)) / cascoDepth,
+                color: item.color || "#8B4513",
+            };
+
+            setCascoInstances((prev) => {
+                const updated = { ...prev };
+                const updatedCasco = { ...updated[cascoKey] };
+
+                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
+                    updatedCasco.seccionesHorizontales = [...horizontalCubes, newCube];
+                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
+                    updatedCasco.seccionesVerticales = [...verticalCubes, newCube];
+                }
+
+                updated[cascoKey] = updatedCasco;
+                return updated;
+            });
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
         }),
-    }), [ref, droppedHorizontalCubes, droppedVerticalCubes]);
-
+    }), [refItem, cascoInstances]);
 
     const interfaceComponents = {
         "Casco": (
             <CascoInterface
+                key={refItem?.groupRef?.uuid || "default"}
                 show={transformEnabled}
                 setShow={setTransformEnabled}
                 mode={transformMode}
@@ -382,47 +332,152 @@ export const Experience = () => {
                 mode={transformMode}
                 setMode={setTransformMode}
                 scaleDimensions={scaleDimensions}
+            />
+        ),
+        //@Pruden
+        "Casco brr": (
+            <CascoInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
+            />
 
+        ),
+        "Aparador":(
+            <AparadorInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
             />
         ),
     };
 
     const itemComponents = {
         "Casco": (
-            <group ref={groupRef}>
-                <CascoWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]} puertas={[<Puerta/>]}
-                       seccionesHorizontales={droppedHorizontalCubes} seccionesVerticales={droppedVerticalCubes}/>
-            </group>
+            <>
+                {Object.values(cascoInstances)
+                    .filter((casco) => ["casco1", "casco2", "casco3"].includes(casco.id))
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Casco
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                seccionesHorizontales={casco.seccionesHorizontales}
+                                seccionesVerticales={casco.seccionesVerticales}
+                            />
+                        </group>
+                    ))}
+            </>
         ),
-        "Casco Secciones": (
-            <group ref={groupRef}>
-                <CascoSeccionesAutomaticasWithContext rotation={[0, Math.PI, 0]} patas={[<Pata height={1}/>]}
-                                           puertas={[<Puerta/>]}/>
-            </group>
+
+        //@Pruden
+        "Casco brr": (
+            <>
+                <ambientLight intensity={0.5} />
+                <pointLight position={[10, 10, 10]} />
+
+                <group
+                    onPointerMissed={(e) => {
+                        if (selectedItem === "Casco brr") {
+                            e.stopPropagation();
+                            setSelectedCascoId(null);
+                        }
+                    }}
+                >
+                    <CascoSimple
+                        id="casco1"
+                        position={[0, 0, 0]}
+                        isSelected={selectedCascoId === "casco1"}
+                        onClick={() => setSelectedCascoId("casco1")}
+                    />
+                    <CascoSimple
+                        id="casco2"
+                        position={[10, 0, 0]}
+                        isSelected={selectedCascoId === "casco2"}
+                        onClick={() => setSelectedCascoId("casco2")}
+                    />
+                    <CascoSimple
+                        id="casco3"
+                        position={[-10, 0, 0]}
+                        isSelected={selectedCascoId === "casco3"}
+                        onClick={() => setSelectedCascoId("casco3")}
+                    />
+                </group>
+            </>
         ),
+        "Aparador": (
+            <>
+                {Object.values(cascoInstances)
+                    .filter((casco) => casco.id === "casco4")
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Aparador
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                indicePuerta = {-1}
+                                indicePata = {0}
+                            />
+                        </group>
+                    ))}
+            </>
+        ),
+
     };
 
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0,2,5], fov: 35}}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
-                <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
-                    <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
+                <Stage intensity={.1} environment={"warehouse"} shadows="contact" adjustCamera={1}>
                     {itemComponents[selectedItem]}
                 </Stage>
-                {transformEnabled && (
-                    <TransformControls
-                        ref={transformRef}
-                        object={groupRef}
-                        mode={transformMode}
-                        onMouseUp={saveTransformState}
-                    />
+                {transformEnabled && refItem && (
+                    <TransformControls ref={transformRef} object={ refPiece ? refPiece : refItem.groupRef} mode={transformMode} />
                 )}
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
             {interfaceComponents[selectedItem]}
-            <RoomConfigPanel/>
+
+
+            {refPiece && (
+                <ChildItemConfigurationInterface
+                    title="Tabla Configurator"
+                    show={true}
+                    setShow={true}
+                    mode={transformMode}
+                    setMode={setTransformMode}
+                >
+                    <TablaConfigContent />
+                </ChildItemConfigurationInterface>
+            )}
+
+            {refCajon && (
+                <ChildItemConfigurationInterface title="Cajon Configurator">
+                    <CajonConfigContent />
+                </ChildItemConfigurationInterface>
+            )}
+
+
+            <RoomConfigPanel />
         </>
     );
 };

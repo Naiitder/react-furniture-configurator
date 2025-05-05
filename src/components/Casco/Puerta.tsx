@@ -4,9 +4,11 @@ import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import {Pomo} from "./Pomo";
 import {useMaterial} from "../../assets/materials";
-import Caja from "./Caja"; // Asegúrate de importar el componente Caja
+import Tabla from "./Tabla"; // Asegúrate de importar el componente Tablon
 
 type PuertaProps = {
+    parentRef: React.Ref<any>;
+    insideRef: React.Ref<any>;
     position?: [number, number, number];
     width: number;
     height: number;
@@ -16,6 +18,7 @@ type PuertaProps = {
 };
 
 const Puerta: React.FC<PuertaProps> = ({
+    parentRef, insideRef,
                                            position = [0, 0, 0],
                                            width,
                                            height,
@@ -65,7 +68,9 @@ const Puerta: React.FC<PuertaProps> = ({
     return (
         <group position={position} onClick={handleClick}>
             <group position={[doorX, 0, doorZ]} rotation={[0, doorRotation, 0]}>
-                <Caja
+                <Tabla
+                    parentRef={parentRef}
+                    insideRef={insideRef}
                     ref={doorRef}
                     position={boxPosition}
                     width={width}

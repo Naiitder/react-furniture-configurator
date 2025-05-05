@@ -1,236 +1,117 @@
-import {Slider, Form, Space, Checkbox, Typography, Divider, Row, Col, Card, Select} from "antd";
+import { Slider, Form, Checkbox, Typography, Divider, Row, Col, Card, Select } from "antd";
 import BaseConfiguratorInterface from "../BaseConfiguratorInterface.jsx";
 import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
-import {useEffect, useState} from "react";
-import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
-import {HTML5Backend} from "react-dnd-html5-backend";
-import {DndProvider} from "react-dnd";
-import DraggableIntersection, {INTERSECTION_TYPES} from "./DraggableIntersection.js";
+import { useEffect, useState } from "react";
+import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
+import DraggableIntersection, { INTERSECTION_TYPES } from "./DraggableIntersection.js";
+import * as THREE from "three";
 
-const {Title} = Typography;
-import TransformControlPanel from "../../pages/TransformControlPanel.js";
+const { Title } = Typography;
 
-const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1, y: 1, z: 1} }) => {
-    const { ref, setRef } = useSelectedItemProvider();
+const CascoInterface = ({ show, setShow, mode, setMode}) => {
+    const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
 
-    // Inicializamos estados locales
-    const [width, setWidth] = useState(2);
-    const [height, setHeight] = useState(2);
-    const [depth, setDepth] = useState(2);
-    const [alturaPatas, setAlturaPatas] = useState(0.01);
-    const [espesor, setEspesor] = useState(0.1);
+    const [config, setConfig] = useState({
+        width: 2,
+        height: 2,
+        depth: 2,
+        espesor: 0.1,
+        alturaPatas: 0.01,
+        esquinaXTriangulada: false,
+        esquinaZTriangulada: false,
+        sueloDentro: false,
+        techoDentro: false,
+        traseroDentro: true,
+        retranquearSuelo: false,
+        retranqueoTrasero: 0,
+        texture: "./textures/oak.jpg",
+        indicePata: -1,
+        indicePuerta: 1,
+    });
 
-    // Estados para los sliders UI
-    const [widthSliderValue, setWidthSliderValue] = useState(200); // width * 100
-    const [heightSliderValue, setHeightSliderValue] = useState(200); // height * 100
-    const [depthSliderValue, setDepthSliderValue] = useState(200); // depth * 100
-    const [pataHeightSliderValue, setPataHeightSliderValue] = useState(1);
-    const [espesorSliderValue, setEspesorSliderValue] = useState(10);
-    const [retranqueoTraseroSliderValue, setRetranqueoTraseroSliderValue] = useState(0);
+    // Efecto para sincronizar la configuración de la interfaz:
+    // Si existe refItem.groupRef.userData, se toma esa información.
+    useEffect(() => {
+        if (refItem) {
+            // Se prioriza refItem.groupRef.userData, si existe
+            const newConfig = refItem.groupRef && refItem.groupRef.userData
+                ? refItem.groupRef.userData
+                : (refItem.userData || {});
+            console.log(refItem.groupRef.userData);
+            setConfig(prev => ({
+                ...prev,
+                ...newConfig,
+            }));
+        }
+    }, [refItem]);
 
-    const [esquinaXTriangulada, setEsquinaXTriangulada] = useState(false);
-    const [esquinaZTriangulada, setEsquinaZTriangulada] = useState(false);
-    const [sueloDentro, setSueloDentro] = useState(false);
-    const [techoDentro, setTechoDentro] = useState(false);
-    const [traseroDentro, setTraseroDentro] = useState(true);
-    const [retranquearSuelo, setRetranquearSuelo] = useState(false);
-    const [retranqueoTrasero, setRetranqueoTrasero] = useState(0);
-    const [texture, setTexture] = useState("./textures/oak.jpg");
+    // Función unificada para actualizar la configuración y modificar también el userData
+    // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)
+    const updateConfig = (key, value) => {
+        setConfig((prev) => {
+            const newConfig = { ...prev, [key]: value };
+            if (refItem) {
+                if (refItem.groupRef && refItem.groupRef.userData) {
+                    refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
+                } else {
+                    refItem.userData = { ...refItem.userData, [key]: value };
+                }
+                setVersion(version+1);
+            }
+            return newConfig;
+        });
+    };
 
     const [disabledOptions, setDisabledOptions] = useState(false);
     const [disableSueloDentro, setDisableSueloDentro] = useState(false);
 
-
-    const textureOptions = [
-        {image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg"},
-        {image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg"},
-    ];
-
-
-    const [indicePata, setIndicePata] = useState(-1);
-
-    const patasOptions = [
-        {label: "Ninguna", value: -1},
-        {image: "./images/ImagenPata.png", label: "Default", value: 1},
-    ];
-
-    const [indicePuerta, setIndicePuerta] = useState(1);
-
-    const puertaOptions = [
-        {label: "Ninguna", value: -1},
-        {image: "./textures/dark.jpg", label: "Default", value: 1},
-    ];
-
-    const espesorOptions = [
-        {label: "10", value: 10},
-        {label: "12", value: 12},
-        {label: "14", value: 14},
-        {label: "16", value: 16},
-        {label: "18", value: 18},
-        {label: "20", value: 20},
-        {label: "22", value: 22},
-    ]
-
-    // Inicializar el estado compartido al cargar la interfaz
+    // Efecto para ajustar opciones basadas en las relaciones de esquina
     useEffect(() => {
-        const initialConfig = {
-            width,
-            height,
-            depth,
-            espesor,
-            esquinaXTriangulada,
-            esquinaZTriangulada,
-            sueloDentro,
-            techoDentro,
-            traseroDentro,
-            retranqueoTrasero,
-            texture,
-            indicePata,
-            indicePuerta,
-        };
-
-        // Solo inicializamos si no existe o está vacío
-        if (!ref) {
-            setRef(initialConfig);
-        } else {
-            // Actualizamos el estado local con los valores del ref
-            const newWidth = ref.width || width;
-            const newHeight = ref.height || height;
-            const newDepth = ref.depth || depth;
-            const newPataHeight = ref.alturaPatas || alturaPatas;
-            const newEspesor = ref.espesor || espesor;
-            const newIndicePata = ref.indicePata ?? indicePata;
-            const newIndicePuerta = ref.indicePuerta ?? indicePuerta;
-
-            setWidth(newWidth);
-            setHeight(newHeight);
-            setDepth(newDepth);
-            setAlturaPatas(newPataHeight);
-            setEspesor(newEspesor);
-
-            setIndicePata(newIndicePata);
-            setIndicePuerta(newIndicePuerta);
-
-            // Actualizar también los valores de los sliders
-            setWidthSliderValue(newWidth);
-            setHeightSliderValue(newHeight);
-            setDepthSliderValue(newDepth * 100);
-            setPataHeightSliderValue(newPataHeight);
-            setEspesorSliderValue(newEspesor * 10);
-
-            setEsquinaXTriangulada(ref.esquinaXTriangulada || false);
-            setEsquinaZTriangulada(ref.esquinaZTriangulada || false);
-            setSueloDentro(ref.sueloDentro || false);
-            setTechoDentro(ref.techoDentro || false);
-            setRetranquearSuelo(ref.retranquearSuelo || false);
-            setTraseroDentro(ref.traseroDentro !== undefined ? ref.traseroDentro : true);
-
-            const newRetranqueoTrasero = ref.retranqueoTrasero || 0;
-            setRetranqueoTrasero(newRetranqueoTrasero);
-            setRetranqueoTraseroSliderValue(newRetranqueoTrasero);
-
-            setTexture(ref.texture || texture);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (!traseroDentro) {
-            setRetranquearSuelo(false);
-        }
-    }, [traseroDentro])
-
-    useEffect(() => {
-        setWidth(scaleDimensions.x);
-        setWidthSliderValue(scaleDimensions.x * 100);
-        setHeight(scaleDimensions.y);
-        setHeightSliderValue(scaleDimensions.y * 100);
-        setDepth(scaleDimensions.z);
-        setDepthSliderValue(scaleDimensions.z * 100);
-    }, [scaleDimensions]);
-
-    useEffect(() => {
-        if (!ref) return;
-
-        const updatedConfig = {
-            width,
-            height,
-            depth,
-            espesor,
-            esquinaXTriangulada,
-            esquinaZTriangulada,
-            sueloDentro,
-            techoDentro,
-            traseroDentro,
-            retranqueoTrasero,
-            retranquearSuelo,
-            texture,
-            indicePata,
-            alturaPatas,
-            indicePuerta,
-            groupRef: (ref.groupRef)
-        };
-
-        setRef(updatedConfig);
-    }, [
-        width, height, depth, alturaPatas, espesor,
-        esquinaXTriangulada, esquinaZTriangulada,
-        sueloDentro, techoDentro, traseroDentro, retranqueoTrasero, texture, indicePata, retranquearSuelo, indicePuerta,
-    ]);
-
-    // Logica para deshabilitar opciones
-    useEffect(() => {
-        const canUseOptions = (!esquinaXTriangulada && !esquinaZTriangulada);
+        const canUseOptions = !config.esquinaXTriangulada && !config.esquinaZTriangulada;
         setDisabledOptions(!canUseOptions);
 
         if (!canUseOptions) {
-            setSueloDentro(false);
-            setTechoDentro(false);
-            setTraseroDentro(true);
-            setRetranquearSuelo(false);
+            updateConfig("sueloDentro", false);
+            updateConfig("techoDentro", false);
+            updateConfig("traseroDentro", true);
+            updateConfig("retranquearSuelo", false);
         }
 
-        if (esquinaZTriangulada) {
-            setSueloDentro(false);
-            setTechoDentro(true);
+        if (config.esquinaZTriangulada) {
+            updateConfig("sueloDentro", false);
+            updateConfig("techoDentro", true);
         }
-    }, [esquinaXTriangulada, esquinaZTriangulada]);
+    }, [config.esquinaXTriangulada, config.esquinaZTriangulada]);
 
     useEffect(() => {
-        if (!retranquearSuelo) {
-            setDisableSueloDentro(false)
-            return
+        if (!config.retranquearSuelo) {
+            setDisableSueloDentro(false);
+            return;
         }
-
         setDisableSueloDentro(true);
-        setSueloDentro(true);
+        updateConfig("sueloDentro", true);
+    }, [config.retranquearSuelo]);
 
-    }, [retranquearSuelo]);
-
-
-    // Limitamos el offset trasero
+    // Limitamos el offset trasero basado en la profundidad
     useEffect(() => {
-        const maxOffset = depth / 3;
-        if (retranqueoTrasero > maxOffset) {
-            setRetranqueoTrasero(maxOffset);
-            setRetranqueoTraseroSliderValue(maxOffset);
+        const maxOffset = config.depth / 3;
+        if (config.retranqueoTrasero > maxOffset) {
+            updateConfig("retranqueoTrasero", maxOffset);
         }
-    }, [depth]);
+    }, [config.depth, config.retranqueoTrasero]);
 
     return (
         <BaseConfiguratorInterface title="Casco Configurator" show={show} setShow={setShow} mode={mode} setMode={setMode}>
-            {/* Configuración de dimensiones */}
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+            {/* Sección de dimensiones */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px" }}>
                 <Form>
                     <Form.Item label="Casco Width">
                         <Slider
                             min={100}
                             max={500}
-                            value={widthSliderValue}
-                            onChange={(v) => {
-                                setWidthSliderValue(v);
-                                setWidth(v / 100);
-                            }}
+                            value={config.width * 100}
+                            onChange={(v) => updateConfig("width", v / 100)}
                         />
                     </Form.Item>
                     <Form.Item label="Casco Height">
@@ -238,11 +119,8 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
                             step={1}
                             min={100}
                             max={600}
-                            value={heightSliderValue}
-                            onChange={(v) => {
-                                setHeightSliderValue(v);
-                                setHeight(v / 100);
-                            }}
+                            value={config.height * 100}
+                            onChange={(v) => updateConfig("height", v / 100)}
                         />
                     </Form.Item>
                     <Form.Item label="Casco Depth">
@@ -250,100 +128,101 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
                             step={1}
                             min={100}
                             max={400}
-                            value={depthSliderValue}
-                            onChange={(v) => {
-                                setDepthSliderValue(v);
-                                setDepth(v / 100);
-                            }}
+                            value={config.depth * 100}
+                            onChange={(v) => updateConfig("depth", v / 100)}
                         />
                     </Form.Item>
                     <Form.Item label="Espesor">
                         <Select
-                        options={espesorOptions}
-                        value={espesorSliderValue}
-                        onChange={(v) => {
-                            setEspesorSliderValue(v);
-                            setEspesor(v / 100);
-                        }}
+                            options={[
+                                { label: "10", value: 10 },
+                                { label: "12", value: 12 },
+                                { label: "14", value: 14 },
+                                { label: "16", value: 16 },
+                                { label: "18", value: 18 },
+                                { label: "20", value: 20 },
+                                { label: "22", value: 22 },
+                            ]}
+                            value={config.espesor * 100}
+                            onChange={(v) => updateConfig("espesor", v / 100)}
                         />
                     </Form.Item>
                 </Form>
             </div>
 
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+            {/* Sección de opciones adicionales */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
                 <Form>
+                    <Title level={4}>Opciones</Title>
                     <Form.Item label="45º X">
                         <Checkbox
-                            checked={esquinaXTriangulada}
-                            onChange={(e) => setEsquinaXTriangulada(e.target.checked)}
+                            checked={config.esquinaXTriangulada}
+                            onChange={(e) => updateConfig("esquinaXTriangulada", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="45º Z">
                         <Checkbox
-                            checked={esquinaZTriangulada}
-                            onChange={(e) => setEsquinaZTriangulada(e.target.checked)}
+                            checked={config.esquinaZTriangulada}
+                            onChange={(e) => updateConfig("esquinaZTriangulada", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Suelo dentro">
                         <Checkbox
                             disabled={disabledOptions || disableSueloDentro}
-                            checked={sueloDentro}
-                            onChange={(e) => setSueloDentro(e.target.checked)}
+                            checked={config.sueloDentro}
+                            onChange={(e) => updateConfig("sueloDentro", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Techo dentro">
                         <Checkbox
                             disabled={disabledOptions}
-                            checked={techoDentro}
-                            onChange={(e) => setTechoDentro(e.target.checked)}
+                            checked={config.techoDentro}
+                            onChange={(e) => updateConfig("techoDentro", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Trasero dentro">
                         <Checkbox
                             disabled={disabledOptions}
-                            checked={traseroDentro}
-                            onChange={(e) => setTraseroDentro(e.target.checked)}
+                            checked={config.traseroDentro}
+                            onChange={(e) => updateConfig("traseroDentro", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Retranquear suelo">
                         <Checkbox
-                            disabled={!traseroDentro || disabledOptions}
-                            checked={retranquearSuelo}
-                            onChange={(e) => setRetranquearSuelo(e.target.checked)}
+                            disabled={!config.traseroDentro || disabledOptions}
+                            checked={config.retranquearSuelo}
+                            onChange={(e) => updateConfig("retranquearSuelo", e.target.checked)}
                         />
                     </Form.Item>
                     <Form.Item label="Retranqueo Trasero">
                         <Slider
                             step={0.1}
-                            disabled={!traseroDentro}
+                            disabled={!config.traseroDentro}
                             min={0}
-                            max={depthSliderValue / 5}
-                            value={retranqueoTraseroSliderValue}
-                            onChange={(v) => {
-                                setRetranqueoTraseroSliderValue(v);
-                                setRetranqueoTrasero(v / 100);
-                            }}
+                            max={config.depth*100/3}
+                            value={config.retranqueoTrasero * 100}
+                            onChange={(v) => updateConfig("retranqueoTrasero", v / 100)}
                         />
                     </Form.Item>
                 </Form>
             </div>
 
-            {/* Configuración de textura */}
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+            {/* Sección de Texturas */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
                 <Form.Item label="Textura">
-                    <div style={{marginTop: "10px"}}>
-                        {/* Texturas predefinidas */}
+                    <div style={{ marginTop: "10px" }}>
                         <ItemSelector
-                            options={textureOptions}
-                            currentValue={texture}
-                            onValueChange={setTexture}
+                            options={[
+                                { image: "./textures/oak.jpg", label: "Standard", value: "./textures/oak.jpg" },
+                                { image: "./textures/dark.jpg", label: "Dark", value: "./textures/dark.jpg" },
+                            ]}
+                            currentValue={config.texture}
+                            onValueChange={(v) => updateConfig("texture", v)}
                         />
-
-                        {/* Carga de textura personalizada */}
-                        <div style={{marginTop: "10px"}}>
+                        <div style={{ marginTop: "10px" }}>
                             <TextureUploader
-                                onValueChange={setTexture}
-                                currentValue={texture}
+                                onValueChange={(v) => updateConfig("texture", v)}
+                                currentValue={config.texture}
                                 defaultTexture="./textures/oak.jpg"
                             />
                         </div>
@@ -351,54 +230,61 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
                 </Form.Item>
             </div>
 
-
-            {/* Configuración de componentes */}
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px"}}>
+            {/* Sección de Componentes (Patas y Puertas) */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
                 <Form>
                     <Title level={4}>Componentes</Title>
-
                     <Title level={5}>Patas</Title>
                     <Form.Item>
-                        <ItemSelector options={patasOptions} currentValue={indicePata}
-                                      onValueChange={setIndicePata}/>
+                        <ItemSelector
+                            options={[
+                                { label: "Ninguna", value: -1 },
+                                { image: "./images/ImagenPata.png", label: "Default", value: 1 },
+                            ]}
+                            currentValue={config.indicePata}
+                            onValueChange={(v) => updateConfig("indicePata", v)}
+                        />
                         <Form.Item label="Patas Height">
                             <Slider
-                                disabled={indicePata === -1}
+                                disabled={config.indicePata === -1}
                                 min={1}
                                 max={15}
-                                value={pataHeightSliderValue}
-                                onChange={(v) => {
-                                    setPataHeightSliderValue(v);
-                                    setAlturaPatas(v / 100);
-                                }}
+                                value={config.alturaPatas * 100}
+                                onChange={(v) => updateConfig("alturaPatas", v / 100)}
                             />
                         </Form.Item>
                     </Form.Item>
 
                     <Title level={5}>Puertas</Title>
                     <Form.Item>
-                        <ItemSelector options={puertaOptions} currentValue={indicePuerta}
-                                      onValueChange={setIndicePuerta}/>
+                        <ItemSelector
+                            options={[
+                                { label: "Ninguna", value: -1 },
+                                { image: "./textures/dark.jpg", label: "Default", value: 1 },
+                            ]}
+                            currentValue={config.indicePuerta}
+                            onValueChange={(v) => updateConfig("indicePuerta", v)}
+                        />
                     </Form.Item>
                 </Form>
             </div>
 
-            <div style={{padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px"}}>
+            {/* Sección de Intersecciones */}
+            <div style={{ padding: "16px", background: "#f0f2f5", borderRadius: "8px", marginTop: "16px" }}>
                 <Title level={4}>Intersecciones</Title>
                 <Form>
                     <Divider>Arrastra un conector a la escena</Divider>
-
                     <Row gutter={16} justify="center">
                         <Col>
                             <Card title="Conectores arrastrables" variant={"borderless"}>
                                 <p>Arrastra un conector al mueble para añadir una intersección:</p>
-                                <div style={{display: 'flex', justifyContent: 'center'}}>
-                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL}/>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.HORIZONTAL} />
                                 </div>
-                                <div style={{display: 'flex', justifyContent: 'center'}}>
-                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL}/>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <DraggableIntersection type={INTERSECTION_TYPES.VERTICAL} />
                                 </div>
-                                <p style={{marginTop: '10px', fontSize: '12px', color: 'gray'}}>
+                                <p style={{ marginTop: '10px', fontSize: '12px', color: 'gray' }}>
                                     Suelta el conector sobre el objeto para crear una conexión.
                                 </p>
                             </Card>
@@ -406,7 +292,6 @@ const CascoInterface = ({ show, setShow, mode, setMode, scaleDimensions = {x: 1,
                     </Row>
                 </Form>
             </div>
-
         </BaseConfiguratorInterface>
     );
 };
