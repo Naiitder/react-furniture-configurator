@@ -133,12 +133,15 @@ export const Experience = () => {
     };
 
     useEffect(() => {
-        if (transformRef.current && refItem.groupRef) {
+        if (
+            transformRef.current &&
+            refItem &&
+            refItem.groupRef
+        ) {
             const controls = transformRef.current;
+
             const onObjectChange = () => {
                 if (transformMode === "scale") {
-                    console.log(refItem);
-                    console.log("USERDATA", refItem.groupRef.userData);
                     const newScale = refItem.groupRef.scale;
                     const width = refItem.groupRef.userData.width || 2;
                     const height = refItem.groupRef.userData.height || 2;
@@ -151,9 +154,10 @@ export const Experience = () => {
                     setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
                     refItem.groupRef.userData = { ...refItem.groupRef.userData, width: newWidth, height: newHeight, depth: newDepth };
                     refItem.groupRef.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
-                    setVersion(version + 1);
+                    setVersion((v) => v + 1);
                 }
             };
+
             controls.addEventListener("objectChange", onObjectChange);
             return () => controls.removeEventListener("objectChange", onObjectChange);
         }

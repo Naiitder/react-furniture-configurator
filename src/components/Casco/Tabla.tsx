@@ -6,6 +6,7 @@ import {useMaterial} from "../../assets/materials";
 import {useEffect, useRef, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
+import {useSelectedCajonProvider} from "../../contexts/SelectedCajonProvider"
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
@@ -59,6 +60,7 @@ const Tabla: React.FC<TablaProps> = ({
                                    }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
+    const {refCajon, setRefCajon} = useSelectedCajonProvider();
 
     const initialData = {
         widthExtra,
@@ -204,10 +206,12 @@ const Tabla: React.FC<TablaProps> = ({
                         if (stopPropagation) event.stopPropagation();
                         if (refItem?.groupRef !== parentRef.current) {
                             setRefPiece(null);
+                            setRefCajon(null);
                             setRefItem({ groupRef: parentRef.current, detectionRef: insideRef.current });
                         }
                         else {
                             setRefPiece(ref.current);
+                            setRefCajon(null);
                         }
                     }}
                 >
