@@ -13,6 +13,7 @@ const furnitureCategories = [
     {key: "wardrobes", name: "Armarios"},
     {key: "cascos", name: "Cascos"},
     {key: "aparadores", name: "Aparadores"},
+    {key: "armarios", name: "Armarios"},
     {key: "beds", name: "Camas"},
 ];
 
@@ -43,6 +44,9 @@ const furnitureItems = {
     ],
     aparadores: [
         {name: "Aparador", image: "/images/aparador.jpg"},
+    ],
+    armarios: [
+        {name: "Armario", image: "/images/armario.jpg"},
     ],
     beds: [
         {name: "Cama king size", image: "/images/king-bed.jpg"},

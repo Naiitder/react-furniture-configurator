@@ -21,6 +21,8 @@ import Aparador from "../components/Aparador/Aparador.js";
 import AparadorInterface from "../components/Aparador/AparadorInterface.jsx";
 import {useSelectedCajonProvider} from "../contexts/SelectedCajonProvider.jsx";
 import CajonConfigContent from "../components/Aparador/CajonInterface.jsx";
+import Armario from "../components/Armario/Armario.js";
+import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -121,6 +123,15 @@ export const Experience = () => {
                 position: [0, 0, 0],
                 rotation: [0, 0, 0],
                 userData: { width: 1.54, height: .93, depth: .6, espesor: 0.05 },
+                patas: [<PataAparador height={.1} />],
+                puertas: [<Puerta />],
+            },
+            casco5: {
+                id: 'casco5',
+                name: 'Casco5',
+                position: [0, 0, 0],
+                rotation: [0, 0, 0],
+                userData: { width: 0.74, height: 1.23, depth: .37, espesor: 0.05 },
                 patas: [<PataAparador height={.1} />],
                 puertas: [<Puerta />],
             },
@@ -334,19 +345,17 @@ export const Experience = () => {
                 scaleDimensions={scaleDimensions}
             />
         ),
-        //@Pruden
-        "Casco brr": (
-            <CascoInterface
+        "Aparador":(
+            <AparadorInterface
                 show={transformEnabled}
                 setShow={setTransformEnabled}
                 mode={transformMode}
                 setMode={setTransformMode}
                 scaleDimensions={scaleDimensions}
             />
-
         ),
-        "Aparador":(
-            <AparadorInterface
+        "Armario":(
+            <ArmarioInterface
                 show={transformEnabled}
                 setShow={setTransformEnabled}
                 mode={transformMode}
@@ -380,42 +389,6 @@ export const Experience = () => {
                     ))}
             </>
         ),
-
-        //@Pruden
-        "Casco brr": (
-            <>
-                <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} />
-
-                <group
-                    onPointerMissed={(e) => {
-                        if (selectedItem === "Casco brr") {
-                            e.stopPropagation();
-                            setSelectedCascoId(null);
-                        }
-                    }}
-                >
-                    <CascoSimple
-                        id="casco1"
-                        position={[0, 0, 0]}
-                        isSelected={selectedCascoId === "casco1"}
-                        onClick={() => setSelectedCascoId("casco1")}
-                    />
-                    <CascoSimple
-                        id="casco2"
-                        position={[10, 0, 0]}
-                        isSelected={selectedCascoId === "casco2"}
-                        onClick={() => setSelectedCascoId("casco2")}
-                    />
-                    <CascoSimple
-                        id="casco3"
-                        position={[-10, 0, 0]}
-                        isSelected={selectedCascoId === "casco3"}
-                        onClick={() => setSelectedCascoId("casco3")}
-                    />
-                </group>
-            </>
-        ),
         "Aparador": (
             <>
                 {Object.values(cascoInstances)
@@ -423,6 +396,29 @@ export const Experience = () => {
                     .map((casco) => (
                         <group key={casco.id}>
                             <Aparador
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                indicePuerta = {-1}
+                                indicePata = {0}
+                            />
+                        </group>
+                    ))}
+            </>
+        ),
+        "Armario": (
+            <>
+                {Object.values(cascoInstances)
+                    .filter((casco) => casco.id === "casco5")
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Armario
                                 key={casco.id}
                                 id={casco.id}
                                 position={casco.position}
