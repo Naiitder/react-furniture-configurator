@@ -21,6 +21,9 @@ import Aparador from "../components/Aparador/Aparador.js";
 import AparadorInterface from "../components/Aparador/AparadorInterface.jsx";
 import {useSelectedCajonProvider} from "../contexts/SelectedCajonProvider.jsx";
 import CajonConfigContent from "../components/Aparador/CajonInterface.jsx";
+import MuebleFBX from "../components/Guzman/muebleFBX.js";
+import MuebleGLB from "../components/Guzman/muebleGLB.js";
+import ArmarioGuzman from "../components/Guzman/ArmarioGuzman.js";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -440,13 +443,20 @@ export const Experience = () => {
             </>
         ),
 
+        "Guzman": (
+            <>
+                <MuebleGLB url="/models/Prueba Guzman (1).glb" position={[1, 0, 0]} scale={0.01}/>
+                <MuebleGLB url="/models/Guzman.glb" position={[0, 0, 0]} />
+            </>
+        ),
+
     };
 
     return (
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0,2,5], fov: 35}}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
-                <Room positionY={3.5}/>
+                <Room positionY={0}/>
                 <Stage intensity={.1} environment={"warehouse"} shadows="contact" adjustCamera={1}>
                     {itemComponents[selectedItem]}
                 </Stage>
