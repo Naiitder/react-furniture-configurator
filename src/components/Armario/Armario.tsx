@@ -1,9 +1,9 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, {useRef, useEffect, useCallback, useState} from "react";
 import * as THREE from "three";
 import Tabla from "../Casco/Tabla";
-import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
-import { useMaterial } from "../../assets/materials";
-import { useSelectedPieceProvider } from "../../contexts/SelectedPieceProvider";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import {useMaterial} from "../../assets/materials";
+import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider";
 import Cajon from "../Aparador/Cajon";
 
 // Definición de los props para el componente Casco
@@ -69,7 +69,22 @@ const ArmarioFuncional = (
         version,
         cajonesHorizontales = 2,
         cajonesVerticales = 2,
-        seccionesHorizontales = [],
+        seccionesHorizontales = [
+            {
+                color:
+                    "#8B4513",
+                id:
+                    1746631569613,
+                relativeDepth:
+                    1,
+                relativeHeight:
+                    0.5,
+                relativePosition:
+                    [0, 0.7862836409860549, 0.48310809038780833],
+                relativeWidth:
+                    1,
+            }
+        ],
         seccionesVerticales = [],
         ratiosHorizontales = "1/1", // Valor por defecto
         ratiosVerticales = "1/1", // Valor por defecto
@@ -80,7 +95,7 @@ const ArmarioFuncional = (
     const horizontalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
     const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
 
-    const { refItem } = useSelectedItemProvider();
+    const {refItem} = useSelectedItemProvider();
 
     // Valores iniciales para este casco
     const initialData = {
@@ -109,7 +124,7 @@ const ArmarioFuncional = (
 
     useEffect(() => {
         if (groupRef.current && Object.keys(groupRef.current.userData).length === 0) {
-            groupRef.current.userData = { ...initialData };
+            groupRef.current.userData = {...initialData};
         }
 
         if (!groupRef.current.name && props.id) {
@@ -127,7 +142,7 @@ const ArmarioFuncional = (
                 const hasChanged = Object.keys(newConfig).some(
                     key => newConfig[key] !== prev[key]
                 );
-                return hasChanged ? { ...prev, ...newConfig } : prev;
+                return hasChanged ? {...prev, ...newConfig} : prev;
             });
         }
     }, [refItem, isSelected, version]);
@@ -135,9 +150,9 @@ const ArmarioFuncional = (
     // Función para actualizar la configuración tanto en el estado local como en el userData
     const updateConfig = (key: string, value: any) => {
         setLocalConfig((prev) => {
-            const newConfig = { ...prev, [key]: value };
+            const newConfig = {...prev, [key]: value};
             if (refItem && refItem.groupRef) {
-                refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
+                refItem.groupRef.userData = {...refItem.groupRef.userData, [key]: value};
                 if (refItem.groupRef.setVersion) {
                     refItem.groupRef.setVersion((prev: number) => prev + 1);
                 }
@@ -301,11 +316,11 @@ const ArmarioFuncional = (
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (groupRef.current && detectionBoxRef.current) {
-            setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
+            setContextRef({groupRef: groupRef.current, detectionRef: detectionBoxRef.current});
         }
     };
 
-    const { refPiece, setRefPiece } = useSelectedPieceProvider();
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
 
     const innerHeight = actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor);
 
@@ -361,77 +376,77 @@ const ArmarioFuncional = (
 
     const renderVerticalSections = () => {
 
-    return (seccionesVerticales || [])
-        // NOTE: Cuando hay una tabla horizontal y colocas vertical abajo el ry no se hace bien
-/*        .filter((cube: any) => {
-            const [_, ry] = cube.relativePosition;
-            return ry >= 0.5;  // Solo incluir secciones en la mitad superior
-        })*/
-        .map((cube: any) => {
-            const [rx, ry] = cube.relativePosition;
-            const touchesTopEdge =
-                Math.abs(ry * actualHeight + (cube.relativeHeight * actualHeight) / 2 - actualHeight) <
-                0.01;
+        return (seccionesVerticales || [])
+            // NOTE: Cuando hay una tabla horizontal y colocas vertical abajo el ry no se hace bien
+            /*        .filter((cube: any) => {
+                        const [_, ry] = cube.relativePosition;
+                        return ry >= 0.5;  // Solo incluir secciones en la mitad superior
+                    })*/
+            .map((cube: any) => {
+                const [rx, ry] = cube.relativePosition;
+                const touchesTopEdge =
+                    Math.abs(ry * actualHeight + (cube.relativeHeight * actualHeight) / 2 - actualHeight) <
+                    0.01;
 
-            const maxHeight = actualHeight / 2;
-            let originalHeight = cube.relativeHeight * actualHeight;
-            if (originalHeight > maxHeight) {
-                originalHeight = maxHeight;
-            }
-            const touchesBottomEdge = Math.abs(ry * actualHeight - maxHeight) < 0.01;
+                const maxHeight = actualHeight / 2;
+                let originalHeight = cube.relativeHeight * actualHeight;
+                if (originalHeight > maxHeight) {
+                    originalHeight = maxHeight;
+                }
+                const touchesBottomEdge = Math.abs(ry * actualHeight - maxHeight) < 0.01;
 
-            let adjustedHeight = originalHeight - actualEspesor / 2;
-            let adjustedYposition;
+                let adjustedHeight = originalHeight - actualEspesor / 2;
+                let adjustedYposition;
 
-            const positionBasedOnHeight = (maxHeight + actualHeight - (actualEspesor));
+                const positionBasedOnHeight = (maxHeight + actualHeight - (actualEspesor));
 
 
-            // No se hace correctamente touchesBottomEdge cuando hay placa horizontal encima y está
-            // entre la mitad del armario y el techo
+                // No se hace correctamente touchesBottomEdge cuando hay placa horizontal encima y está
+                // entre la mitad del armario y el techo
 
-            console.log("Toca fondo?:", touchesBottomEdge, "Toca arriba?", touchesTopEdge)
+                console.log("Toca fondo?:", touchesBottomEdge, "Toca arriba?", touchesTopEdge)
 
-            if (!touchesTopEdge && !touchesBottomEdge) {
-                adjustedHeight -= actualEspesor / 2;
-                adjustedYposition = ry * (actualHeight) + extraAltura;
-            } else if (touchesBottomEdge && !touchesTopEdge) {
-                adjustedHeight -= actualEspesor;
-                adjustedYposition = ry * (positionBasedOnHeight * 2) + extraAltura;
-            } else if (touchesTopEdge && !touchesBottomEdge) {
-                adjustedHeight -= actualEspesor;
-                adjustedYposition = ry * (actualHeight) - actualEspesor / 4 + extraAltura;
-            } else {
-                adjustedHeight -= actualEspesor / 2;
-                adjustedYposition = ry * positionBasedOnHeight + extraAltura;
-            }
+                if (!touchesTopEdge && !touchesBottomEdge) {
+                    adjustedHeight -= actualEspesor / 2;
+                    adjustedYposition = ry * (actualHeight) + extraAltura;
+                } else if (touchesBottomEdge && !touchesTopEdge) {
+                    adjustedHeight -= actualEspesor;
+                    adjustedYposition = ry * (positionBasedOnHeight * 2) + extraAltura;
+                } else if (touchesTopEdge && !touchesBottomEdge) {
+                    adjustedHeight -= actualEspesor;
+                    adjustedYposition = ry * (actualHeight) - actualEspesor / 4 + extraAltura;
+                } else {
+                    adjustedHeight -= actualEspesor / 2;
+                    adjustedYposition = ry * positionBasedOnHeight + extraAltura;
+                }
 
-            return (
-                <Tabla
-                    key={cube.id}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[
-                        rx * actualWidth,
-                        adjustedYposition,
-                        actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
-                    ]}
-                    width={actualEspesor}
-                    height={adjustedHeight}
-                    depth={
-                        cube.relativeDepth * actualDepth - actualRetranqueoTrasero - actualEspesor
-                    }
-                    material={materiales.OakWood}
-                    espesorBase={actualEspesor}
-                />
-            );
-        });
-};
+                return (
+                    <Tabla
+                        key={cube.id}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            rx * actualWidth,
+                            adjustedYposition,
+                            actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
+                        ]}
+                        width={actualEspesor}
+                        height={adjustedHeight}
+                        depth={
+                            cube.relativeDepth * actualDepth - actualRetranqueoTrasero - actualEspesor
+                        }
+                        material={materiales.OakWood}
+                        espesorBase={actualEspesor}
+                    />
+                );
+            });
+    };
 
     const handleSectionClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (groupRef.current && detectionBoxRef.current) {
-            setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
+            setContextRef({groupRef: groupRef.current, detectionRef: detectionBoxRef.current});
             setRefPiece(sectionDoor.current);
         }
     };
@@ -448,7 +463,7 @@ const ArmarioFuncional = (
                 const hasChanged = Object.keys(newConfig).some(
                     key => newConfig[key] !== prev[key]
                 );
-                return hasChanged ? { ...prev, ...newConfig } : prev;
+                return hasChanged ? {...prev, ...newConfig} : prev;
             });
         }
     }, [refItem, isSelected]);
@@ -485,7 +500,7 @@ const ArmarioFuncional = (
         const sectionWidths = ratioArrayX.map(ratio => ratio * unitWidth);
 
         // Calcular alturas verticales
-        const totalAvailableHeight = innerHeight/2 ;
+        const totalAvailableHeight = innerHeight / 2;
         const totalRatioY = ratioArrayY.reduce((sum, ratio) => sum + ratio, 0);
         const unitHeight = totalAvailableHeight / totalRatioY;
         const sectionHeights = ratioArrayY.map(ratio => ratio * unitHeight);
@@ -525,31 +540,31 @@ const ArmarioFuncional = (
                         />
                         <mesh
                             key={`grid-section-${ix}-${iy}1`}
-                            position={[x, y + sectionHeights[iy] / 2 - 0.005 / 2, z-0.005]}
+                            position={[x, y + sectionHeights[iy] / 2 - 0.005 / 2, z - 0.005]}
                             material={materiales.Interior}
                         >
-                            <boxGeometry args={[sectionWidths[ix] - 0.01, 0.005, sectionDepth]} />
+                            <boxGeometry args={[sectionWidths[ix] - 0.01, 0.005, sectionDepth]}/>
                         </mesh>
                         <mesh
                             key={`grid-section-${ix}-${iy}2`}
-                            position={[x, y - sectionHeights[iy] / 2 + 0.005 / 2, z-0.005]}
+                            position={[x, y - sectionHeights[iy] / 2 + 0.005 / 2, z - 0.005]}
                             material={materiales.Interior}
                         >
-                            <boxGeometry args={[sectionWidths[ix] - 0.01, 0.005, sectionDepth]} />
+                            <boxGeometry args={[sectionWidths[ix] - 0.01, 0.005, sectionDepth]}/>
                         </mesh>
                         <mesh
                             key={`grid-section-${ix}-${iy}3`}
-                            position={[x + sectionWidths[ix] / 2 - 0.005 / 2, y, z-0.005]}
+                            position={[x + sectionWidths[ix] / 2 - 0.005 / 2, y, z - 0.005]}
                             material={materiales.Interior}
                         >
-                            <boxGeometry args={[0.005, sectionHeights[iy], sectionDepth]} />
+                            <boxGeometry args={[0.005, sectionHeights[iy], sectionDepth]}/>
                         </mesh>
                         <mesh
                             key={`grid-section-${ix}-${iy}4`}
-                            position={[x - sectionWidths[ix] / 2 + 0.005 / 2, y, z-0.005]}
+                            position={[x - sectionWidths[ix] / 2 + 0.005 / 2, y, z - 0.005]}
                             material={materiales.Interior}
                         >
-                            <boxGeometry args={[0.005, sectionHeights[iy], sectionDepth]} />
+                            <boxGeometry args={[0.005, sectionHeights[iy], sectionDepth]}/>
                         </mesh>
                     </group>
                 );
@@ -653,11 +668,15 @@ const ArmarioFuncional = (
                             position: [actualWidth / 2 - 0.1, position[1], -actualDepth / 2 + 0.1],
                             height: actualAlturaPatas,
                         })}
-                        <mesh position={[-actualWidth/2 +0.1 , (position[1] + actualAlturaPatas -(actualAlturaPatas*0.25)/2), actualDepth/256]} material={materiales.Interior}>
-                            <boxGeometry args={[.075,actualAlturaPatas * 0.25,actualDepth-0.075*2]}  />
+                        <mesh
+                            position={[-actualWidth / 2 + 0.1, (position[1] + actualAlturaPatas - (actualAlturaPatas * 0.25) / 2), actualDepth / 256]}
+                            material={materiales.Interior}>
+                            <boxGeometry args={[.075, actualAlturaPatas * 0.25, actualDepth - 0.075 * 2]}/>
                         </mesh>
-                        <mesh position={[actualWidth/2 -0.1 , (position[1] + actualAlturaPatas -(actualAlturaPatas*0.25)/2), actualDepth/256]} material={materiales.Interior}>
-                            <boxGeometry args={[.075,actualAlturaPatas * 0.25 ,actualDepth-0.075*2]}  />
+                        <mesh
+                            position={[actualWidth / 2 - 0.1, (position[1] + actualAlturaPatas - (actualAlturaPatas * 0.25) / 2), actualDepth / 256]}
+                            material={materiales.Interior}>
+                            <boxGeometry args={[.075, actualAlturaPatas * 0.25, actualDepth - 0.075 * 2]}/>
                         </mesh>
                         {React.cloneElement(patas[indiceActualPata], {
                             position: [0, position[1], 0],
@@ -706,16 +725,68 @@ const ArmarioFuncional = (
                 <mesh
                     position={[
                         0,
-                        (actualSueloDentro ? 0 : actualEspesor) + extraAltura + (innerHeight/2) + (innerHeight/2) / 2,
+                        (actualSueloDentro ? 0 : actualEspesor) + extraAltura + (innerHeight / 2) + (innerHeight / 2) / 2,
                         actualRetranqueoTrasero / 2]}
                     material={materiales.Transparent}
                 >
                     <boxGeometry
-                        args={[actualWidth - actualEspesor * 2,innerHeight/2, actualDepth - actualEspesor / 4 - actualRetranqueoTrasero]}
+                        args={[actualWidth - actualEspesor * 2, innerHeight / 2, actualDepth - actualEspesor / 4 - actualRetranqueoTrasero]}
                     />
                 </mesh>
             </group>
-{/*
+            <group>
+                <Tabla
+                    parentRef={groupRef}
+                    insideRef={detectionBoxRef}
+                    espesorBase={espesor}
+                    position={[
+                        -((actualWidth / 2) - actualEspesor),
+                        (actualHeight / 2) + extraAltura,
+                        (actualDepth / 2) + (actualEspesor / 2)
+                    ]}
+                    width={actualEspesor * 2}
+                    height={actualHeight}
+                    depth={actualEspesor}
+                    material={materiales.WoodBatch}
+                    posicionCaja="left"
+                    shape={"box"}
+                />
+
+                <Tabla
+                    parentRef={groupRef}
+                    insideRef={detectionBoxRef}
+                    espesorBase={espesor}
+                    position={[
+                        ((actualWidth / 2) - actualEspesor),
+                        (actualHeight / 2) + extraAltura,
+                        (actualDepth / 2) + (actualEspesor / 2)
+                    ]}
+                    width={actualEspesor * 2}
+                    height={actualHeight}
+                    depth={actualEspesor}
+                    material={materiales.WoodBatch}
+                    posicionCaja="right"
+                    shape={"box"}
+                />
+
+                <Tabla
+                    parentRef={groupRef}
+                    insideRef={detectionBoxRef}
+                    espesorBase={espesor}
+                    position={[
+                        0,
+                        (actualHeight - (actualEspesor)) + extraAltura,
+                        (actualDepth / 2) + (actualEspesor / 2)
+                    ]}
+                    width={actualWidth - (actualEspesor ) * 4}
+                    height={actualEspesor * 2}
+                    depth={actualEspesor}
+                    material={materiales.WoodBatch}
+                    posicionCaja="top"
+                    shape={"box"}
+                />
+            </group>
+            {/*
             <group >
                 <mesh
                     position={[
@@ -749,7 +820,7 @@ const ArmarioFuncional = (
 
 // Componente de alto nivel: el que actualiza el contexto únicamente si es el casco seleccionado.
 const ArmarioWithContext = (props: any) => {
-    const { refItem, setRefItem, version } = useSelectedItemProvider();
+    const {refItem, setRefItem, version} = useSelectedItemProvider();
     const meshRef = useRef<any>(null);
     const materiales = useMaterial();
 

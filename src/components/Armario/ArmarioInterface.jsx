@@ -17,7 +17,7 @@ const ArmarioInterface = ({ show, setShow, mode, setMode }) => {
         width: 1.54,
         height: 0.93,
         depth: 2,
-        espesor: 0.05,
+        espesor: 0.02,
         alturaPatas: 0.01,
         esquinaXTriangulada: false,
         esquinaZTriangulada: false,

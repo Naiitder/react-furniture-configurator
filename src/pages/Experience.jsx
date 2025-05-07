@@ -131,9 +131,53 @@ export const Experience = () => {
                 name: 'Casco5',
                 position: [0, 0, 0],
                 rotation: [0, 0, 0],
-                userData: { width: 0.74, height: 1.23, depth: .37, espesor: 0.05 },
-                seccionesHorizontales: [],
-                seccionesVerticales: [],
+                userData: { width: 0.74, height: 1.23, depth: .37, espesor: 0.02 },
+                seccionesHorizontales: [
+                    {
+                        color:
+                            "#8B4513",
+                        id:
+                            1746631569613,
+                        relativeDepth:
+                            1,
+                        relativeHeight:
+                            0.05,
+                        relativePosition:
+                            [0, 0.75, 0.5],
+                        relativeWidth:
+                            1,
+                    }
+                ],
+                seccionesVerticales: [
+                    {
+                        color:
+                            "#8B4513",
+                        id:
+                            343243234,
+                        relativeDepth:
+                            1,
+                        relativeHeight:
+                            0.27,
+                        relativePosition:
+                            [0, 0.615, 0.5],
+                        relativeWidth:
+                            1,
+                    },
+                    {
+                        color:
+                            "#8B4513",
+                        id:
+                            23425332,
+                        relativeDepth:
+                            1,
+                        relativeHeight:
+                            0.24,
+                        relativePosition:
+                            [0, 0.87, 0.5],
+                        relativeWidth:
+                            1,
+                    }
+                ],
                 patas: [<PataAparador height={.1} />],
                 puertas: [<Puerta />],
             },
