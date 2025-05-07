@@ -31,8 +31,8 @@ const ArmarioInterface = ({ show, setShow, mode, setMode }) => {
         indicePuerta: 1,
         cajonesHorizontales: 2,
         cajonesVerticales: 3,
-        ratiosHorizontales: "2/1",
-        ratiosVerticales: "1/1/1",
+        ratiosHorizontales: "1/1",
+        ratiosVerticales: "1/1",
     });
 
     // Efecto para sincronizar la configuración de la interfaz

@@ -71,8 +71,8 @@ const ArmarioFuncional = (
         cajonesVerticales = 2,
         seccionesHorizontales = [],
         seccionesVerticales = [],
-        ratiosHorizontales = "1.4/1", // Valor por defecto
-        ratiosVerticales = "1.8/1.8/1", // Valor por defecto
+        ratiosHorizontales = "1/1", // Valor por defecto
+        ratiosVerticales = "1/1", // Valor por defecto
     } = props;
 
     const groupRef = useRef<THREE.Group>(null);
@@ -360,29 +360,49 @@ const ArmarioFuncional = (
     };
 
     const renderVerticalSections = () => {
-        return (seccionesVerticales || []).map((cube: any) => {
+
+    return (seccionesVerticales || [])
+        // NOTE: Cuando hay una tabla horizontal y colocas vertical abajo el ry no se hace bien
+/*        .filter((cube: any) => {
+            const [_, ry] = cube.relativePosition;
+            return ry >= 0.5;  // Solo incluir secciones en la mitad superior
+        })*/
+        .map((cube: any) => {
             const [rx, ry] = cube.relativePosition;
             const touchesTopEdge =
                 Math.abs(ry * actualHeight + (cube.relativeHeight * actualHeight) / 2 - actualHeight) <
                 0.01;
-            const touchesBottomEdge =
-                Math.abs(ry * actualHeight - (cube.relativeHeight * actualHeight) / 2) < 0.01;
 
-            let adjustedHeight = cube.relativeHeight * actualHeight - actualEspesor / 2;
-            let adjustedYposition = 0;
+            const maxHeight = actualHeight / 2;
+            let originalHeight = cube.relativeHeight * actualHeight;
+            if (originalHeight > maxHeight) {
+                originalHeight = maxHeight;
+            }
+            const touchesBottomEdge = Math.abs(ry * actualHeight - maxHeight) < 0.01;
+
+            let adjustedHeight = originalHeight - actualEspesor / 2;
+            let adjustedYposition;
+
+            const positionBasedOnHeight = (maxHeight + actualHeight - (actualEspesor));
+
+
+            // No se hace correctamente touchesBottomEdge cuando hay placa horizontal encima y está
+            // entre la mitad del armario y el techo
+
+            console.log("Toca fondo?:", touchesBottomEdge, "Toca arriba?", touchesTopEdge)
 
             if (!touchesTopEdge && !touchesBottomEdge) {
                 adjustedHeight -= actualEspesor / 2;
-                adjustedYposition = ry * actualHeight + extraAltura;
+                adjustedYposition = ry * (actualHeight) + extraAltura;
             } else if (touchesBottomEdge && !touchesTopEdge) {
                 adjustedHeight -= actualEspesor;
-                adjustedYposition = ry * actualHeight + actualEspesor / 4 + extraAltura;
+                adjustedYposition = ry * (positionBasedOnHeight * 2) + extraAltura;
             } else if (touchesTopEdge && !touchesBottomEdge) {
                 adjustedHeight -= actualEspesor;
-                adjustedYposition = ry * actualHeight - actualEspesor / 4 + extraAltura;
+                adjustedYposition = ry * (actualHeight) - actualEspesor / 4 + extraAltura;
             } else {
-                adjustedHeight -= actualEspesor * 1.5;
-                adjustedYposition = ry * actualHeight + extraAltura;
+                adjustedHeight -= actualEspesor / 2;
+                adjustedYposition = ry * positionBasedOnHeight + extraAltura;
             }
 
             return (
@@ -406,7 +426,7 @@ const ArmarioFuncional = (
                 />
             );
         });
-    };
+};
 
     const handleSectionClick = (event: React.PointerEvent) => {
         event.stopPropagation();
@@ -695,6 +715,7 @@ const ArmarioFuncional = (
                     />
                 </mesh>
             </group>
+{/*
             <group >
                 <mesh
                     position={[
@@ -719,6 +740,7 @@ const ArmarioFuncional = (
                     />
                 </mesh>
             </group>
+*/}
             {renderHorizontalSections()}
             {renderVerticalSections()}
         </group>
