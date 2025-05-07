@@ -307,6 +307,8 @@ const ArmarioFuncional = (
 
     const { refPiece, setRefPiece } = useSelectedPieceProvider();
 
+    const innerHeight = actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor);
+
     const renderHorizontalSections = () => {
         return (seccionesHorizontales || []).map((cube: any) => {
             const [rx, ry] = cube.relativePosition;
@@ -432,8 +434,6 @@ const ArmarioFuncional = (
     }, [refItem, isSelected]);
 
     const sectionDoor = useRef(null);
-
-    const innerHeight = actualHeight - (actualSueloDentro ? 0 : actualEspesor) - (actualTechoDentro ? 0 : actualEspesor);
 
     const renderGridSections = () => {
         const seccionesX = localConfig.cajonesHorizontales;
@@ -692,6 +692,30 @@ const ArmarioFuncional = (
                 >
                     <boxGeometry
                         args={[actualWidth - actualEspesor * 2,innerHeight/2, actualDepth - actualEspesor / 4 - actualRetranqueoTrasero]}
+                    />
+                </mesh>
+            </group>
+            <group >
+                <mesh
+                    position={[
+                        0,
+                        (actualSueloDentro ? 0 : actualEspesor) + extraAltura + (innerHeight/2) + (innerHeight/2) / 2,
+                        actualRetranqueoTrasero / 2]}
+                    material={materiales.OakWood}
+                >
+                    <boxGeometry
+                        args={[actualEspesor,innerHeight/2, actualDepth - actualEspesor / 4 - actualRetranqueoTrasero]}
+                    />
+                </mesh>
+                <mesh
+                    position={[
+                        0,
+                        (actualSueloDentro ? 0 : actualEspesor) + extraAltura + (innerHeight/2) + (innerHeight/2) / 2,
+                        actualRetranqueoTrasero / 2]}
+                    material={materiales.OakWood}
+                >
+                    <boxGeometry
+                        args={[actualWidth - actualEspesor * 2,actualEspesor, actualDepth - actualEspesor / 4 - actualRetranqueoTrasero]}
                     />
                 </mesh>
             </group>

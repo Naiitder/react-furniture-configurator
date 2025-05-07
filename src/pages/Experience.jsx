@@ -132,6 +132,8 @@ export const Experience = () => {
                 position: [0, 0, 0],
                 rotation: [0, 0, 0],
                 userData: { width: 0.74, height: 1.23, depth: .37, espesor: 0.05 },
+                seccionesHorizontales: [],
+                seccionesVerticales: [],
                 patas: [<PataAparador height={.1} />],
                 puertas: [<Puerta />],
             },
@@ -424,6 +426,8 @@ export const Experience = () => {
                                 position={casco.position}
                                 rotation={casco.rotation}
                                 {...casco.userData}
+                                seccionesHorizontales={casco.seccionesHorizontales}
+                                seccionesVerticales={casco.seccionesVerticales}
                                 patas={casco.patas}
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
