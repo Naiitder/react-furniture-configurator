@@ -329,7 +329,7 @@ const BodegueroFuncional = (
                     depth={
                         cube.relativeDepth * actualDepth - actualRetranqueoTrasero - actualEspesor
                     }
-                    material={materiales.OakWood}
+                    material={materiales.Maya}
                     espesorBase={actualEspesor}
                 />
             );
@@ -378,7 +378,7 @@ const BodegueroFuncional = (
                     depth={
                         cube.relativeDepth * actualDepth - actualRetranqueoTrasero - actualEspesor
                     }
-                    material={materiales.OakWood}
+                    material={materiales.Maya}
                     espesorBase={actualEspesor}
                 />
             );
@@ -425,7 +425,7 @@ const BodegueroFuncional = (
                     width={dimensiones.suelo.width}
                     height={dimensiones.suelo.height}
                     depth={dimensiones.suelo.depth}
-                    material={materiales.OakWood}
+                    material={materiales.Nogal}
                     posicionCaja="bottom"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                     bordeEjeY={false}
@@ -440,7 +440,7 @@ const BodegueroFuncional = (
                     width={dimensiones.lateral.width}
                     height={dimensiones.lateral.height}
                     depth={dimensiones.lateral.depth}
-                    material={materiales.DarkWood}
+                    material={materiales.Nogal}
                     posicionCaja="left"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
@@ -454,7 +454,7 @@ const BodegueroFuncional = (
                     width={dimensiones.lateral.width}
                     height={dimensiones.lateral.height}
                     depth={dimensiones.lateral.depth}
-                    material={materiales.DarkWood}
+                    material={materiales.Nogal}
                     posicionCaja="right"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
@@ -468,7 +468,7 @@ const BodegueroFuncional = (
                     width={dimensiones.trasero.width}
                     height={dimensiones.trasero.height}
                     depth={dimensiones.trasero.depth}
-                    material={materiales.DarkWood}
+                    material={materiales.Nogal}
                     shape="box"
                 />
 
@@ -481,7 +481,7 @@ const BodegueroFuncional = (
                     width={dimensiones.techo.width}
                     height={dimensiones.techo.height}
                     depth={dimensiones.techo.depth}
-                    material={materiales.OakWood}
+                    material={materiales.Nogal}
                     posicionCaja="top"
                     shape={actualEsquinaXTriangulada || actualEsquinaZTriangulada ? "trapezoid" : "box"}
                     bordeEjeY={false}
@@ -548,7 +548,7 @@ const BodegueroFuncional = (
                     width={actualEspesor * 2}
                     height={actualHeight}
                     depth={actualEspesor}
-                    material={materiales.WoodBatch}
+                    material={materiales.Nogal}
                     posicionCaja="left"
                     shape={"box"}
                 />
@@ -565,7 +565,7 @@ const BodegueroFuncional = (
                     width={actualEspesor * 2}
                     height={actualHeight}
                     depth={actualEspesor}
-                    material={materiales.WoodBatch}
+                    material={materiales.Nogal}
                     posicionCaja="right"
                     shape={"box"}
                 />
@@ -582,7 +582,7 @@ const BodegueroFuncional = (
                     width={actualWidth - (actualEspesor ) * 4}
                     height={actualEspesor * 2}
                     depth={actualEspesor}
-                    material={materiales.WoodBatch}
+                    material={materiales.Nogal}
                     posicionCaja="top"
                     shape={"box"}
                 />
