@@ -24,6 +24,7 @@ import CajonConfigContent from "../components/Aparador/CajonInterface.jsx";
 import Armario from "../components/Armario/Armario.js";
 import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
 import Bodeguero from "../components/Armario/Bodeguero.js";
+import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -189,7 +190,7 @@ export const Experience = () => {
                 rotation: [0, 0, 0],
                 userData: { width: 0.74, height: 1.23, depth: .37, espesor: 0.02 },
                 patas: [<PataAparador height={.1} />],
-                puertas: [<Puerta />],
+                puertas: [<PuertaBodeguero />],
                 seccionesHorizontales: [
                     {
                     color:

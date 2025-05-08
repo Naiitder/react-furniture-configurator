@@ -5,7 +5,7 @@ import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx
 import { useMaterial } from "../../assets/materials";
 
 // Definición de los props para el componente Casco
-export type CascoProps = {
+export type BodegueroProps = {
     width?: number;
     height?: number;
     depth?: number;
@@ -278,9 +278,8 @@ const BodegueroFuncional = (
                 -mitadProfundidad + actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero : 0),
             ] as [number, number, number],
             puerta: [
-                actualWidth / 2,
-                (actualHeight - actualEspesor - actualEspesor) / 2 +
-                actualEspesor +
+                (actualWidth / 2) - (actualEspesor * 2),
+                (actualHeight / 4) +
                 extraAltura,
                 actualDepth / 2 + actualEspesor / 2,
             ] as [number, number, number],
@@ -521,24 +520,11 @@ const BodegueroFuncional = (
                             parentRef: groupRef,
                             insideRef: detectionBoxRef,
                             position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                            width: actualWidth > 2 ? actualWidth / 2 : actualWidth,
-                            height: actualHeight,
+                            width: actualWidth - (actualEspesor * 4),
+                            height: actualHeight / 2,
                             depth: actualEspesor,
                             pivot: "right",
                         })}
-                        {actualWidth > 2 && (
-                            <>
-                                {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
-                                    parentRef: groupRef,
-                                    insideRef: detectionBoxRef,
-                                    position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                                    width: actualWidth / 2,
-                                    height: actualHeight,
-                                    depth: actualEspesor,
-                                    pivot: "left",
-                                })}
-                            </>
-                        )}
                     </>
                 )}
 

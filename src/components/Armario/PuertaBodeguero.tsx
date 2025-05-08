@@ -1,24 +1,13 @@
 import * as React from "react";
-import '@react-three/fiber';
-import { useRef, useEffect } from "react";
-import * as THREE from "three";
-import {Pomo} from "./Pomo";
+import {useEffect, useRef} from "react";
 import {useMaterial} from "../../assets/materials";
-import Tabla from "./Tabla"; // Asegúrate de importar el componente Tablon
+import Tabla from "../Casco/Tabla";
+import {PuertaProps} from "../Casco/Puerta";
+import {Box} from "@react-three/drei";
+import {AgarreBodeguero} from "./AgarreBodeguero";
 
-export type PuertaProps = {
-    parentRef: React.Ref<any>;
-    insideRef: React.Ref<any>;
-    position?: [number, number, number];
-    width: number;
-    height: number;
-    depth: number;
-    color?: string;
-    pivot?: "left" | "right";
-};
-
-const Puerta: React.FC<PuertaProps> = ({
-    parentRef, insideRef,
+const PuertaBodeguero: React.FC<PuertaProps> = ({
+                                           parentRef, insideRef,
                                            position = [0, 0, 0],
                                            width,
                                            height,
@@ -76,19 +65,19 @@ const Puerta: React.FC<PuertaProps> = ({
                     width={width}
                     height={height}
                     depth={depth}
-                    material={materials.WoodWorn}
+                    material={materials.Artico}
                     espesorBase={0.1} // Ajusta según necesites
                     shape={"box"}
                     bordeEjeY={false}
                     bordeEjeZ={false}
                     stopPropagation={false}
-                />
-                <group position={[(pivot === "right" ? (-width+(width*10/100)) : (width -(width*10/100))), 0, depth/2]}>
-                    <Pomo scale={[0.2, 0.2, 0.2]}/>
-                </group>
+                >
+
+                </Tabla>
+                <AgarreBodeguero position={[-(width / 2), (height / 2), 0]}/>
             </group>
         </group>
     );
 };
 
-export default Puerta;
+export default PuertaBodeguero;
