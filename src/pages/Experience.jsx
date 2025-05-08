@@ -23,6 +23,7 @@ import {useSelectedCajonProvider} from "../contexts/SelectedCajonProvider.jsx";
 import CajonConfigContent from "../components/Aparador/CajonInterface.jsx";
 import Armario from "../components/Armario/Armario.js";
 import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
+import Bodeguero from "../components/Armario/Bodeguero.js";
 
 const RaycastClickLogger = ({ glRef, cameraRef }) => {
     const { camera, gl } = useThree();
@@ -157,9 +158,9 @@ export const Experience = () => {
                         relativeDepth:
                             1,
                         relativeHeight:
-                            0.27,
+                            0.26,
                         relativePosition:
-                            [0, 0.615, 0.5],
+                            [0, 0.6225, 0.5],
                         relativeWidth:
                             1,
                     },
@@ -181,6 +182,90 @@ export const Experience = () => {
                 patas: [<PataAparador height={.1} />],
                 puertas: [<Puerta />],
             },
+            casco6: {
+                id: 'casco6',
+                name: 'Casco6',
+                position: [0, 0, 0],
+                rotation: [0, 0, 0],
+                userData: { width: 0.74, height: 1.23, depth: .37, espesor: 0.02 },
+                patas: [<PataAparador height={.1} />],
+                puertas: [<Puerta />],
+                seccionesHorizontales: [
+                    {
+                    color:
+                        "#8B4513",
+                    id:
+                        1746631569613,
+                    relativeDepth:
+                        1,
+                    relativeHeight:
+                        0.05,
+                    relativePosition:
+                        [0, 0.7, 0.5],
+                    relativeWidth:
+                        1,
+                },
+                    {
+                        color:
+                            "#8B4513",
+                        id:
+                            1746631569614,
+                        relativeDepth:
+                            1,
+                        relativeHeight:
+                            0.05,
+                        relativePosition:
+                            [0, 0.5, 0.5],
+                        relativeWidth:
+                            1,
+                    },
+                    {
+                        color:
+                            "#8B4513",
+                        id:
+                            1746631569615,
+                        relativeDepth:
+                            1,
+                        relativeHeight:
+                            0.05,
+                        relativePosition:
+                            [0, 0.25, 0.5],
+                        relativeWidth:
+                            1,
+                    },
+                ],
+                seccionesVerticales: [
+                    {
+                        color:
+                            "#8B4513",
+                        id:
+                            1746631569613,
+                        relativeDepth:
+                            1,
+                        relativeHeight:
+                            0.3,
+                        relativePosition:
+                            [0, 0.85, 0.5],
+                        relativeWidth:
+                            1,
+                    },
+                    {
+                        color:
+                            "#8B4513",
+                        id:
+                            1746631569614,
+                        relativeDepth:
+                            1,
+                        relativeHeight:
+                            0.2,
+                        relativePosition:
+                            [0, 0.6, 0.5],
+                        relativeWidth:
+                            1,
+                    },
+
+                ],
+            }
         });
     }, []);
 
@@ -358,8 +443,10 @@ export const Experience = () => {
 
                 if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
                     updatedCasco.seccionesHorizontales = [...horizontalCubes, newCube];
+                    console.log(newCube);
                 } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
                     updatedCasco.seccionesVerticales = [...verticalCubes, newCube];
+                    console.log(newCube);
                 }
 
                 updated[cascoKey] = updatedCasco;
@@ -401,6 +488,15 @@ export const Experience = () => {
             />
         ),
         "Armario":(
+            <ArmarioInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
+            />
+        ),
+        "Bodeguero":(
             <ArmarioInterface
                 show={transformEnabled}
                 setShow={setTransformEnabled}
@@ -465,6 +561,31 @@ export const Experience = () => {
                     .map((casco) => (
                         <group key={casco.id}>
                             <Armario
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                seccionesHorizontales={casco.seccionesHorizontales}
+                                seccionesVerticales={casco.seccionesVerticales}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                indicePuerta = {-1}
+                                indicePata = {0}
+                            />
+                        </group>
+                    ))}
+            </>
+        ),
+        "Bodeguero": (
+            <>
+                {Object.values(cascoInstances)
+                    .filter((casco) => casco.id === "casco6")
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Bodeguero
                                 key={casco.id}
                                 id={casco.id}
                                 position={casco.position}
