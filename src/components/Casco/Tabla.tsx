@@ -61,7 +61,6 @@ const Tabla: React.FC<TablaProps> = ({
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
-
     const initialData = {
         widthExtra,
         heightExtra,
@@ -243,6 +242,8 @@ const Tabla: React.FC<TablaProps> = ({
                 0, v
             );
         }
+
+
 
         geometry.setIndex(indices);
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
