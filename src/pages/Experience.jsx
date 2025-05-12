@@ -1,6 +1,10 @@
-import {useRef, useState, useEffect} from "react";
+import React, {useRef, useState, useEffect} from "react";
 import {Canvas, useThree} from "@react-three/fiber";
-import {TransformControls, OrbitControls, Environment, Stage, OrthographicCamera, SpotLight} from "@react-three/drei";
+import {
+    TransformControls,
+    OrbitControls,
+    Stage, Outlines,
+} from "@react-three/drei";
 import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
@@ -25,10 +29,11 @@ import Armario from "../components/Armario/Armario.js";
 import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
 import Bodeguero from "../components/Armario/Bodeguero.js";
 import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
+import {Color} from "three";
 
-const RaycastClickLogger = ({ glRef, cameraRef }) => {
-    const { camera, gl } = useThree();
-    const { refItem } = useSelectedItemProvider();
+const RaycastClickLogger = ({glRef, cameraRef}) => {
+    const {camera, gl} = useThree();
+    const {refItem} = useSelectedItemProvider();
 
     useEffect(() => {
         if (glRef) glRef.current = gl;
@@ -75,10 +80,10 @@ export const Experience = () => {
     const [transformEnabled, setTransformEnabled] = useState(true);
     const [transformMode, setTransformMode] = useState("translate");
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
-    const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
-    const { refPiece, setRefPiece} = useSelectedPieceProvider();
-    const { refCajon} = useSelectedCajonProvider();
-    const [scaleDimensions, setScaleDimensions] = useState({ x: 2, y: 2, z: 2 });
+    const {refItem, setRefItem, version, setVersion} = useSelectedItemProvider();
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
+    const {refCajon} = useSelectedCajonProvider();
+    const [scaleDimensions, setScaleDimensions] = useState({x: 2, y: 2, z: 2});
 
     // @Pruden
     const [selectedCascoId, setSelectedCascoId] = useState(null);
@@ -91,9 +96,9 @@ export const Experience = () => {
                 name: 'Casco1',
                 position: [-3, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 2, espesor: 0.3 },
-                patas: [<Pata height={1} />],
-                puertas: [<Puerta />],
+                userData: {width: 2, height: 2, depth: 2, espesor: 0.3},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
                 seccionesHorizontales: [],
                 seccionesVerticales: [],
             },
@@ -102,9 +107,9 @@ export const Experience = () => {
                 name: 'Casco2',
                 position: [3, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 3, espesor: 0.1 },
-                patas: [<Pata height={1} />],
-                puertas: [<Puerta />],
+                userData: {width: 2, height: 2, depth: 3, espesor: 0.1},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
                 seccionesHorizontales: [],
                 seccionesVerticales: [],
             },
@@ -113,9 +118,9 @@ export const Experience = () => {
                 name: 'Casco3',
                 position: [0, 0, 0],
                 rotation: [0, Math.PI, 0],
-                userData: { width: 2, height: 2, depth: 2, espesor: 0.1 },
-                patas: [<Pata height={1} />],
-                puertas: [<Puerta />],
+                userData: {width: 2, height: 2, depth: 2, espesor: 0.1},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
                 seccionesHorizontales: [],
                 seccionesVerticales: [],
             },
@@ -124,16 +129,16 @@ export const Experience = () => {
                 name: 'Casco4',
                 position: [0, 0, 0],
                 rotation: [0, 0, 0],
-                userData: { width: 1.54, height: .93, depth: .6, espesor: 0.05 },
-                patas: [<PataAparador height={.1} />],
-                puertas: [<Puerta />],
+                userData: {width: 1.54, height: .93, depth: .6, espesor: 0.05},
+                patas: [<PataAparador height={.1}/>],
+                puertas: [<Puerta/>],
             },
             casco5: {
                 id: 'casco5',
                 name: 'Casco5',
                 position: [0, 0, 0],
                 rotation: [0, 0, 0],
-                userData: { width: 0.74, height: 1.23, depth: .37, espesor: 0.02 },
+                userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
                 seccionesHorizontales: [
                     {
                         color:
@@ -180,32 +185,32 @@ export const Experience = () => {
                             1,
                     }
                 ],
-                patas: [<PataAparador height={.1} />],
-                puertas: [<Puerta />],
+                patas: [<PataAparador height={.1}/>],
+                puertas: [<Puerta/>],
             },
             casco6: {
                 id: 'casco6',
                 name: 'Casco6',
                 position: [0, 0, 0],
                 rotation: [0, 0, 0],
-                userData: { width: 0.74, height: 1.23, depth: .37, espesor: 0.02 },
-                patas: [<PataAparador height={.1} />],
-                puertas: [<PuertaBodeguero />],
+                userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
+                patas: [<PataAparador height={.1}/>],
+                puertas: [<PuertaBodeguero/>],
                 seccionesHorizontales: [
                     {
-                    color:
-                        "#8B4513",
-                    id:
-                        1746631569613,
-                    relativeDepth:
-                        1,
-                    relativeHeight:
-                        0.05,
-                    relativePosition:
-                        [0, 0.7, 0.5],
-                    relativeWidth:
-                        1,
-                },
+                        color:
+                            "#8B4513",
+                        id:
+                            1746631569613,
+                        relativeDepth:
+                            1,
+                        relativeHeight:
+                            0.05,
+                        relativePosition:
+                            [0, 0.7, 0.5],
+                        relativeWidth:
+                            1,
+                    },
                     {
                         color:
                             "#8B4513",
@@ -294,8 +299,13 @@ export const Experience = () => {
                     const newHeight = Math.min(6, Math.max(1, height * newScale.y));
                     const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
 
-                    setScaleDimensions({ x: newWidth, y: newHeight, z: newDepth });
-                    refItem.groupRef.userData = { ...refItem.groupRef.userData, width: newWidth, height: newHeight, depth: newDepth };
+                    setScaleDimensions({x: newWidth, y: newHeight, z: newDepth});
+                    refItem.groupRef.userData = {
+                        ...refItem.groupRef.userData,
+                        width: newWidth,
+                        height: newHeight,
+                        depth: newDepth
+                    };
                     refItem.groupRef.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
                     setVersion((v) => v + 1);
                 }
@@ -307,7 +317,7 @@ export const Experience = () => {
     }, [transformMode, refItem, version]);
 
 
-    const [{ isOver }, drop] = useDrop(() => ({
+    const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         drop: (item, monitor) => {
             const clientOffset = monitor.getClientOffset();
@@ -320,7 +330,7 @@ export const Experience = () => {
             const cascoData = cascoInstances[cascoKey];
             if (!cascoData) return;
 
-            const { x, y } = clientOffset;
+            const {x, y} = clientOffset;
             const bounds = gl.domElement.getBoundingClientRect();
             const mouse = new THREE.Vector2(
                 ((x - bounds.left) / bounds.width) * 2 - 1,
@@ -340,7 +350,7 @@ export const Experience = () => {
             refItem.groupRef.updateMatrixWorld(true);
             const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
 
-            const { width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor } = refItem.groupRef.userData;
+            const {width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor} = refItem.groupRef.userData;
 
             let adjustedWidth = cascoWidth;
             let adjustedHeight = cascoHeight;
@@ -439,8 +449,8 @@ export const Experience = () => {
             };
 
             setCascoInstances((prev) => {
-                const updated = { ...prev };
-                const updatedCasco = { ...updated[cascoKey] };
+                const updated = {...prev};
+                const updatedCasco = {...updated[cascoKey]};
 
                 if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
                     updatedCasco.seccionesHorizontales = [...horizontalCubes, newCube];
@@ -479,7 +489,7 @@ export const Experience = () => {
                 scaleDimensions={scaleDimensions}
             />
         ),
-        "Aparador":(
+        "Aparador": (
             <AparadorInterface
                 show={transformEnabled}
                 setShow={setTransformEnabled}
@@ -488,7 +498,7 @@ export const Experience = () => {
                 scaleDimensions={scaleDimensions}
             />
         ),
-        "Armario":(
+        "Armario": (
             <ArmarioInterface
                 show={transformEnabled}
                 setShow={setTransformEnabled}
@@ -497,7 +507,7 @@ export const Experience = () => {
                 scaleDimensions={scaleDimensions}
             />
         ),
-        "Bodeguero":(
+        "Bodeguero": (
             <ArmarioInterface
                 show={transformEnabled}
                 setShow={setTransformEnabled}
@@ -548,8 +558,8 @@ export const Experience = () => {
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
                                 version={version}
-                                indicePuerta = {-1}
-                                indicePata = {0}
+                                indicePuerta={-1}
+                                indicePata={0}
                             />
                         </group>
                     ))}
@@ -573,8 +583,8 @@ export const Experience = () => {
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
                                 version={version}
-                                indicePuerta = {-1}
-                                indicePata = {0}
+                                indicePuerta={-1}
+                                indicePata={0}
                             />
                         </group>
                     ))}
@@ -598,8 +608,8 @@ export const Experience = () => {
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
                                 version={version}
-                                indicePuerta = {0}
-                                indicePata = {0}
+                                indicePuerta={0}
+                                indicePata={0}
                             />
                         </group>
                     ))}
@@ -610,16 +620,18 @@ export const Experience = () => {
 
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0,2,5], fov: 35}}>
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
                 <Stage intensity={.1} environment={"warehouse"} shadows="contact" adjustCamera={1}>
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
-                    <TransformControls ref={transformRef} object={ refPiece ? refPiece : refItem.groupRef} mode={transformMode} />
+                    <TransformControls ref={transformRef} object={refPiece ? refPiece : refItem.groupRef}
+                                       mode={transformMode}/>
                 )}
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
             {interfaceComponents[selectedItem]}
 
@@ -632,18 +644,18 @@ export const Experience = () => {
                     mode={transformMode}
                     setMode={setTransformMode}
                 >
-                    <TablaConfigContent />
+                    <TablaConfigContent/>
                 </ChildItemConfigurationInterface>
             )}
 
             {refCajon && (
                 <ChildItemConfigurationInterface title="Cajon Configurator">
-                    <CajonConfigContent />
+                    <CajonConfigContent/>
                 </ChildItemConfigurationInterface>
             )}
 
 
-            <RoomConfigPanel />
+            <RoomConfigPanel/>
         </>
     );
 };
