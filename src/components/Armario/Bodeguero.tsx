@@ -3,6 +3,7 @@ import * as THREE from "three";
 import Tabla from "../Casco/Tabla";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import { useMaterial } from "../../assets/materials";
+import TablaFina from "../Aparador/TablasFinas";
 
 // Definición de los props para el componente Casco
 export type BodegueroProps = {
@@ -536,7 +537,7 @@ const BodegueroFuncional = (
                 {renderVerticalSections()}
             </group>
             <group>
-                <Tabla
+                <TablaFina
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
                     espesorBase={espesor}
@@ -553,7 +554,7 @@ const BodegueroFuncional = (
                     shape={"box"}
                 />
 
-                <Tabla
+                <TablaFina
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
                     espesorBase={espesor}
@@ -570,7 +571,7 @@ const BodegueroFuncional = (
                     shape={"box"}
                 />
 
-                <Tabla
+                <TablaFina
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
                     espesorBase={espesor}

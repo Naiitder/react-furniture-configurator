@@ -598,7 +598,7 @@ export const Experience = () => {
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
                                 version={version}
-                                indicePuerta = {-1}
+                                indicePuerta = {0}
                                 indicePata = {0}
                             />
                         </group>

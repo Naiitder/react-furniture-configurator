@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as THREE from "three";
 import '@react-three/fiber';
-import BordeTriangular from "./BordeTriangular";
+import BordeTriangular from "../Casco/BordeTriangular";
 import {useMaterial} from "../../assets/materials";
 import {useEffect, useRef, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
@@ -36,28 +36,28 @@ type TablaProps = {
     orientacionBordeZ?: "vertical" | "front";
 }
 
-const Tabla: React.FC<TablaProps> = ({
-                                       parentRef,
+const TablaFina: React.FC<TablaProps> = ({
+                                         parentRef,
                                          insideRef,
-                                       ref = useRef<any>(null),
-                                       position,
-                                       rotation = [0, 0, 0],
-                                       espesorBase,
-                                       width,
+                                         ref = useRef<any>(null),
+                                         position,
+                                         rotation = [0, 0, 0],
+                                         espesorBase,
+                                         width,
                                          widthExtra = 0,
-                                       height,
+                                         height,
                                          heightExtra = 0,
-                                       depth,
+                                         depth,
                                          depthExtra = 0,
-                                       material,
-                                       shape = "box",
-                                       bordeEjeY = true,
-                                       bordeEjeZ = false,
-                                       posicionCaja = "top",
-                                       orientacionBordeZ = "front",
-                                       disableAdjustedWidth = false,
-                                       stopPropagation = true
-                                   }) => {
+                                         material,
+                                         shape = "box",
+                                         bordeEjeY = true,
+                                         bordeEjeZ = false,
+                                         posicionCaja = "top",
+                                         orientacionBordeZ = "front",
+                                         disableAdjustedWidth = false,
+                                         stopPropagation = true
+                                     }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
@@ -85,7 +85,7 @@ const Tabla: React.FC<TablaProps> = ({
             };
         }
     }, [widthExtra, heightExtra, depthExtra, espesorBase]);
-    
+
     const [extra, setExtra] = useState({
         widthExtra: 0,
         heightExtra: 0,
@@ -119,71 +119,6 @@ const Tabla: React.FC<TablaProps> = ({
 
     const firstTriangleShape = (posicionCaja === "bottom" ? "topToRight" : (posicionCaja === "top") ? "bottomToRight" : (posicionCaja === "right" ? "topToRight" : "topToLeft"))
     const secondTriangleShape = (posicionCaja === "bottom" ? "topToLeft" : (posicionCaja === "left" ? "bottomToLeft" : (posicionCaja === "right" ? "bottomToRight" : "bottomToLeft")));
-
-    // Función mejorada para crear geometría de trapezoide
-    const createTrapezoidGeometry = () => {
-        const halfW = (adjustedWidth + ((posicionCaja !== "right" && posicionCaja !== "left") ? espesorBase : 0)) / 2;
-        const halfH = adjustedHeight / 2;
-        const halfD = adjustedDepth / 2;
-
-        // Taper hace que la parte superior sea más angosta
-        const topW = (posicionCaja === "bottom" ? halfW - (espesorBase / 2) : (posicionCaja === "top" ? halfW + (espesorBase / 2) : halfW - espesorBase));
-        const bottomW = (posicionCaja === "bottom" ? halfW + (espesorBase / 2) : (posicionCaja === "top" ? halfW - (espesorBase / 2) : halfW));
-
-        // Crear una geometría de buffer
-        const geometry = new THREE.BufferGeometry();
-
-        // Definir los vértices del trapezoide (8 puntos)
-        const vertices = new Float32Array([
-            // Frontal (cara Z+)
-            -bottomW, -halfH, halfD,  // 0: abajo-izquierda
-            bottomW, -halfH, halfD,   // 1: abajo-derecha
-            topW, halfH, halfD,       // 2: arriba-derecha
-            -topW, halfH, halfD,      // 3: arriba-izquierda
-
-            // Posterior (cara Z-)
-            -bottomW, -halfH, -halfD, // 4: abajo-izquierda
-            bottomW, -halfH, -halfD,  // 5: abajo-derecha
-            topW, halfH, -halfD,      // 6: arriba-derecha
-            -topW, halfH, -halfD,     // 7: arriba-izquierda
-        ]);
-
-        // Definir las caras (triángulos) usando los índices de los vértices
-        const indices = [
-            // Frontal
-            0, 1, 2,
-            0, 2, 3,
-
-            // Posterior
-            5, 4, 7,
-            5, 7, 6,
-
-            // Superior
-            3, 2, 6,
-            3, 6, 7,
-
-            // Inferior
-            4, 5, 1,
-            4, 1, 0,
-
-            // Izquierda
-            4, 0, 3,
-            4, 3, 7,
-
-            // Derecha
-            1, 5, 6,
-            1, 6, 2
-        ];
-
-        // Asignar vértices y caras a la geometría
-        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-        geometry.setIndex(indices);
-
-        // Calcular normales para una iluminación correcta
-        geometry.computeVertexNormals();
-
-        return geometry;
-    };
 
     // Efecto para aplicar transformaciones al mesh
     React.useEffect(() => {
@@ -277,15 +212,6 @@ const Tabla: React.FC<TablaProps> = ({
                 </mesh>
             )}
 
-            {/*{shape === "trapezoid" && (
-                <mesh
-                    ref={ref}
-                    geometry={createTrapezoidGeometry()}
-                    material={material}
-                    onClick={(event) => event.stopPropagation()}
-                />
-            )}*/}
-
             {(shape === "trapezoid" && !bordeEjeZ) && (
                 <>
                     <BordeTriangular position={[position[0] - width / 2, triangleY, triangleZ]}
@@ -299,10 +225,8 @@ const Tabla: React.FC<TablaProps> = ({
                     />
                 </>
             )}
-
-            {/* Aquí irían los bordes triangulares si fuera necesario */}
         </>
     );
 };
 
-export default Tabla;
+export default TablaFina;

@@ -7,40 +7,14 @@ const {Header, Sider, Content} = Layout;
 const {Title} = Typography;
 
 const furnitureCategories = [
-    {key: "sofas", name: "Sofás"},
-    {key: "chairs", name: "Sillas"},
-    {key: "tables", name: "Mesas"},
-    {key: "wardrobes", name: "Armarios"},
     {key: "cascos", name: "Cascos"},
     {key: "aparadores", name: "Aparadores"},
     {key: "armarios", name: "Armarios"},
-    {key: "beds", name: "Camas"},
 ];
 
 const furnitureItems = {
-    sofas: [
-        {name: "Sofá de cuero", image: "/images/leather-sofa.jpg"},
-        {name: "Sofá esquinero", image: "/images/corner-sofa.jpg"},
-        {name: "Sofá cama", image: "/images/sofa-bed.jpg"}
-    ],
-    chairs: [
-        {name: "Silla de oficina", image: "/images/office-chair.jpg"},
-        {name: "Silla de comedor", image: "/images/dining-chair.jpg"},
-        {name: "Silla ergonómica", image: "/images/ergonomic-chair.jpg"}
-    ],
-    tables: [
-        {name: "Mesa de centro", image: "/images/coffee-table.png"},
-        {name: "Mesa de comedor", image: "/images/dining-table.jpg"},
-        {name: "Escritorio", image: "/images/desk.jpg"}
-    ],
-    wardrobes: [
-        {name: "Armario", image: "/images/wardrobre.jpg"},
-        {name: "Armario Step", image: "/images/armario-step.png"}
-    ],
     cascos: [
         {name: "Casco", image: "/images/casco.jpg"},
-        {name: "Casco Secciones", image: "/images/casco-secciones.jpg"},
-        {name: "Casco brr", image: "/images/casco-secciones.jpg"}
     ],
     aparadores: [
         {name: "Aparador", image: "/images/aparador.jpg"},
@@ -48,11 +22,6 @@ const furnitureItems = {
     armarios: [
         {name: "Armario", image: "/images/armario.jpg"},
         {name: "Bodeguero", image: "/images/bodeguero.jpg"},
-    ],
-    beds: [
-        {name: "Cama king size", image: "/images/king-bed.jpg"},
-        {name: "Cama individual", image: "/images/single-bed.jpg"},
-        {name: "Cama con almacenamiento", image: "/images/storage-bed.jpg"}
     ],
 };
 
