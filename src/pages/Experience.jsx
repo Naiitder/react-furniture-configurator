@@ -3,7 +3,7 @@ import {Canvas, useThree} from "@react-three/fiber";
 import {
     TransformControls,
     OrbitControls,
-    Stage, Outlines,
+    Stage, Outlines, Edges,
 } from "@react-three/drei";
 import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
@@ -633,11 +633,13 @@ export const Experience = () => {
                     />
                     <mesh receiveShadow={true} position={[0,-.1,.75]}>
                         <boxGeometry args={[5,.1,2.5]}/>
-                        <meshStandardMaterial color="#efefef" />
+                        <meshStandardMaterial color="#fefefe" />
+                        <Edges threshold={15} color={"black"}/>
                     </mesh>
-                    <mesh receiveShadow={true} position={[0,.9,-.5]}>
+                    <mesh receiveShadow={true} position={[0,.96,-.5]}>
                         <boxGeometry args={[5,2,.1]}/>
-                        <meshStandardMaterial color="#efefef" />
+                        <meshStandardMaterial color="#fefefe" />
+                        <Edges threshold={15} color={"black"}/>
                     </mesh>
                     {itemComponents[selectedItem]}
                 </Stage>
