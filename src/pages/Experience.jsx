@@ -30,6 +30,8 @@ import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
 import Bodeguero from "../components/Armario/Bodeguero.js";
 import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 import {Color} from "three";
+import Tabla from "../components/Casco/Tabla.js";
+import casco from "../components/Casco/Casco.js";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -623,7 +625,20 @@ export const Experience = () => {
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
-                <Stage intensity={.1} environment={"warehouse"} shadows="contact" adjustCamera={1}>
+                <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={1}>
+                    <directionalLight
+                        castShadow
+                        position={[5, 5, 5]}
+                        intensity={4}
+                    />
+                    <mesh receiveShadow={true} position={[0,-.1,.75]}>
+                        <boxGeometry args={[5,.1,2.5]}/>
+                        <meshStandardMaterial color="#efefef" />
+                    </mesh>
+                    <mesh receiveShadow={true} position={[0,.9,-.5]}>
+                        <boxGeometry args={[5,2,.1]}/>
+                        <meshStandardMaterial color="#efefef" />
+                    </mesh>
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (

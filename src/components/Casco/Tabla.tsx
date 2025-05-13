@@ -7,7 +7,7 @@ import {useEffect, useRef, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 import {useSelectedCajonProvider} from "../../contexts/SelectedCajonProvider"
-import {Outlines} from "@react-three/drei";
+import {Edges, Outlines} from "@react-three/drei";
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
@@ -259,6 +259,8 @@ const Tabla: React.FC<TablaProps> = ({
 
             {(shape === "box" || shape === "trapezoid") && (
                 <mesh
+                    castShadow={true}
+                    receiveShadow={true}
                     ref={ref}
                     position={position}
                     material={material}
@@ -277,7 +279,7 @@ const Tabla: React.FC<TablaProps> = ({
                         }
                     }}
                 >
-                    <Outlines thickness={2} angle={0} />
+                    <Edges threshold={15} color={"black"} linewidth={0.5} />
 
                 </mesh>
             )}
