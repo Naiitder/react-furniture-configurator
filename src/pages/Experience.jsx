@@ -31,7 +31,7 @@ import Bodeguero from "../components/Armario/Bodeguero.js";
 import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 import {Color} from "three";
 import Tabla from "../components/Casco/Tabla.js";
-import casco from "../components/Casco/Casco.js";
+import InterseccionMueble, { Orientacion } from "../components/Interseccion";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -86,8 +86,7 @@ export const Experience = () => {
                 userData: {width: 2, height: 2, depth: 2, espesor: 0.3},
                 patas: [<Pata height={1}/>],
                 puertas: [<Puerta/>],
-                seccionesHorizontales: [],
-                seccionesVerticales: [],
+                intersecciones: [],
             },
             casco2: {
                 id: 'casco2',
@@ -97,8 +96,7 @@ export const Experience = () => {
                 userData: {width: 2, height: 2, depth: 3, espesor: 0.1},
                 patas: [<Pata height={1}/>],
                 puertas: [<Puerta/>],
-                seccionesHorizontales: [],
-                seccionesVerticales: [],
+                intersecciones: [],
             },
             casco3: {
                 id: 'casco3',
@@ -108,8 +106,7 @@ export const Experience = () => {
                 userData: {width: 2, height: 2, depth: 2, espesor: 0.1},
                 patas: [<Pata height={1}/>],
                 puertas: [<Puerta/>],
-                seccionesHorizontales: [],
-                seccionesVerticales: [],
+                intersecciones: [],
             },
             casco4: {
                 id: 'casco4',
@@ -126,51 +123,10 @@ export const Experience = () => {
                 position: [0, 0, 0],
                 rotation: [0, 0, 0],
                 userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
-                seccionesHorizontales: [
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569613,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.05,
-                        relativePosition:
-                            [0, 0.75, 0.5],
-                        relativeWidth:
-                            1,
-                    }
-                ],
-                seccionesVerticales: [
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            343243234,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.26,
-                        relativePosition:
-                            [0, 0.6225, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            23425332,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.24,
-                        relativePosition:
-                            [0, 0.87, 0.5],
-                        relativeWidth:
-                            1,
-                    }
+                intersecciones: [
+                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: 0.6225}, Orientacion.Vertical),
+                    new InterseccionMueble({x: 0.5, y: 0.87}, Orientacion.Vertical),
                 ],
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<Puerta/>],
@@ -183,80 +139,17 @@ export const Experience = () => {
                 userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
-                seccionesHorizontales: [
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569613,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.05,
-                        relativePosition:
-                            [0, 0.7, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569614,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.05,
-                        relativePosition:
-                            [0, 0.5, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569615,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.05,
-                        relativePosition:
-                            [0, 0.25, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                ],
-                seccionesVerticales: [
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569613,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.2825,
-                        relativePosition:
-                            [0, 0.845, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569614,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.1925,
-                        relativePosition:
-                            [0, 0.6, 0.5],
-                        relativeWidth:
-                            1,
-                    },
+                intersecciones: [
+                    new InterseccionMueble({x: 0.25, y: 0.7}, Orientacion.Vertical),
 
+                    // Éste se no llega hasta la pared del mueble
+                    new InterseccionMueble({x: 0, y: 0.6}, Orientacion.Horizontal),
+
+                    new InterseccionMueble({x: 0.75, y: 0.7}, Orientacion.Horizontal),
+
+                    new InterseccionMueble({x: 0.75, y: 0.8}, Orientacion.Vertical),
+                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: 0.3}, Orientacion.Horizontal),
                 ],
             }
         });
@@ -343,32 +236,23 @@ export const Experience = () => {
             let adjustedHeight = cascoHeight;
             let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
 
-            const horizontalCubes = cascoData.seccionesHorizontales || [];
-            const verticalCubes = cascoData.seccionesVerticales || [];
-            
+            const intersecciones = cascoData.intersecciones || [];
 
-            const newCube = {
-                id: Date.now(),
-                relativePosition: [
-                    adjustedPosition[0]/cascoWidth,
-                    adjustedPosition[1]/cascoHeight-alturaPatas,
-                    adjustedPosition[2],
-                ],
-                relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
-                relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
-                relativeDepth: (cascoDepth - (refItem.userData?.traseroDentro ? refItem.userData?.retranqueoTrasero || 0 : 0)) / cascoDepth,
-                color: item.color || "#8B4513",
-            };
+            // Create a new intersection
+            const newInterseccion = new InterseccionMueble(
+                {
+                    x: adjustedPosition[0]/cascoWidth,
+                    y: adjustedPosition[1]/cascoHeight-alturaPatas
+                },
+                item.type === INTERSECTION_TYPES.HORIZONTAL ? Orientacion.Horizontal : Orientacion.Vertical
+            );
 
             setCascoInstances((prev) => {
                 const updated = {...prev};
                 const updatedCasco = {...updated[cascoKey]};
 
-                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                    updatedCasco.seccionesHorizontales = [...horizontalCubes, newCube];
-                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                    updatedCasco.seccionesVerticales = [...verticalCubes, newCube];
-                }
+                // Add the new intersection to the existing ones
+                updatedCasco.intersecciones = [...intersecciones, newInterseccion];
 
                 updated[cascoKey] = updatedCasco;
                 return updated;
@@ -445,8 +329,7 @@ export const Experience = () => {
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
                                 version={version}
-                                seccionesHorizontales={casco.seccionesHorizontales}
-                                seccionesVerticales={casco.seccionesVerticales}
+                                intersecciones={casco.intersecciones}
                             />
                         </group>
                     ))}
@@ -487,8 +370,7 @@ export const Experience = () => {
                                 position={casco.position}
                                 rotation={casco.rotation}
                                 {...casco.userData}
-                                seccionesHorizontales={casco.seccionesHorizontales}
-                                seccionesVerticales={casco.seccionesVerticales}
+                                intersecciones={casco.intersecciones}
                                 patas={casco.patas}
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
@@ -512,8 +394,7 @@ export const Experience = () => {
                                 position={casco.position}
                                 rotation={casco.rotation}
                                 {...casco.userData}
-                                seccionesHorizontales={casco.seccionesHorizontales}
-                                seccionesVerticales={casco.seccionesVerticales}
+                                intersecciones={casco.intersecciones}
                                 patas={casco.patas}
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}

@@ -4,6 +4,7 @@ import Tabla from "../Casco/Tabla";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import { useMaterial } from "../../assets/materials";
 import {Outlines} from "@react-three/drei";
+import InterseccionMueble, { Orientacion } from "../Interseccion";
 
 // Definición de los props para el componente Casco
 export type BodegueroProps = {
@@ -25,8 +26,7 @@ export type BodegueroProps = {
     indicePata?: number;
     puertas?: React.ReactNode[];
     indicePuerta?: number;
-    seccionesHorizontales?: any[];
-    seccionesVerticales?: any[];
+    intersecciones?: InterseccionMueble[];
     version?: any[];
     setVersion?: (version: any) => void;
 
@@ -59,8 +59,7 @@ const BodegueroFuncional = (
         indicePata = -1,
         puertas = [],
         indicePuerta = 0,
-        seccionesHorizontales = [],
-        seccionesVerticales = [],
+        intersecciones = [],
         contextRef,
         setContextRef,
         materiales,
@@ -90,6 +89,7 @@ const BodegueroFuncional = (
         alturaPatas,
         indicePata,
         indicePuerta,
+        intersecciones
     };
 
 
@@ -148,6 +148,7 @@ const BodegueroFuncional = (
     const actualSueloDentro = localConfig.sueloDentro ?? sueloDentro;
     const actualTechoDentro = localConfig.techoDentro ?? techoDentro;
     const actualTraseroDentro = localConfig.traseroDentro ?? traseroDentro;
+    const actualIntersecciones = localConfig.intersecciones ?? intersecciones;
     const offsetDepthTraseroDentro = actualTraseroDentro
         ? actualDepth
         : actualDepth - actualEspesor;
@@ -287,68 +288,282 @@ const BodegueroFuncional = (
         };
     };
 
-    const renderHorizontalSections = () => {
-        return (seccionesHorizontales || []).map((cube: any) => {
-            const [rx, ry] = cube.relativePosition;
+    const renderIntersecciones = () => {
+        // Ordenar las intersecciones por fecha de creación
+        const sortedIntersecciones = [...actualIntersecciones].sort((a, b) =>
+            a.createdAt.getTime() - b.createdAt.getTime()
+        );
 
+        // Crear un mapa para almacenar las posiciones de las intersecciones
+        // Esto nos ayudará a calcular los límites para cada intersección
+        const interseccionesMap = new Map();
 
-            let adjustedWidth = cube.relativeWidth * actualWidth - actualEspesor / 2;
-            let adjustedXposition = 0;
-
-
-            return (
-                <Tabla
-                    key={cube.id}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[
-                        rx*actualWidth,
-                        ry * actualHeight + extraAltura,
-                        actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
-                    ]}
-                    width={adjustedWidth}
-                    height={actualEspesor}
-                    depth={
-                        cube.relativeDepth * actualDepth - actualRetranqueoTrasero - actualEspesor
-                    }
-                    material={materiales.Artico}
-                    espesorBase={actualEspesor}
-                />
-            );
+        // Primero, registramos todas las posiciones
+        sortedIntersecciones.forEach(interseccion => {
+            const key = `${interseccion.position.x},${interseccion.position.y}`;
+            interseccionesMap.set(key, interseccion);
         });
-    };
 
-    const renderVerticalSections = () => {
-        return (seccionesVerticales || []).map((cube: any) => {
-            const [rx, ry] = cube.relativePosition;
+        return sortedIntersecciones.map((interseccion, index) => {
+            // Calcular la posición real basada en las dimensiones del mueble y la altura extra
+            // Ajustar la posición X para que vaya de -0.5 a 0.5
+            const x = (interseccion.position.x - 0.5) * actualWidth;
+            // Ajustar la posición Y para incluir la altura extra de las patas
+            const y = interseccion.position.y * actualHeight + extraAltura;
 
-            let adjustedHeight = cube.relativeHeight * actualHeight - actualEspesor / 2;
-            let adjustedYposition = 0;
+            if (interseccion.orientation === Orientacion.Vertical) {
+                // Para intersecciones verticales, calculamos la altura y los límites
+                let topLimit = 1.0; // Límite superior (techo del mueble)
+                let bottomLimit = 0.0; // Límite inferior (suelo del mueble)
 
+                // Buscar intersecciones horizontales que limiten la extensión vertical
+                sortedIntersecciones.forEach(otherInterseccion => {
+                    // Considerar todas las intersecciones horizontales que estén en la misma posición X
+                    // o que crucen la posición X de la intersección vertical
+                    if (otherInterseccion.orientation === Orientacion.Horizontal) {
+                        // Calcular los límites de la intersección horizontal
+                        let horizontalLeftLimit = -actualWidth / 2;
+                        let horizontalRightLimit = actualWidth / 2;
 
-            return (
-                <Tabla
-                    key={cube.id}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[
-                        rx * actualWidth,
-                        ry*actualHeight+extraAltura,
-                        actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
-                    ]}
-                    width={actualEspesor}
-                    height={adjustedHeight}
-                    depth={
-                        cube.relativeDepth * actualDepth - actualRetranqueoTrasero - actualEspesor
+                        // Buscar intersecciones verticales que limiten la horizontal
+                        sortedIntersecciones.forEach(vertInterseccion => {
+                            if (vertInterseccion.orientation === Orientacion.Vertical) {
+                                const vertX = (vertInterseccion.position.x - 0.5) * actualWidth;
+                                // Si la vertical está a la izquierda de la horizontal
+                                if (vertInterseccion.position.x < otherInterseccion.position.x) {
+                                    horizontalLeftLimit = Math.max(horizontalLeftLimit, vertX + actualEspesor / 2);
+                                }
+                                // Si la vertical está a la derecha de la horizontal
+                                else if (vertInterseccion.position.x > otherInterseccion.position.x) {
+                                    horizontalRightLimit = Math.min(horizontalRightLimit, vertX - actualEspesor / 2);
+                                }
+                            }
+                        });
+
+                        // Convertir a coordenadas normalizadas
+                        horizontalLeftLimit = horizontalLeftLimit / actualWidth + 0.5;
+                        horizontalRightLimit = horizontalRightLimit / actualWidth + 0.5;
+
+                        // Verificar si la intersección vertical está dentro de los límites de la horizontal
+                        if (interseccion.position.x >= horizontalLeftLimit && interseccion.position.x <= horizontalRightLimit) {
+                            // Si la intersección horizontal está por encima y queremos extender hacia arriba
+                            if (otherInterseccion.position.y < interseccion.position.y && interseccion.extendToTop) {
+                                topLimit = Math.min(topLimit, otherInterseccion.position.y);
+                            }
+                            // Si la intersección horizontal está por debajo y queremos extender hacia abajo
+                            else if (otherInterseccion.position.y > interseccion.position.y && interseccion.extendToBottom) {
+                                bottomLimit = Math.max(bottomLimit, otherInterseccion.position.y);
+                            }
+                        }
                     }
-                    material={materiales.Artico}
-                    espesorBase={actualEspesor}
-                />
-            );
+                });
+
+                // Calcular la altura basada en los límites
+                const height = (topLimit - bottomLimit) * actualHeight;
+
+                // Calcular la posición Y centrada entre los límites
+                const centerY = ((topLimit + bottomLimit) / 2) * actualHeight + extraAltura;
+
+                return (
+                    <Tabla
+                        key={`interseccion-${index}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            x,
+                            centerY,
+                            actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
+                        ]}
+                        width={actualEspesor}
+                        height={height}
+                        depth={actualDepth - actualRetranqueoTrasero - actualEspesor}
+                        material={materiales.Artico}
+                        espesorBase={actualEspesor}
+                    />
+                );
+            } else {
+                // Para intersecciones horizontales, calculamos el ancho
+                let width = actualWidth;
+
+                // Encontrar intersecciones verticales a la izquierda y derecha
+                let leftIntersection = null;
+                let rightIntersection = null;
+
+                // Encontrar intersecciones verticales creadas antes que la horizontal
+                // (respetando el orden de dibujo)
+                sortedIntersecciones.forEach(otherInterseccion => {
+                    if (otherInterseccion.orientation === Orientacion.Vertical) {
+                        // Si la intersección vertical está a la izquierda
+                        if (otherInterseccion.position.x < interseccion.position.x) {
+                            if (!leftIntersection || otherInterseccion.position.x > leftIntersection.position.x) {
+                                leftIntersection = otherInterseccion;
+                            }
+                        }
+                        // Si la intersección vertical está a la derecha
+                        else if (otherInterseccion.position.x > interseccion.position.x) {
+                            if (!rightIntersection || otherInterseccion.position.x < rightIntersection.position.x) {
+                                rightIntersection = otherInterseccion;
+                            }
+                        }
+                    }
+                });
+
+                // Calcular el ancho basado en las intersecciones encontradas
+                // Determinar si esta es una intersección horizontal inferior
+                const isLowerHorizontal = sortedIntersecciones.some(otherInterseccion => 
+                    otherInterseccion.orientation === Orientacion.Horizontal && 
+                    otherInterseccion.position.y > interseccion.position.y
+                );
+
+                // Determinar si esta es una intersección horizontal superior
+                // Tratar la intersección en {x: 0, y: 0.6} como una intersección superior
+                const isUpperHorizontal = !isLowerHorizontal || 
+                    (Math.abs(interseccion.position.x) < 0.01 && Math.abs(interseccion.position.y - 0.6) < 0.01);
+
+                // Determinar si esta es la intersección horizontal que debe cortar la segunda vertical
+                // Buscamos si hay una intersección vertical a la derecha creada después de esta horizontal
+                const shouldCutVertical = sortedIntersecciones.some(otherInterseccion => 
+                    otherInterseccion.orientation === Orientacion.Vertical && 
+                    otherInterseccion.position.x > interseccion.position.x &&
+                    otherInterseccion.createdAt.getTime() > interseccion.createdAt.getTime()
+                );
+
+                // Para las intersecciones horizontales superiores, siempre extendemos hasta las paredes del mueble
+                // a menos que haya una intersección vertical que las limite
+                if (isUpperHorizontal) {
+                    // Inicialmente, establecer el ancho para extenderse hasta las paredes del mueble
+                    width = actualWidth;
+
+                    // Si hay intersecciones verticales, ajustar el ancho según corresponda
+                    if (leftIntersection && rightIntersection) {
+                        // Si hay intersecciones en ambos lados, ajustar el ancho entre ellas
+                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                        width = rightLimit - leftLimit;
+                    } else if (leftIntersection) {
+                        // Si solo hay intersección a la izquierda, extender hasta la pared derecha
+                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                        const rightLimit = actualWidth / 2;
+                        width = rightLimit - leftLimit;
+                    } else if (rightIntersection) {
+                        // Si solo hay intersección a la derecha, extender hasta la pared izquierda
+                        const leftLimit = -actualWidth / 2;
+                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                        width = rightLimit - leftLimit;
+                    }
+                    // Si no hay intersecciones verticales, ya tenemos el ancho completo del mueble
+                } else {
+                    // Para intersecciones horizontales inferiores, mantener el comportamiento actual
+                    if (leftIntersection && interseccion.extendToLeft) {
+                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                        const currentX = (interseccion.position.x - 0.5) * actualWidth;
+                        const leftWidth = currentX - leftLimit;
+                        width = 2 * leftWidth;
+                    } else if (interseccion.extendToLeft && !isLowerHorizontal) {
+                        // Si no hay intersección a la izquierda y no es una intersección inferior, extender hasta la pared del mueble
+                        const currentX = (interseccion.position.x - 0.5) * actualWidth;
+                        const leftLimit = -actualWidth / 2;
+                        const leftWidth = currentX - leftLimit;
+                        width = 2 * leftWidth;
+                    } else if (interseccion.extendToLeft && isLowerHorizontal) {
+                        // Si es una intersección inferior, no extender hasta la pared del mueble
+                        // sino mantener un ancho mínimo
+                        width = actualEspesor * 4;
+                    }
+
+                    if (rightIntersection && interseccion.extendToRight) {
+                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                        const currentX = (interseccion.position.x - 0.5) * actualWidth;
+                        const rightWidth = rightLimit - currentX;
+                        width = Math.min(width, 2 * rightWidth);
+                    } else if (interseccion.extendToRight && !isLowerHorizontal) {
+                        // Si no hay intersección a la derecha y no es una intersección inferior, extender hasta la pared del mueble
+                        const currentX = (interseccion.position.x - 0.5) * actualWidth;
+                        const rightLimit = actualWidth / 2;
+                        const rightWidth = rightLimit - currentX;
+                        width = Math.min(width, 2 * rightWidth);
+                    } else if (interseccion.extendToRight && isLowerHorizontal) {
+                        // Si es una intersección inferior, no extender hasta la pared del mueble
+                        // sino mantener un ancho mínimo
+                        width = Math.min(width, actualEspesor * 4);
+                    }
+                }
+
+                // Si esta es la intersección que debe cortar la segunda vertical,
+                // asegurarse de que se extienda lo suficiente para cortarla
+                if (shouldCutVertical && rightIntersection) {
+                    const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                    const currentX = (interseccion.position.x - 0.5) * actualWidth;
+                    const rightWidth = rightLimit - currentX;
+                    width = Math.max(width, 2 * rightWidth);
+                }
+
+                // Calcular la posición X ajustada basada en el ancho
+                let adjustedX = x;
+
+                if (isUpperHorizontal) {
+                    // Para intersecciones horizontales superiores, ajustar la posición según las intersecciones verticales
+                    if (leftIntersection && rightIntersection) {
+                        // Si hay intersecciones en ambos lados, centrar entre ellas
+                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                        adjustedX = (leftLimit + rightLimit) / 2;
+                    } else if (leftIntersection) {
+                        // Si solo hay intersección a la izquierda, centrar entre esa intersección y la pared derecha
+                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                        const rightLimit = actualWidth / 2;
+                        adjustedX = (leftLimit + rightLimit) / 2;
+                    } else if (rightIntersection) {
+                        // Si solo hay intersección a la derecha, centrar entre la pared izquierda y esa intersección
+                        const leftLimit = -actualWidth / 2;
+                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                        adjustedX = (leftLimit + rightLimit) / 2;
+                    } else {
+                        // Si no hay intersecciones verticales, centrar en el mueble
+                        adjustedX = 0;
+                    }
+                } else {
+                    // Para intersecciones horizontales inferiores, mantener el comportamiento actual
+                    // Si hay una intersección a la izquierda pero no a la derecha, ajustar hacia la derecha
+                    if (leftIntersection && !rightIntersection && interseccion.extendToLeft) {
+                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                        adjustedX = leftLimit + width / 2;
+                    }
+                    // Si hay una intersección a la derecha pero no a la izquierda, ajustar hacia la izquierda
+                    else if (!leftIntersection && rightIntersection && interseccion.extendToRight) {
+                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                        adjustedX = rightLimit - width / 2;
+                    }
+                    // Si hay intersecciones en ambos lados, centrar entre ellas
+                    else if (leftIntersection && rightIntersection) {
+                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                        adjustedX = (leftLimit + rightLimit) / 2;
+                    }
+                }
+
+                return (
+                    <Tabla
+                        key={`interseccion-${index}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            adjustedX,
+                            y,
+                            actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
+                        ]}
+                        width={width}
+                        height={actualEspesor}
+                        depth={actualDepth - actualRetranqueoTrasero - actualEspesor}
+                        material={materiales.Artico}
+                        espesorBase={actualEspesor}
+                    />
+                );
+            }
         });
-    };
+    }
 
     // Manejador del clic: actualiza la ref de contexto para el casco seleccionado
     const handleClick = (event: React.PointerEvent) => {
@@ -493,12 +708,8 @@ const BodegueroFuncional = (
                     </>
                 )}
 
-
-
-
-                {/* Renderizar secciones horizontales y verticales */}
-                {renderHorizontalSections()}
-                {renderVerticalSections()}
+                {/* Renderizar intersecciones */}
+                {renderIntersecciones()}
             </group>
             <group>
                 <Tabla
