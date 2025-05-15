@@ -50,17 +50,6 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
             mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
-
-            // Asegurarse de que refItem sea un objeto Three.js válido
-            if (refItem) {
-                const intersects = refItem.detectionRef
-                    ? raycaster.intersectObject(refItem.detectionRef, true)
-                    : [];
-                console.log(refItem.detectionRef);
-                if (intersects.length > 0) {
-                    console.log("👉 Intersección con Casco en:", intersects[0].point);
-                }
-            }
         };
 
         gl.domElement.addEventListener("mouseup", onClick);
@@ -86,10 +75,6 @@ export const Experience = () => {
     const {refPiece, setRefPiece} = useSelectedPieceProvider();
     const {refCajon} = useSelectedCajonProvider();
     const [scaleDimensions, setScaleDimensions] = useState({x: 2, y: 2, z: 2});
-
-    // @Pruden
-    const [selectedCascoId, setSelectedCascoId] = useState(null);
-
 
     useEffect(() => {
         setCascoInstances({
@@ -251,9 +236,9 @@ export const Experience = () => {
                         relativeDepth:
                             1,
                         relativeHeight:
-                            0.3,
+                            0.2825,
                         relativePosition:
-                            [0, 0.85, 0.5],
+                            [0, 0.845, 0.5],
                         relativeWidth:
                             1,
                     },
@@ -265,7 +250,7 @@ export const Experience = () => {
                         relativeDepth:
                             1,
                         relativeHeight:
-                            0.2,
+                            0.1925,
                         relativePosition:
                             [0, 0.6, 0.5],
                         relativeWidth:
@@ -352,7 +337,7 @@ export const Experience = () => {
             refItem.groupRef.updateMatrixWorld(true);
             const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
 
-            const {width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor} = refItem.groupRef.userData;
+            const {width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor, alturaPatas} = refItem.groupRef.userData;
 
             let adjustedWidth = cascoWidth;
             let adjustedHeight = cascoHeight;
@@ -360,89 +345,14 @@ export const Experience = () => {
 
             const horizontalCubes = cascoData.seccionesHorizontales || [];
             const verticalCubes = cascoData.seccionesVerticales || [];
-
-            if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                const relevantVerticals = verticalCubes.filter((cube) => {
-                    const cubeMinY = cube.relativePosition[1] * cascoHeight - (cube.relativeHeight * cascoHeight) / 2;
-                    const cubeMaxY = cube.relativePosition[1] * cascoHeight + (cube.relativeHeight * cascoHeight) / 2;
-                    return localPosition.y >= cubeMinY && localPosition.y <= cubeMaxY;
-                });
-
-                const verticalSections = relevantVerticals
-                    .map((cube) => cube.relativePosition[0] * cascoWidth)
-                    .sort((a, b) => a - b);
-
-                const boundaries = [-cascoWidth / 2, ...verticalSections, cascoWidth / 2];
-                const leftBoundary = boundaries.filter((pos) => pos < localPosition.x).sort((a, b) => b - a)[0] || -cascoWidth / 2;
-                const rightBoundary = boundaries.filter((pos) => pos > localPosition.x).sort((a, b) => a - b)[0] || cascoWidth / 2;
-
-                adjustedWidth = rightBoundary - leftBoundary;
-                adjustedPosition[0] = (leftBoundary + rightBoundary) / 2;
-
-                const exists = horizontalCubes.some((cube) => {
-                    const cubeX = cube.relativePosition[0] * cascoWidth;
-                    const cubeY = cube.relativePosition[1] * cascoHeight;
-                    const cubeWidth = cube.relativeWidth * cascoWidth;
-                    const cubeMinX = cubeX - cubeWidth / 2;
-                    const cubeMaxX = cubeX + cubeWidth / 2;
-                    const newMinX = adjustedPosition[0] - adjustedWidth / 2;
-                    const newMaxX = adjustedPosition[0] + adjustedWidth / 2;
-                    const sameY = Math.abs(cubeY - localPosition.y) < 0.1;
-                    const overlapsX = !(newMaxX <= cubeMinX || newMinX >= cubeMaxX);
-                    return sameY && overlapsX;
-                });
-
-                if (exists) {
-                    console.warn("Ya existe una sección horizontal en esta posición Y");
-                    return;
-                }
-            }
-
-            if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                const relevantHorizontals = horizontalCubes.filter((cube) => {
-                    const cubeX = cube.relativePosition[0] * cascoWidth;
-                    const cubeWidth = cube.relativeWidth * cascoWidth;
-                    const cubeMinX = cubeX - cubeWidth / 2;
-                    const cubeMaxX = cubeX + cubeWidth / 2;
-                    return localPosition.x >= cubeMinX && localPosition.x <= cubeMaxX;
-                });
-
-                const horizontalSections = relevantHorizontals
-                    .map((cube) => cube.relativePosition[1] * cascoHeight)
-                    .sort((a, b) => a - b);
-
-                const boundaries = [0, ...horizontalSections, cascoHeight];
-                const bottomBoundary = boundaries.filter((pos) => pos < localPosition.y).sort((a, b) => b - a)[0] || 0;
-                const topBoundary = boundaries.filter((pos) => pos > localPosition.y).sort((a, b) => a - b)[0] || cascoHeight;
-
-                adjustedHeight = topBoundary - bottomBoundary;
-                adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
-
-                const exists = verticalCubes.some((cube) => {
-                    const cubeX = cube.relativePosition[0] * cascoWidth;
-                    const cubeY = cube.relativePosition[1] * cascoHeight;
-                    const cubeHeight = cube.relativeHeight * cascoHeight;
-                    const cubeMinY = cubeY - cubeHeight / 2;
-                    const cubeMaxY = cubeY + cubeHeight / 2;
-                    const newMinY = adjustedPosition[1] - adjustedHeight / 2;
-                    const newMaxY = adjustedPosition[1] + adjustedHeight / 2;
-                    const sameX = Math.abs(cubeX - localPosition.x) < 0.1;
-                    const overlapsY = !(newMaxY <= cubeMinY || newMinY >= cubeMaxY);
-                    return sameX && overlapsY;
-                });
-
-                if (exists) {
-                    console.warn("Ya existe una sección vertical en esta posición X");
-                    return;
-                }
-            }
+            
 
             const newCube = {
                 id: Date.now(),
                 relativePosition: [
-                    adjustedPosition[0] / cascoWidth,
-                    adjustedPosition[1] / cascoHeight,
-                    adjustedPosition[2] / cascoDepth,
+                    adjustedPosition[0]/cascoWidth,
+                    adjustedPosition[1]/cascoHeight-alturaPatas,
+                    adjustedPosition[2],
                 ],
                 relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
                 relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
@@ -456,10 +366,8 @@ export const Experience = () => {
 
                 if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
                     updatedCasco.seccionesHorizontales = [...horizontalCubes, newCube];
-                    console.log(newCube);
                 } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
                     updatedCasco.seccionesVerticales = [...verticalCubes, newCube];
-                    console.log(newCube);
                 }
 
                 updated[cascoKey] = updatedCasco;
@@ -631,16 +539,6 @@ export const Experience = () => {
                         position={[5, 5, 5]}
                         intensity={4}
                     />
-                    <mesh receiveShadow={true} position={[0,-.1,.75]}>
-                        <boxGeometry args={[5,.1,2.5]}/>
-                        <meshStandardMaterial color="#fefefe" />
-                        <Edges threshold={15} color={"black"}/>
-                    </mesh>
-                    <mesh receiveShadow={true} position={[0,.96,-.5]}>
-                        <boxGeometry args={[5,2,.1]}/>
-                        <meshStandardMaterial color="#fefefe" />
-                        <Edges threshold={15} color={"black"}/>
-                    </mesh>
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (

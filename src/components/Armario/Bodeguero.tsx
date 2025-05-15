@@ -290,29 +290,11 @@ const BodegueroFuncional = (
     const renderHorizontalSections = () => {
         return (seccionesHorizontales || []).map((cube: any) => {
             const [rx, ry] = cube.relativePosition;
-            const halfWidth = (cube.relativeWidth * actualWidth) / 2;
-            const leftEdge = (rx + 0.5) * actualWidth + halfWidth;
-            const rightEdge = (rx + 0.5) * actualWidth - halfWidth;
-            const tolerance = 0.1;
-            const touchesLeftEdge = Math.abs(leftEdge - actualWidth) < tolerance;
-            const touchesRightEdge = Math.abs(rightEdge) < tolerance;
+
 
             let adjustedWidth = cube.relativeWidth * actualWidth - actualEspesor / 2;
             let adjustedXposition = 0;
 
-            if (!touchesLeftEdge && !touchesRightEdge) {
-                adjustedWidth -= actualEspesor / 2;
-                adjustedXposition = rx * actualWidth;
-            } else if (touchesRightEdge && !touchesLeftEdge) {
-                adjustedWidth -= actualEspesor;
-                adjustedXposition = rx * actualWidth + actualEspesor / 4;
-            } else if (touchesLeftEdge && !touchesRightEdge) {
-                adjustedWidth -= actualEspesor;
-                adjustedXposition = rx * actualWidth - actualEspesor / 4;
-            } else {
-                adjustedWidth -= actualEspesor * 1.5;
-                adjustedXposition = rx * actualWidth;
-            }
 
             return (
                 <Tabla
@@ -321,7 +303,7 @@ const BodegueroFuncional = (
                     insideRef={detectionBoxRef}
                     shape="box"
                     position={[
-                        adjustedXposition,
+                        rx*actualWidth,
                         ry * actualHeight + extraAltura,
                         actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
                     ]}
@@ -340,28 +322,10 @@ const BodegueroFuncional = (
     const renderVerticalSections = () => {
         return (seccionesVerticales || []).map((cube: any) => {
             const [rx, ry] = cube.relativePosition;
-            const touchesTopEdge =
-                Math.abs(ry * actualHeight + (cube.relativeHeight * actualHeight) / 2 - actualHeight) <
-                0.01;
-            const touchesBottomEdge =
-                Math.abs(ry * actualHeight - (cube.relativeHeight * actualHeight) / 2) < 0.01;
 
             let adjustedHeight = cube.relativeHeight * actualHeight - actualEspesor / 2;
             let adjustedYposition = 0;
 
-            if (!touchesTopEdge && !touchesBottomEdge) {
-                adjustedHeight -= actualEspesor / 2;
-                adjustedYposition = ry * actualHeight + extraAltura;
-            } else if (touchesBottomEdge && !touchesTopEdge) {
-                adjustedHeight -= actualEspesor;
-                adjustedYposition = ry * actualHeight + actualEspesor / 4 + extraAltura;
-            } else if (touchesTopEdge && !touchesBottomEdge) {
-                adjustedHeight -= actualEspesor;
-                adjustedYposition = ry * actualHeight - actualEspesor / 4 + extraAltura;
-            } else {
-                adjustedHeight -= actualEspesor * 1.5;
-                adjustedYposition = ry * actualHeight + extraAltura;
-            }
 
             return (
                 <Tabla
@@ -371,7 +335,7 @@ const BodegueroFuncional = (
                     shape="box"
                     position={[
                         rx * actualWidth,
-                        adjustedYposition,
+                        ry*actualHeight+extraAltura,
                         actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
                     ]}
                     width={actualEspesor}
