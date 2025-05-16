@@ -31,7 +31,7 @@ import Bodeguero from "../components/Armario/Bodeguero.js";
 import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 import {Color} from "three";
 import Tabla from "../components/Casco/Tabla.js";
-import InterseccionMueble, { Orientacion } from "../components/Interseccion";
+import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -146,8 +146,17 @@ export const Experience = () => {
 
                     new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal,), // Se hace bien
                     new InterseccionMueble({x: 0.5, y: 0.7,}, Orientacion.Vertical), // Se hace bien
-                    new InterseccionMueble({x: 0.2, y: 0.3}, Orientacion.Horizontal), // No se extiende hasta la pared del mueble, debería hacer lo mismo que el que tiene eje 0
-                    new InterseccionMueble({x: 0.3, y: 0.3}, Orientacion.Horizontal), // Se coloca dentro de la interseccion vertical x:0.25
+
+                    // No se extiende hasta la pared del mueble, debería hacer lo mismo que el que tiene eje 0
+                    // Sólo funciona como se espera si es 0 exacto, cualquier valor entre 0 y 0.25 hace que se pegue a la
+                    // interseccion y no se extienda hasta la pared del mueble
+                    new InterseccionMueble({x: 0.01, y: 0.3}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.2, y: 0.2}, Orientacion.Horizontal),
+
+                    // Se coloca dentro de la interseccion vertical x:0.25, sobresaliendose por el lado que no deberia
+                    // de la interseccion y sin expandirse hasta la pared
+                    new InterseccionMueble({x: 0.3, y: 0.3}, Orientacion.Horizontal),
+
                     new InterseccionMueble({x: 0.7, y: 0.7}, Orientacion.Horizontal), // Se hace bien
                     new InterseccionMueble({x: 0.4, y: 0.6}, Orientacion.Horizontal), // Se hace bien
                     new InterseccionMueble({x: 0.7, y: 0.6}, Orientacion.Horizontal), // Se hace bien
@@ -231,7 +240,13 @@ export const Experience = () => {
             refItem.groupRef.updateMatrixWorld(true);
             const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
 
-            const {width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor, alturaPatas} = refItem.groupRef.userData;
+            const {
+                width: cascoWidth,
+                height: cascoHeight,
+                depth: cascoDepth,
+                espesor,
+                alturaPatas
+            } = refItem.groupRef.userData;
 
             let adjustedWidth = cascoWidth;
             let adjustedHeight = cascoHeight;
@@ -242,8 +257,8 @@ export const Experience = () => {
             // Create a new intersection
             const newInterseccion = new InterseccionMueble(
                 {
-                    x: adjustedPosition[0]/cascoWidth,
-                    y: adjustedPosition[1]/cascoHeight-alturaPatas
+                    x: adjustedPosition[0] / cascoWidth,
+                    y: adjustedPosition[1] / cascoHeight - alturaPatas
                 },
                 item.type === INTERSECTION_TYPES.HORIZONTAL ? Orientacion.Horizontal : Orientacion.Vertical
             );
