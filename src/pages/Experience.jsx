@@ -142,12 +142,9 @@ export const Experience = () => {
                 intersecciones: [
                     new InterseccionMueble({x: 0.25, y: 0.7}, Orientacion.Vertical),
 
-                    // Éste se no llega hasta la pared del mueble
                     new InterseccionMueble({x: 0, y: 0.6}, Orientacion.Horizontal),
 
-                    new InterseccionMueble({x: 0.75, y: 0.7}, Orientacion.Horizontal),
 
-                    new InterseccionMueble({x: 0.75, y: 0.8}, Orientacion.Vertical),
                     new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal),
                     new InterseccionMueble({x: 0.5, y: 0.3}, Orientacion.Horizontal),
                 ],

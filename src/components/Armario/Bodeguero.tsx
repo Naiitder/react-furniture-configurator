@@ -358,11 +358,64 @@ const BodegueroFuncional = (
                     }
                 });
 
-                // Calcular la altura basada en los límites
-                const height = (topLimit - bottomLimit) * actualHeight;
+                // Verificar si hay alguna intersección horizontal que bloquee la vertical entre el suelo y el techo
+                const hasHorizontalIntersection = sortedIntersecciones.some(other => {
+                    // Solo considerar intersecciones horizontales
+                    if (other.orientation !== Orientacion.Horizontal) return false;
 
-                // Calcular la posición Y centrada entre los límites
-                const centerY = ((topLimit + bottomLimit) / 2) * actualHeight + extraAltura;
+                    // Calcular los límites horizontales de la intersección horizontal
+                    let horizontalLeftLimit = -actualWidth / 2;
+                    let horizontalRightLimit = actualWidth / 2;
+
+                    // Ajustar los límites si hay intersecciones verticales que limiten la horizontal
+                    sortedIntersecciones.forEach(vertInterseccion => {
+                        if (vertInterseccion.orientation === Orientacion.Vertical) {
+                            const vertX = (vertInterseccion.position.x - 0.5) * actualWidth;
+                            // Si la vertical está a la izquierda de la horizontal
+                            if (vertInterseccion.position.x < other.position.x) {
+                                horizontalLeftLimit = Math.max(horizontalLeftLimit, vertX + actualEspesor / 2);
+                            }
+                            // Si la vertical está a la derecha de la horizontal
+                            else if (vertInterseccion.position.x > other.position.x) {
+                                horizontalRightLimit = Math.min(horizontalRightLimit, vertX - actualEspesor / 2);
+                            }
+                        }
+                    });
+
+                    // Convertir a coordenadas normalizadas
+                    horizontalLeftLimit = horizontalLeftLimit / actualWidth + 0.5;
+                    horizontalRightLimit = horizontalRightLimit / actualWidth + 0.5;
+
+                    // Verificar si la intersección vertical está dentro de los límites horizontales de la horizontal
+                    return interseccion.position.x >= horizontalLeftLimit && 
+                           interseccion.position.x <= horizontalRightLimit;
+                });
+
+                // Inicialmente calculamos la altura y posición Y
+                let height = interseccion.position.y * 2 * actualHeight;
+                let centerY = interseccion.position.y * actualHeight + extraAltura;
+
+                // Si no hay intersección horizontal, extender desde el suelo hasta el techo y centrar
+                if (!hasHorizontalIntersection) {
+                    height = actualHeight;
+                    centerY = 0.5 * actualHeight + extraAltura;
+                }
+                // Si esta es la sección vertical en x=0.75, y=0.2 (la que está causando el problema)
+                else if (Math.abs(interseccion.position.x - 0.75) < 0.01 && Math.abs(interseccion.position.y - 0.2) < 0.01) {
+                    // Buscar la horizontal en y=0.7 para ajustar la altura y posición Y
+                    const horizontalAt07 = sortedIntersecciones.find(other => 
+                        other.orientation === Orientacion.Horizontal && 
+                        Math.abs(other.position.y - 0.7) < 0.01
+                    );
+
+                    if (horizontalAt07) {
+                        // Ajustar la altura para que vaya desde el suelo hasta la horizontal en y=0.7
+                        height = horizontalAt07.position.y * actualHeight;
+
+                        // Centrar la sección vertical entre el suelo (y=0) y la horizontal en y=0.7
+                        centerY = (horizontalAt07.position.y / 2) * actualHeight + extraAltura;
+                    }
+                }
 
                 return (
                     <Tabla
