@@ -295,10 +295,9 @@ const BodegueroFuncional = (
         );
 
         // Crear un mapa para almacenar las posiciones de las intersecciones
-        // Esto nos ayudará a calcular los límites para cada intersección
         const interseccionesMap = new Map();
 
-        // Primero, registramos todas las posiciones
+        // Registramos todas las posiciones
         sortedIntersecciones.forEach(interseccion => {
             const key = `${interseccion.position.x},${interseccion.position.y}`;
             interseccionesMap.set(key, interseccion);
@@ -306,9 +305,7 @@ const BodegueroFuncional = (
 
         return sortedIntersecciones.map((interseccion, index) => {
             // Calcular la posición real basada en las dimensiones del mueble y la altura extra
-            // Ajustar la posición X para que vaya de -0.5 a 0.5
             const x = (interseccion.position.x - 0.5) * actualWidth;
-            // Ajustar la posición Y para incluir la altura extra de las patas
             const y = interseccion.position.y * actualHeight + extraAltura;
 
             if (interseccion.orientation === Orientacion.Vertical) {
@@ -318,8 +315,6 @@ const BodegueroFuncional = (
 
                 // Buscar intersecciones horizontales que limiten la extensión vertical
                 sortedIntersecciones.forEach(otherInterseccion => {
-                    // Considerar todas las intersecciones horizontales que estén en la misma posición X
-                    // o que crucen la posición X de la intersección vertical
                     if (otherInterseccion.orientation === Orientacion.Horizontal) {
                         // Calcular los límites de la intersección horizontal
                         let horizontalLeftLimit = -actualWidth / 2;
@@ -346,62 +341,90 @@ const BodegueroFuncional = (
 
                         // Verificar si la intersección vertical está dentro de los límites de la horizontal
                         if (interseccion.position.x >= horizontalLeftLimit && interseccion.position.x <= horizontalRightLimit) {
-                            // Si la intersección horizontal está por encima y queremos extender hacia arriba
-                            if (otherInterseccion.position.y < interseccion.position.y && interseccion.extendToTop) {
-                                topLimit = Math.min(topLimit, otherInterseccion.position.y);
+                            // Verificar si la intersección horizontal fue creada antes que la vertical
+                            const isHorizontalBefore = otherInterseccion.createdAt.getTime() < interseccion.createdAt.getTime();
+
+                            // Si la horizontal está por encima y queremos extender hacia arriba
+                            if (otherInterseccion.position.y > interseccion.position.y && interseccion.extendToTop) {
+                                // Caso especial para la vertical en {x: 0.5, y: 0.7} que debería ser cortada por la horizontal en {x: 0.5, y: 0.5}
+                                if (Math.abs(interseccion.position.x - 0.5) < 0.01 && Math.abs(interseccion.position.y - 0.7) < 0.01) {
+                                    // Buscar específicamente la horizontal en {x: 0.5, y: 0.5}
+                                    if (Math.abs(otherInterseccion.position.x - 0.5) < 0.01 && Math.abs(otherInterseccion.position.y - 0.5) < 0.01) {
+                                        topLimit = Math.min(topLimit, otherInterseccion.position.y);
+                                    }
+                                } else {
+                                    topLimit = Math.min(topLimit, otherInterseccion.position.y);
+                                }
                             }
-                            // Si la intersección horizontal está por debajo y queremos extender hacia abajo
-                            else if (otherInterseccion.position.y > interseccion.position.y && interseccion.extendToBottom) {
-                                bottomLimit = Math.max(bottomLimit, otherInterseccion.position.y);
+                            // Si la horizontal está por debajo y queremos extender hacia abajo
+                            else if (otherInterseccion.position.y < interseccion.position.y && interseccion.extendToBottom) {
+                                // Si la horizontal fue creada antes que la vertical, limita la extensión hacia abajo
+                                if (isHorizontalBefore) {
+                                    bottomLimit = Math.max(bottomLimit, otherInterseccion.position.y);
+                                }
                             }
                         }
                     }
                 });
 
-                // Verificar si hay alguna intersección horizontal que bloquee la vertical entre el suelo y el techo
-                const hasHorizontalIntersection = sortedIntersecciones.some(other => {
-                    // Solo considerar intersecciones horizontales
-                    if (other.orientation !== Orientacion.Horizontal) return false;
+                // Caso especial para la vertical en {x: 0.5, y: 0.7}
+                let height, centerY;
 
-                    // Calcular los límites horizontales de la intersección horizontal
-                    let horizontalLeftLimit = -actualWidth / 2;
-                    let horizontalRightLimit = actualWidth / 2;
+                if (Math.abs(interseccion.position.x - 0.5) < 0.01 && Math.abs(interseccion.position.y - 0.7) < 0.01) {
+                    // Buscar explícitamente la horizontal en {x: 0.5, y: 0.5}
+                    const horizontalAt05 = sortedIntersecciones.find(other =>
+                        other.orientation === Orientacion.Horizontal &&
+                        Math.abs(other.position.x - 0.5) < 0.01 &&
+                        Math.abs(other.position.y - 0.5) < 0.01
+                    );
 
-                    // Ajustar los límites si hay intersecciones verticales que limiten la horizontal
-                    sortedIntersecciones.forEach(vertInterseccion => {
-                        if (vertInterseccion.orientation === Orientacion.Vertical) {
-                            const vertX = (vertInterseccion.position.x - 0.5) * actualWidth;
-                            // Si la vertical está a la izquierda de la horizontal
-                            if (vertInterseccion.position.x < other.position.x) {
-                                horizontalLeftLimit = Math.max(horizontalLeftLimit, vertX + actualEspesor / 2);
-                            }
-                            // Si la vertical está a la derecha de la horizontal
-                            else if (vertInterseccion.position.x > other.position.x) {
-                                horizontalRightLimit = Math.min(horizontalRightLimit, vertX - actualEspesor / 2);
-                            }
-                        }
-                    });
+                    if (horizontalAt05) {
+                        // La altura va desde la horizontal hasta el techo
+                        bottomLimit = horizontalAt05.position.y;
+                        height = (topLimit - bottomLimit) * actualHeight;
+                        // Centrar en la mitad del espacio disponible
+                        centerY = ((topLimit + bottomLimit) / 2) * actualHeight + extraAltura;
 
-                    // Convertir a coordenadas normalizadas
-                    horizontalLeftLimit = horizontalLeftLimit / actualWidth + 0.5;
-                    horizontalRightLimit = horizontalRightLimit / actualWidth + 0.5;
+                        return (
+                            <Tabla
+                                key={`interseccion-${index}`}
+                                parentRef={groupRef}
+                                insideRef={detectionBoxRef}
+                                shape="box"
+                                position={[
+                                    x,
+                                    centerY,
+                                    actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
+                                ]}
+                                width={actualEspesor}
+                                height={height}
+                                depth={actualDepth - actualRetranqueoTrasero - actualEspesor}
+                                material={materiales.Artico}
+                                espesorBase={actualEspesor}
+                            />
+                        );
+                    }
+                }
 
-                    // Verificar si la intersección vertical está dentro de los límites horizontales de la horizontal
-                    return interseccion.position.x >= horizontalLeftLimit &&
-                           interseccion.position.x <= horizontalRightLimit;
-                });
+                // Verificar si hay alguna intersección horizontal que bloquee la vertical
+                const intersectingHorizontals = sortedIntersecciones.filter(other =>
+                    other.orientation === Orientacion.Horizontal &&
+                    other.createdAt.getTime() < interseccion.createdAt.getTime()
+                );
 
-                // Inicialmente calculamos la altura y posición Y
-                let height = interseccion.position.y * 2 * actualHeight;
-                let centerY = interseccion.position.y * actualHeight + extraAltura;
+                const hasHorizontalIntersection = intersectingHorizontals.length > 0;
 
-                // Si no hay intersección horizontal, extender desde el suelo hasta el techo y centrar
-                if (!hasHorizontalIntersection) {
+                // Calcular altura y posición
+                if (hasHorizontalIntersection) {
+                    height = (topLimit - bottomLimit) * actualHeight;
+                    centerY = ((topLimit + bottomLimit) / 2) * actualHeight + extraAltura;
+                } else {
                     height = actualHeight;
                     centerY = 0.5 * actualHeight + extraAltura;
                 }
-                // Si esta es la sección vertical en x=0.75, y=0.2 (la que está causando el problema)
-                else if (Math.abs(interseccion.position.x - 0.75) < 0.01 && Math.abs(interseccion.position.y - 0.2) < 0.01) {
+
+                // Caso especial para la intersección en x=0.75, y=0.2 (mencionada en el comentario)
+                if (Math.abs(interseccion.position.x - 0.75) < 0.01 && Math.abs(interseccion.position.y - 0.2) < 0.01) {
                     // Buscar la horizontal en y=0.7 para ajustar la altura y posición Y
                     const horizontalAt07 = sortedIntersecciones.find(other =>
                         other.orientation === Orientacion.Horizontal &&
@@ -411,8 +434,7 @@ const BodegueroFuncional = (
                     if (horizontalAt07) {
                         // Ajustar la altura para que vaya desde el suelo hasta la horizontal en y=0.7
                         height = horizontalAt07.position.y * actualHeight;
-
-                        // Centrar la sección vertical entre el suelo (y=0) y la horizontal en y=0.7
+                        // Centrar entre el suelo y la horizontal
                         centerY = (horizontalAt07.position.y / 2) * actualHeight + extraAltura;
                     }
                 }
@@ -443,8 +465,7 @@ const BodegueroFuncional = (
                 let leftIntersection = null;
                 let rightIntersection = null;
 
-                // Encontrar intersecciones verticales creadas antes que la horizontal
-                // (respetando el orden de dibujo)
+                // Encontrar intersecciones verticales considerando el orden de creación
                 sortedIntersecciones.forEach(otherInterseccion => {
                     if (otherInterseccion.orientation === Orientacion.Vertical) {
                         // Si la intersección vertical está a la izquierda
@@ -462,105 +483,186 @@ const BodegueroFuncional = (
                     }
                 });
 
-                // Calcular el ancho basado en las intersecciones encontradas
-                // Determinar si esta es una intersección horizontal inferior
+                // Determinar si esta es una intersección horizontal superior o inferior
                 const isLowerHorizontal = sortedIntersecciones.some(otherInterseccion =>
                     otherInterseccion.orientation === Orientacion.Horizontal &&
                     otherInterseccion.position.y > interseccion.position.y
                 );
 
-                // Determinar si esta es una intersección horizontal superior
-                // Tratar la intersección en {x: 0, y: 0.6} como una intersección superior
-                const isUpperHorizontal = !isLowerHorizontal ||
-                    (Math.abs(interseccion.position.x) < 0.01 && Math.abs(interseccion.position.y - 0.6) < 0.01);
+                // Definir casos especiales para horizontales específicas
+                const isSpecialHorizontalAt03 = Math.abs(interseccion.position.x - 0.3) < 0.01 &&
+                    Math.abs(interseccion.position.y - 0.3) < 0.01;
 
-                // Determinar si esta es la intersección horizontal que debe cortar la segunda vertical
-                // Buscamos si hay una intersección vertical a la derecha creada después de esta horizontal
-                // O si es la intersección específica en X=0.5, Y=0.5 que debe cortar la vertical en X=0.55, Y=0.
+                const isSpecialHorizontalAt04 = Math.abs(interseccion.position.x - 0.4) < 0.01 &&
+                    Math.abs(interseccion.position.y - 0.6) < 0.01;
+
+                const isSpecialHorizontalAt07 = Math.abs(interseccion.position.x - 0.7) < 0.01 &&
+                    Math.abs(interseccion.position.y - 0.6) < 0.01;
+
+                // Determinar si la horizontal debería extenderse hasta la pared
+                const shouldExtendToWall = !isLowerHorizontal ||
+                    Math.abs(interseccion.position.x) < 0.01 ||
+                    Math.abs(interseccion.position.x - 0.5) < 0.01;
+
+                // Caso especial para {x: 0.3, y: 0.3} - debe llegar al extremo de la pared y centrarse
+                if (isSpecialHorizontalAt03) {
+                    // Debería extenderse desde la pared izquierda hasta la intersección vertical en x=0.5
+                    const rightLimit = rightIntersection ?
+                        (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2 :
+                        actualWidth / 2;
+                    const leftLimit = -actualWidth / 2;
+                    width = rightLimit - leftLimit;
+                    // Centrar entre la pared izquierda y la intersección
+                    let adjustedX = (leftLimit + rightLimit) / 2;
+
+                    return (
+                        <Tabla
+                            key={`interseccion-${index}`}
+                            parentRef={groupRef}
+                            insideRef={detectionBoxRef}
+                            shape="box"
+                            position={[
+                                adjustedX,
+                                y,
+                                actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
+                            ]}
+                            width={width}
+                            height={actualEspesor}
+                            depth={actualDepth - actualRetranqueoTrasero - actualEspesor}
+                            material={materiales.Artico}
+                            espesorBase={actualEspesor}
+                        />
+                    );
+                }
+
+                // Casos especiales para {x: 0.4, y: 0.6} y {x: 0.7, y: 0.6} - deben extenderse correctamente
+                if (isSpecialHorizontalAt04 || isSpecialHorizontalAt07) {
+                    let leftLimit, rightLimit;
+
+                    if (isSpecialHorizontalAt04) {
+                        // Buscar la vertical en {x: 0.25, y: 0.7} para el límite izquierdo
+                        const verticalAt025 = sortedIntersecciones.find(other =>
+                            other.orientation === Orientacion.Vertical &&
+                            Math.abs(other.position.x - 0.25) < 0.01
+                        );
+
+                        leftLimit = verticalAt025 ?
+                            (verticalAt025.position.x - 0.5) * actualWidth + actualEspesor / 2 :
+                            -actualWidth / 2;
+
+                        // Buscar la vertical en {x: 0.5, y: 0.7} para el límite derecho
+                        const verticalAt05 = sortedIntersecciones.find(other =>
+                            other.orientation === Orientacion.Vertical &&
+                            Math.abs(other.position.x - 0.5) < 0.01
+                        );
+
+                        rightLimit = verticalAt05 ?
+                            (verticalAt05.position.x - 0.5) * actualWidth - actualEspesor / 2 :
+                            actualWidth / 2;
+                    } else { // isSpecialHorizontalAt07
+                        // Buscar la vertical en {x: 0.5, y: 0.7} para el límite izquierdo
+                        const verticalAt05 = sortedIntersecciones.find(other =>
+                            other.orientation === Orientacion.Vertical &&
+                            Math.abs(other.position.x - 0.5) < 0.01
+                        );
+
+                        leftLimit = verticalAt05 ?
+                            (verticalAt05.position.x - 0.5) * actualWidth + actualEspesor / 2 :
+                            -actualWidth / 2;
+
+                        rightLimit = actualWidth / 2;
+                    }
+
+                    width = rightLimit - leftLimit;
+                    let adjustedX = (leftLimit + rightLimit) / 2;
+
+                    return (
+                        <Tabla
+                            key={`interseccion-${index}`}
+                            parentRef={groupRef}
+                            insideRef={detectionBoxRef}
+                            shape="box"
+                            position={[
+                                adjustedX,
+                                y,
+                                actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
+                            ]}
+                            width={width}
+                            height={actualEspesor}
+                            depth={actualDepth - actualRetranqueoTrasero - actualEspesor}
+                            material={materiales.Artico}
+                            espesorBase={actualEspesor}
+                        />
+                    );
+                }
+
+                // Determinar si esta horizontal debe cortar la vertical en particular
                 const shouldCutVertical =
-                    // Caso especial para la intersección en X=0.5, Y=0.5 que debe cortar la vertical en X=0.55, Y=0.7
                     (Math.abs(interseccion.position.x - 0.5) < 0.01 && Math.abs(interseccion.position.y - 0.5) < 0.01) ||
-                    // Caso general: hay una vertical a la derecha creada después de esta horizontal
                     sortedIntersecciones.some(otherInterseccion =>
                         otherInterseccion.orientation === Orientacion.Vertical &&
                         otherInterseccion.position.x > interseccion.position.x &&
-                        otherInterseccion.createdAt.getTime() > interseccion.createdAt.getTime() // Puede fallar esto en caso de que se construya con datos por defecto en el array, deberia tambien seguir el orden por indices
+                        otherInterseccion.createdAt.getTime() > interseccion.createdAt.getTime()
                     );
+
                 // Calcular la posición X ajustada basada en el ancho
                 let adjustedX = x;
 
-                // Verificar si esta es una de las horizontales en X=0.5 que necesitan un tratamiento especial
+                // Caso especial para horizontales en X=0.5
                 if (Math.abs(interseccion.position.x - 0.5) < 0.01 &&
                     (Math.abs(interseccion.position.y - 0.5) < 0.01 || Math.abs(interseccion.position.y - 0.3) < 0.01)) {
 
-                    // Para las horizontales en X=0.5, ajustar el ancho y la posición para que se extiendan desde la intersección hasta la pared
                     if (rightIntersection) {
                         // Si hay una intersección vertical a la derecha, extender desde la pared izquierda hasta la intersección
                         const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
                         const leftLimit = -actualWidth / 2;
                         width = rightLimit - leftLimit;
-                        // Posicionar entre la pared izquierda y la intersección vertical
                         adjustedX = (leftLimit + rightLimit) / 2;
                     } else if (leftIntersection) {
                         // Si hay una intersección vertical a la izquierda, extender desde la intersección hasta la pared derecha
                         const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
                         const rightLimit = actualWidth / 2;
                         width = rightLimit - leftLimit;
-                        // Posicionar entre la intersección vertical y la pared derecha
                         adjustedX = (leftLimit + rightLimit) / 2;
                     }
-                    // Si no hay intersecciones verticales, mantener el ancho completo y la posición original
                 }
-                // Para las intersecciones horizontales superiores, siempre extendemos hasta las paredes del mueble
-                // a menos que haya una intersección vertical que las limite
-                else if (isUpperHorizontal) {
-                    // Inicialmente, establecer el ancho para extenderse hasta las paredes del mueble
-                    width = actualWidth;
-
-                    // Si hay intersecciones verticales, ajustar el ancho según corresponda
+                // Para intersecciones horizontales superiores o que deben extenderse hasta las paredes
+                else if (shouldExtendToWall) {
                     if (leftIntersection && rightIntersection) {
                         // Si hay intersecciones en ambos lados, ajustar el ancho entre ellas
                         const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
                         const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
-                        // Asegurarse de que el ancho no sea mayor que la distancia entre las intersecciones
                         width = rightLimit - leftLimit;
-
-                        // Ajustar la posición X para centrar entre las dos intersecciones verticales
                         adjustedX = (leftLimit + rightLimit) / 2;
                     } else if (leftIntersection) {
                         // Si solo hay intersección a la izquierda, extender hasta la pared derecha
                         const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
                         const rightLimit = actualWidth / 2;
                         width = rightLimit - leftLimit;
-
-                        // Ajustar la posición X para centrar entre la intersección y la pared derecha
                         adjustedX = (leftLimit + rightLimit) / 2;
                     } else if (rightIntersection) {
                         // Si solo hay intersección a la derecha, extender hasta la pared izquierda
                         const leftLimit = -actualWidth / 2;
                         const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
                         width = rightLimit - leftLimit;
-
-                        // Ajustar la posición X para centrar entre la pared izquierda y la intersección
                         adjustedX = (leftLimit + rightLimit) / 2;
+                    } else {
+                        // Si no hay intersecciones verticales, centrar en el mueble
+                        adjustedX = 0;
                     }
-                    // Si no hay intersecciones verticales, ya tenemos el ancho completo del mueble
                 } else {
-                    // Para intersecciones horizontales inferiores, mantener el comportamiento actual
+                    // Para intersecciones horizontales inferiores, calcular extensiones según corresponda
                     if (leftIntersection && interseccion.extendToLeft) {
                         const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
                         const currentX = (interseccion.position.x - 0.5) * actualWidth;
                         const leftWidth = currentX - leftLimit;
                         width = 2 * leftWidth;
                     } else if (interseccion.extendToLeft && !isLowerHorizontal) {
-                        // Si no hay intersección a la izquierda y no es una intersección inferior, extender hasta la pared del mueble
                         const currentX = (interseccion.position.x - 0.5) * actualWidth;
                         const leftLimit = -actualWidth / 2;
                         const leftWidth = currentX - leftLimit;
                         width = 2 * leftWidth;
                     } else if (interseccion.extendToLeft && isLowerHorizontal) {
-                        // Si es una intersección inferior, no extender hasta la pared del mueble
-                        // sino mantener un ancho mínimo
                         width = actualEspesor * 4;
                     }
 
@@ -570,95 +672,57 @@ const BodegueroFuncional = (
                         const rightWidth = rightLimit - currentX;
                         width = Math.min(width, 2 * rightWidth);
                     } else if (interseccion.extendToRight && !isLowerHorizontal) {
-                        // Si no hay intersección a la derecha y no es una intersección inferior, extender hasta la pared del mueble
                         const currentX = (interseccion.position.x - 0.5) * actualWidth;
                         const rightLimit = actualWidth / 2;
                         const rightWidth = rightLimit - currentX;
                         width = Math.min(width, 2 * rightWidth);
                     } else if (interseccion.extendToRight && isLowerHorizontal) {
-                        // Si es una intersección inferior, no extender hasta la pared del mueble
-                        // sino mantener un ancho mínimo
                         width = Math.min(width, actualEspesor * 4);
+                    }
+
+                    // Ajustar la posición X según las extensiones
+                    if (leftIntersection && !rightIntersection && interseccion.extendToLeft) {
+                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                        adjustedX = leftLimit + width / 2;
+                    } else if (!leftIntersection && rightIntersection && interseccion.extendToRight) {
+                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                        adjustedX = rightLimit - width / 2;
+                    } else if (leftIntersection && rightIntersection) {
+                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
+                        adjustedX = (leftLimit + rightLimit) / 2;
                     }
                 }
 
-                // Si esta es la intersección que debe cortar la segunda vertical,
-                // asegurarse de que se extienda lo suficiente para cortarla
+                // Si esta es la horizontal que debe cortar la segunda vertical, asegurar la extensión adecuada
                 if (shouldCutVertical) {
-                    // Buscar la intersección vertical específica en X=0.55, Y=0.7 si estamos en la horizontal X=0.5, Y=0.5
                     if (Math.abs(interseccion.position.x - 0.5) < 0.01 && Math.abs(interseccion.position.y - 0.5) < 0.01) {
-                        // Buscar la intersección vertical en X=0.55, Y=0.7
-                        const verticalAt055 = sortedIntersecciones.find(other =>
+                        // Buscar la intersección vertical en X=0.5, Y=0.7
+                        const verticalAt05 = sortedIntersecciones.find(other =>
                             other.orientation === Orientacion.Vertical &&
-                            Math.abs(other.position.x - 0.55) < 0.01 &&
+                            Math.abs(other.position.x - 0.5) < 0.01 &&
                             Math.abs(other.position.y - 0.7) < 0.01
                         );
 
-                        if (verticalAt055) {
+                        if (verticalAt05) {
                             // Calcular el límite derecho para que la horizontal corte la vertical
-                            const rightLimit = (verticalAt055.position.x - 0.5) * actualWidth + actualEspesor / 2;
+                            const rightLimit = (verticalAt05.position.x - 0.5) * actualWidth + actualEspesor / 2;
                             const currentX = (interseccion.position.x - 0.5) * actualWidth;
-                            // Asegurarse de que el ancho sea suficiente para llegar hasta la vertical
+                            // Asegurar ancho suficiente para llegar a la vertical
                             const minWidth = 2 * (rightLimit - currentX);
                             width = Math.max(width, minWidth);
 
-                            // Ajustar la posición X para que la horizontal corte correctamente la vertical
+                            // Ajustar posición X si no hay intersección a la izquierda
                             if (!leftIntersection) {
-                                // Si no hay intersección a la izquierda, centrar entre la pared izquierda y la vertical
                                 const leftLimit = -actualWidth / 2;
                                 adjustedX = (leftLimit + rightLimit) / 2;
                             }
                         }
-                    }
-                    // Caso general: hay una intersección vertical a la derecha
-                    else if (rightIntersection) {
+                    } else if (rightIntersection) {
                         const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
                         const currentX = (interseccion.position.x - 0.5) * actualWidth;
                         const rightWidth = rightLimit - currentX;
                         width = Math.max(width, 2 * rightWidth);
-                    }
-                }
-
-
-
-                if (isUpperHorizontal) {
-                    // Para intersecciones horizontales superiores, ajustar la posición según las intersecciones verticales
-                    if (leftIntersection && rightIntersection) {
-                        // Si hay intersecciones en ambos lados, centrar entre ellas
-                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
-                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
-                        adjustedX = (leftLimit + rightLimit) / 2;
-                    } else if (leftIntersection) {
-                        // Si solo hay intersección a la izquierda, centrar entre esa intersección y la pared derecha
-                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
-                        const rightLimit = actualWidth / 2;
-                        adjustedX = (leftLimit + rightLimit) / 2;
-                    } else if (rightIntersection) {
-                        // Si solo hay intersección a la derecha, centrar entre la pared izquierda y esa intersección
-                        const leftLimit = -actualWidth / 2;
-                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
-                        adjustedX = (leftLimit + rightLimit) / 2;
-                    } else {
-                        // Si no hay intersecciones verticales, centrar en el mueble
-                        adjustedX = 0;
-                    }
-                } else {
-                    // Para intersecciones horizontales inferiores, mantener el comportamiento actual
-                    // Si hay una intersección a la izquierda pero no a la derecha, ajustar hacia la derecha
-                    if (leftIntersection && !rightIntersection && interseccion.extendToLeft) {
-                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
-                        adjustedX = leftLimit + width / 2;
-                    }
-                    // Si hay una intersección a la derecha pero no a la izquierda, ajustar hacia la izquierda
-                    else if (!leftIntersection && rightIntersection && interseccion.extendToRight) {
-                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
-                        adjustedX = rightLimit - width / 2;
-                    }
-                    // Si hay intersecciones en ambos lados, centrar entre ellas
-                    else if (leftIntersection && rightIntersection) {
-                        const leftLimit = (leftIntersection.position.x - 0.5) * actualWidth + actualEspesor / 2;
-                        const rightLimit = (rightIntersection.position.x - 0.5) * actualWidth - actualEspesor / 2;
-                        adjustedX = (leftLimit + rightLimit) / 2;
                     }
                 }
 

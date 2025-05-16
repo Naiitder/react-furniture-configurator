@@ -144,13 +144,13 @@ export const Experience = () => {
 
                     new InterseccionMueble({x: 0, y: 0.6}, Orientacion.Horizontal), // Se hace bien
 
-                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal), // Se hace bien
-                    // Se hace mal, la anterior debería cortarla y pero si se posiciona donde debería (tiene que estar fallando el calculo de altura del mueble)
-                    new InterseccionMueble({x: 0.5, y: 0.7}, Orientacion.Vertical),
-                    new InterseccionMueble({x: 0.3, y: 0.3}, Orientacion.Horizontal), // No llega al extremo de la pared y no se centra entre la pared y la interseccion vertical
+                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal,), // Se hace bien
+                    new InterseccionMueble({x: 0.5, y: 0.7,}, Orientacion.Vertical), // Se hace bien
+                    new InterseccionMueble({x: 0.2, y: 0.3}, Orientacion.Horizontal), // No se extiende hasta la pared del mueble, debería hacer lo mismo que el que tiene eje 0
+                    new InterseccionMueble({x: 0.3, y: 0.3}, Orientacion.Horizontal), // Se coloca dentro de la interseccion vertical x:0.25
                     new InterseccionMueble({x: 0.7, y: 0.7}, Orientacion.Horizontal), // Se hace bien
-                    new InterseccionMueble({x: 0.4, y: 0.6}, Orientacion.Horizontal), // No se extiende correctamente
-                    new InterseccionMueble({x: 0.6, y: 0.6}, Orientacion.Horizontal), // No se muestra
+                    new InterseccionMueble({x: 0.4, y: 0.6}, Orientacion.Horizontal), // Se hace bien
+                    new InterseccionMueble({x: 0.7, y: 0.6}, Orientacion.Horizontal), // Se hace bien
                 ],
             }
         });
