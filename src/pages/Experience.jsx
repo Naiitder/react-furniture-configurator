@@ -140,26 +140,16 @@ export const Experience = () => {
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
                 intersecciones: [
-                    new InterseccionMueble({x: 0.25, y: 0.7}, Orientacion.Vertical), // Se hace bien
+                    new InterseccionMueble({x: 0.25, y: 0.7}, Orientacion.Vertical, new Date("2025-05-15")),
+                    new InterseccionMueble({x: 0.2, y: 0.7}, Orientacion.Horizontal, new Date("2025-05-16")),
+                    new InterseccionMueble({x: 0.3, y: 0.7}, Orientacion.Horizontal, new Date("2025-05-17")),
+                    new InterseccionMueble({x: 0.7, y: 0.5}, Orientacion.Vertical, new Date("2025-05-20")),
+                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal, new Date("2025-05-23")),
+                    new InterseccionMueble({x: 0.1, y: 0.4}, Orientacion.Horizontal, new Date("2025-05-24")),
+                    new InterseccionMueble({x: 0.5, y: 0.4}, Orientacion.Vertical, new Date("2025-05-28")),
+                    new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical, new Date("2025-05-30")),
 
-                    new InterseccionMueble({x: 0, y: 0.6}, Orientacion.Horizontal), // Se hace bien
 
-                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal,), // Se hace bien
-                    new InterseccionMueble({x: 0.5, y: 0.7,}, Orientacion.Vertical), // Se hace bien
-
-                    // No se extiende hasta la pared del mueble, debería hacer lo mismo que el que tiene eje 0
-                    // Sólo funciona como se espera si es 0 exacto, cualquier valor entre 0 y 0.25 hace que se pegue a la
-                    // interseccion y no se extienda hasta la pared del mueble
-                    new InterseccionMueble({x: 0.01, y: 0.3}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.2, y: 0.2}, Orientacion.Horizontal),
-
-                    // Se coloca dentro de la interseccion vertical x:0.25, sobresaliendose por el lado que no deberia
-                    // de la interseccion y sin expandirse hasta la pared
-                    new InterseccionMueble({x: 0.3, y: 0.3}, Orientacion.Horizontal),
-
-                    new InterseccionMueble({x: 0.7, y: 0.7}, Orientacion.Horizontal), // Se hace bien
-                    new InterseccionMueble({x: 0.4, y: 0.6}, Orientacion.Horizontal), // Se hace bien
-                    new InterseccionMueble({x: 0.7, y: 0.6}, Orientacion.Horizontal), // Se hace bien
                 ],
             }
         });
