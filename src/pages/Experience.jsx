@@ -140,15 +140,19 @@ export const Experience = () => {
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
                 intersecciones: [
-                    new InterseccionMueble({x: 0.25, y: 0.7}, Orientacion.Vertical, new Date("2025-05-15")),
-                    new InterseccionMueble({x: 0.2, y: 0.7}, Orientacion.Horizontal, new Date("2025-05-16")),
-                    new InterseccionMueble({x: 0.3, y: 0.7}, Orientacion.Horizontal, new Date("2025-05-17")),
-                    new InterseccionMueble({x: 0.7, y: 0.5}, Orientacion.Vertical, new Date("2025-05-20")),
-                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal, new Date("2025-05-23")),
-                    new InterseccionMueble({x: 0.1, y: 0.4}, Orientacion.Horizontal, new Date("2025-05-24")),
-                    new InterseccionMueble({x: 0.5, y: 0.4}, Orientacion.Vertical, new Date("2025-05-28")),
-                    new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical, new Date("2025-05-30")),
+                    new InterseccionMueble({x: 0.25, y: 0}, Orientacion.Vertical, new Date("2025-05-14")),
+                    new InterseccionMueble({x: 0.75, y: 0}, Orientacion.Vertical, new Date("2025-05-14")),
+                    new InterseccionMueble({x: 0, y: 0.1}, Orientacion.Horizontal, new Date("2025-05-13")),
 
+                    new InterseccionMueble({x: 0.25, y: 0.1}, Orientacion.Vertical, new Date("2025-05-13")),
+                    new InterseccionMueble({x: 0.5, y: 0.3}, Orientacion.Horizontal, new Date("2025-05-14")),
+                    new InterseccionMueble({x: 0.75, y: 0.1}, Orientacion.Vertical, new Date("2025-05-15")),
+                    new InterseccionMueble({x: 0.5, y: 0.1}, Orientacion.Vertical, new Date("2025-05-15")),
+
+                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal, new Date("2025-05-16")),
+                    new InterseccionMueble({x: 0.75, y: 0.3}, Orientacion.Vertical, new Date("2025-05-17")),
+                    new InterseccionMueble({x: 0.75, y: 0.7}, Orientacion.Horizontal, new Date("2025-05-18")),
+                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Vertical, new Date("2025-05-18")),
 
                 ],
             }
