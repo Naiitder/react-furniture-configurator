@@ -50,6 +50,12 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
             mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
+            if (refItem) {
+                const intersects = raycaster.intersectObject(refItem.groupRef, true);
+                if (intersects.length > 0) {
+                    console.log(intersects[0]);
+                }
+            }
         };
 
         gl.domElement.addEventListener("mouseup", onClick);
@@ -163,6 +169,9 @@ export const Experience = () => {
                     new InterseccionMueble({x: 0.1, y: 0.6}, Orientacion.Horizontal),
                     new InterseccionMueble({x: 0, y: 0.7}, Orientacion.Horizontal),
                     new InterseccionMueble({x: 0.2, y: 0.4}, Orientacion.Horizontal),
+
+                    new InterseccionMueble({x: 0.25, y: 0.9}, Orientacion.Horizontal),
+
                 ],
             }
         });
@@ -210,6 +219,7 @@ export const Experience = () => {
     }, [transformMode, refItem, version]);
 
 
+    // TODO Usar coordenadas UV del click
     const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         drop: (item, monitor) => {

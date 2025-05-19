@@ -389,6 +389,10 @@ const BodegueroFuncional = (
             let leftX = -actualWidth / 2;
             let rightX = actualWidth / 2;
 
+            // Para manejar el caso de verticales exactamente en la misma X
+            let exactMatchVertical = null;
+            let exactMatchVerticalIndex = -1;
+
             // Solo verticales anteriores o CON LA MISMA FECHA que h
             // Pero solo hasta el índice de esta horizontal
             for (let i = 0; i < horizontalIndex; i++) {
@@ -410,11 +414,16 @@ const BodegueroFuncional = (
                         const intersecta = hy >= vBotY - actualEspesor/2 && hy <= vTopY + actualEspesor/2;
 
                         if (intersecta) {
-                            if (vx < hx && vx > leftX) {
+                            // Detectamos si hay coincidencia exacta en X (con un pequeño margen de tolerancia)
+                            if (Math.abs(vx - hx) < 0.001) {
+                                // Guardamos referencia a la vertical que coincide exactamente
+                                exactMatchVertical = v;
+                                exactMatchVerticalIndex = i;
+                                console.log(`¡Coincidencia exacta! Horizontal [${horizontalIndex}] y Vertical [${i}] en x=${v.position.x.toFixed(2)}`);
+                            } else if (vx < hx && vx > leftX) {
                                 leftX = vx;
                                 console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por izquierda en x=${v.position.x.toFixed(2)}`);
-                            }
-                            if (vx > hx && vx < rightX) {
+                            } else if (vx > hx && vx < rightX) {
                                 rightX = vx;
                                 console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por derecha en x=${v.position.x.toFixed(2)}`);
                             }
@@ -425,10 +434,31 @@ const BodegueroFuncional = (
                 }
             }
 
-            const result = [
-                leftX + actualEspesor / 2,
-                rightX - actualEspesor / 2
-            ];
+            // Ajustamos márgenes por espesor
+            leftX += actualEspesor / 2;
+            rightX -= actualEspesor / 2;
+
+            // Si hay coincidencia exacta en X, desplazamos la horizontal al lado con más espacio
+            if (exactMatchVertical !== null) {
+                // Calculamos espacio disponible a cada lado
+                const espacioIzquierda = hx - leftX;
+                const espacioDerecha = rightX - hx;
+
+                console.log(`Espacios disponibles: izquierda=${espacioIzquierda.toFixed(2)}, derecha=${espacioDerecha.toFixed(2)}`);
+
+                // Comparamos para ver hacia dónde expandir
+                if (espacioIzquierda >= espacioDerecha) {
+                    // Más espacio a la izquierda, expandimos desde la vertical hacia la izquierda
+                    console.log(`Expandiendo horizontal hacia la izquierda desde la vertical`);
+                    rightX = hx; // La vertical marca el límite derecho
+                } else {
+                    // Más espacio a la derecha, expandimos desde la vertical hacia la derecha
+                    console.log(`Expandiendo horizontal hacia la derecha desde la vertical`);
+                    leftX = hx; // La vertical marca el límite izquierdo
+                }
+            }
+
+            const result = [leftX, rightX];
 
             console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: rango calculado [${result[0].toFixed(2)}, ${result[1].toFixed(2)}]`);
             return result;
@@ -499,7 +529,6 @@ const BodegueroFuncional = (
             }
         });
     };
-
     // Manejador del clic: actualiza la ref de contexto para el casco seleccionado
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
