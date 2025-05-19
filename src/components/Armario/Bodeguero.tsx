@@ -319,110 +319,118 @@ const BodegueroFuncional = (
             fecha: i.createdAt.toLocaleDateString()
         })));
 
-
         // Función auxiliar: calcula el rango vertical real de una intersección vertical
-        const getVerticalRange = (vertical) => {
+        const getVerticalRange = (vertical, verticalIndex) => {
             const x = (vertical.position.x - 0.5) * actualWidth;
             let topY = extraAltura + actualHeight;
             let botY = extraAltura;
 
-            // Buscamos horizontales anteriores que recorten esta vertical
-            sorted.forEach(h => {
-                if (
-                    h.orientation === Orientacion.Horizontal &&
-                    h.createdAt.getTime() < vertical.createdAt.getTime()
-                ) {
-                    // Calculamos el rango horizontal de esta horizontal
-                    const hx = (h.position.x - 0.5) * actualWidth;
-                    let leftX = -actualWidth / 2;
-                    let rightX = actualWidth / 2;
+            // Buscamos horizontales anteriores o CON LA MISMA FECHA que recorten esta vertical
+            for (let i = 0; i < verticalIndex; i++) {
+                const h = sorted[i];
+                if (h.orientation === Orientacion.Horizontal) {
+                    // Si la horizontal tiene fecha anterior o igual (y menor índice)
+                    // puede recortar a esta vertical
+                    const horizontalTime = h.createdAt.getTime();
+                    const verticalTime = vertical.createdAt.getTime();
 
-                    // Buscamos verticales que limiten esta horizontal
-                    sorted.forEach(v => {
-                        if (
-                            v.orientation === Orientacion.Vertical &&
-                            v.createdAt.getTime() < h.createdAt.getTime() &&
-                            v.id !== vertical.id  // Evitamos comparar con nosotros mismos
-                        ) {
-                            const vx = (v.position.x - 0.5) * actualWidth;
-                            if (vx < hx && vx > leftX) leftX = vx;
-                            if (vx > hx && vx < rightX) rightX = vx;
-                        }
-                    });
+                    if (horizontalTime <= verticalTime) {
+                        // Calculamos el rango horizontal de esta horizontal
+                        const hx = (h.position.x - 0.5) * actualWidth;
+                        let leftX = -actualWidth / 2;
+                        let rightX = actualWidth / 2;
 
-                    leftX += actualEspesor / 2;
-                    rightX -= actualEspesor / 2;
-
-                    // Solo recortamos si nuestra x está dentro del rango de esta horizontal
-                    if (x >= leftX && x <= rightX) {
-                        const hy = h.position.y * actualHeight + extraAltura;
-                        const verticalY = vertical.position.y * actualHeight + extraAltura;
-
-                        // Revisamos si esta horizontal cruza nuestra vertical
-                        if (Math.abs(hy - verticalY) <= actualEspesor/2) {
-                            // Está justo en la intersección, recortamos según la fecha
-                            if (hy > verticalY) {
-                                topY = Math.min(topY, hy - actualEspesor/2);
-                            } else {
-                                botY = Math.max(botY, hy + actualEspesor/2);
+                        // Buscamos verticales que limiten esta horizontal
+                        // Solo las verticales con índice menor que i pueden afectar
+                        for (let j = 0; j < i; j++) {
+                            const v = sorted[j];
+                            if (v.orientation === Orientacion.Vertical && v.id !== vertical.id) {
+                                const vx = (v.position.x - 0.5) * actualWidth;
+                                if (vx < hx && vx > leftX) leftX = vx;
+                                if (vx > hx && vx < rightX) rightX = vx;
                             }
-                        } else if (hy > verticalY) {
-                            topY = Math.min(topY, hy);
-                        } else {
-                            botY = Math.max(botY, hy);
+                        }
+
+                        leftX += actualEspesor / 2;
+                        rightX -= actualEspesor / 2;
+
+                        // Solo recortamos si nuestra x está dentro del rango de esta horizontal
+                        if (x >= leftX && x <= rightX) {
+                            const hy = h.position.y * actualHeight + extraAltura;
+                            const verticalY = vertical.position.y * actualHeight + extraAltura;
+
+                            // Revisamos si esta horizontal cruza nuestra vertical
+                            if (Math.abs(hy - verticalY) <= actualEspesor/2) {
+                                // Está justo en la intersección, recortamos
+                                if (hy > verticalY) {
+                                    topY = Math.min(topY, hy - actualEspesor/2);
+                                } else {
+                                    botY = Math.max(botY, hy + actualEspesor/2);
+                                }
+                            } else if (hy > verticalY) {
+                                topY = Math.min(topY, hy);
+                            } else {
+                                botY = Math.max(botY, hy);
+                            }
                         }
                     }
                 }
-            });
+            }
 
-            console.log(`Vertical en x=${vertical.position.x.toFixed(2)}, y=${vertical.position.y.toFixed(2)}: rango [${botY.toFixed(2)}, ${topY.toFixed(2)}]`);
+            console.log(`Vertical [${verticalIndex}] en x=${vertical.position.x.toFixed(2)}, y=${vertical.position.y.toFixed(2)}: rango [${botY.toFixed(2)}, ${topY.toFixed(2)}]`);
             return [botY, topY];
         };
 
         // Helper: devuelve [leftX, rightX] de una horizontal teniendo en cuenta
         // los rangos verticales reales de las verticales
-        const computeHorizontalRange = (h) => {
+        const computeHorizontalRange = (h, horizontalIndex) => {
             const hx = (h.position.x - 0.5) * actualWidth;
             const hy = h.position.y * actualHeight + extraAltura;
             let leftX = -actualWidth / 2;
             let rightX = actualWidth / 2;
 
-            // Solo verticales anteriores a h
-            sorted.forEach(v => {
-                if (
-                    v.orientation === Orientacion.Vertical &&
-                    v.createdAt.getTime() < h.createdAt.getTime()
-                ) {
-                    const vx = (v.position.x - 0.5) * actualWidth;
+            // Solo verticales anteriores o CON LA MISMA FECHA que h
+            // Pero solo hasta el índice de esta horizontal
+            for (let i = 0; i < horizontalIndex; i++) {
+                const v = sorted[i];
 
-                    // Verificamos si la vertical realmente intersecta con la horizontal en Y
-                    const [vBotY, vTopY] = getVerticalRange(v);
+                if (v.orientation === Orientacion.Vertical) {
+                    const verticalTime = v.createdAt.getTime();
+                    const horizontalTime = h.createdAt.getTime();
 
-                    // El punto clave: solo consideramos esta vertical si realmente
-                    // se cruza con nuestra horizontal, teniendo en cuenta el espesor
-                    const intersecta = hy >= vBotY - actualEspesor/2 && hy <= vTopY + actualEspesor/2;
+                    // Consideramos verticales anteriores o con la misma fecha (pero menor índice)
+                    if (verticalTime <= horizontalTime) {
+                        const vx = (v.position.x - 0.5) * actualWidth;
 
-                    if (intersecta) {
-                        if (vx < hx && vx > leftX) {
-                            leftX = vx;
-                            console.log(`Horizontal en y=${h.position.y.toFixed(2)}: limitada por izquierda en x=${v.position.x.toFixed(2)}`);
+                        // Verificamos si la vertical realmente intersecta con la horizontal en Y
+                        const [vBotY, vTopY] = getVerticalRange(v, i);
+
+                        // El punto clave: solo consideramos esta vertical si realmente
+                        // se cruza con nuestra horizontal, teniendo en cuenta el espesor
+                        const intersecta = hy >= vBotY - actualEspesor/2 && hy <= vTopY + actualEspesor/2;
+
+                        if (intersecta) {
+                            if (vx < hx && vx > leftX) {
+                                leftX = vx;
+                                console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por izquierda en x=${v.position.x.toFixed(2)}`);
+                            }
+                            if (vx > hx && vx < rightX) {
+                                rightX = vx;
+                                console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por derecha en x=${v.position.x.toFixed(2)}`);
+                            }
+                        } else {
+                            console.log(`Vertical [${i}] en x=${v.position.x.toFixed(2)} NO intersecta con horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}, rango vertical: [${vBotY.toFixed(2)}, ${vTopY.toFixed(2)}]`);
                         }
-                        if (vx > hx && vx < rightX) {
-                            rightX = vx;
-                            console.log(`Horizontal en y=${h.position.y.toFixed(2)}: limitada por derecha en x=${v.position.x.toFixed(2)}`);
-                        }
-                    } else {
-                        console.log(`Vertical en x=${v.position.x.toFixed(2)} NO intersecta con horizontal en y=${h.position.y.toFixed(2)}, rango vertical: [${vBotY.toFixed(2)}, ${vTopY.toFixed(2)}]`);
                     }
                 }
-            });
+            }
 
             const result = [
                 leftX + actualEspesor / 2,
                 rightX - actualEspesor / 2
             ];
 
-            console.log(`Horizontal en y=${h.position.y.toFixed(2)}: rango calculado [${result[0].toFixed(2)}, ${result[1].toFixed(2)}]`);
+            console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: rango calculado [${result[0].toFixed(2)}, ${result[1].toFixed(2)}]`);
             return result;
         };
 
@@ -433,7 +441,7 @@ const BodegueroFuncional = (
             if (inter.orientation === Orientacion.Horizontal) {
                 // ——————— BRANCH HORIZONTAL ———————
                 // Si hay verticales posteriores a esta horizontal, no deberían afectarla
-                const [leftX, rightX] = computeHorizontalRange(inter);
+                const [leftX, rightX] = computeHorizontalRange(inter, idx);
                 const widthSeg = rightX - leftX;
                 const centerX = (leftX + rightX) / 2;
 
@@ -459,13 +467,13 @@ const BodegueroFuncional = (
             } else {
                 // ——————— BRANCH VERTICAL ———————
                 // Calculamos el rango vertical real considerando horizontales previas
-                const [botY, topY] = getVerticalRange(inter);
+                const [botY, topY] = getVerticalRange(inter, idx);
                 const heightSeg = topY - botY;
                 const centerY = (topY + botY) / 2;
 
                 // Verificamos que la altura calculada sea positiva
                 if (heightSeg <= 0) {
-                    console.log(`Vertical en ${x},${y} tiene altura inválida: ${heightSeg}`);
+                    console.log(`Vertical [${idx}] en ${x},${y} tiene altura inválida: ${heightSeg}`);
                     return null; // No renderizamos verticales con altura inválida
                 }
 
