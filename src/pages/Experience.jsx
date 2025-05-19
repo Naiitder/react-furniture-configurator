@@ -171,6 +171,7 @@ export const Experience = () => {
                     new InterseccionMueble({x: 0.2, y: 0.4}, Orientacion.Horizontal),
 
                     new InterseccionMueble({x: 0.25, y: 0.9}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: 0.9}, Orientacion.Vertical),
 
                 ],
             }

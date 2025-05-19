@@ -322,8 +322,8 @@ const BodegueroFuncional = (
         // Función auxiliar: calcula el rango vertical real de una intersección vertical
         const getVerticalRange = (vertical, verticalIndex) => {
             const x = (vertical.position.x - 0.5) * actualWidth;
-            let topY = extraAltura + actualHeight;
-            let botY = extraAltura;
+            let topY = extraAltura + actualHeight - actualEspesor;
+            let botY = extraAltura + actualEspesor;
 
             // Buscamos horizontales anteriores o CON LA MISMA FECHA que recorten esta vertical
             for (let i = 0; i < verticalIndex; i++) {
@@ -446,15 +446,20 @@ const BodegueroFuncional = (
 
                 console.log(`Espacios disponibles: izquierda=${espacioIzquierda.toFixed(2)}, derecha=${espacioDerecha.toFixed(2)}`);
 
+                // Obtenemos la posición X exacta de la vertical (en el sistema de coordenadas de renderizado)
+                const vx = (exactMatchVertical.position.x - 0.5) * actualWidth;
+
                 // Comparamos para ver hacia dónde expandir
                 if (espacioIzquierda >= espacioDerecha) {
                     // Más espacio a la izquierda, expandimos desde la vertical hacia la izquierda
                     console.log(`Expandiendo horizontal hacia la izquierda desde la vertical`);
-                    rightX = hx; // La vertical marca el límite derecho
+                    // La vertical marca el límite derecho, restamos medio espesor
+                    rightX = vx - actualEspesor/2;
                 } else {
                     // Más espacio a la derecha, expandimos desde la vertical hacia la derecha
                     console.log(`Expandiendo horizontal hacia la derecha desde la vertical`);
-                    leftX = hx; // La vertical marca el límite izquierdo
+                    // La vertical marca el límite izquierdo, sumamos medio espesor
+                    leftX = vx + actualEspesor/2;
                 }
             }
 
@@ -529,6 +534,7 @@ const BodegueroFuncional = (
             }
         });
     };
+
     // Manejador del clic: actualiza la ref de contexto para el casco seleccionado
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
