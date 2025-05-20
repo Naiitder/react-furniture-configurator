@@ -146,14 +146,13 @@ export const Experience = () => {
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
                 intersecciones: [
-                    new InterseccionMueble({x: 0.25, y: 0}, Orientacion.Vertical, new Date("2025-05-14")),
-                    new InterseccionMueble({x: 0.75, y: 0}, Orientacion.Vertical, new Date("2025-05-14")),
-                    new InterseccionMueble({x: 0, y: 0.1}, Orientacion.Horizontal, new Date("2025-05-13")),
+                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal, new Date("2025-05-14")),
+                    new InterseccionMueble({x: 0.75, y: .25}, Orientacion.Horizontal, new Date("2025-05-14")),
+                    new InterseccionMueble({x: 0, y: 0.75}, Orientacion.Horizontal, new Date("2025-05-13")),
 
-                    new InterseccionMueble({x: 0, y: 0.5}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.2, y: 0.4}, Orientacion.Vertical), // Bloquea y corta la horizontal pero la ultima entrada no lo detecta
-                    new InterseccionMueble({x: 0.1, y: 0.35}, Orientacion.Horizontal), // No debería afectar a la siguiente entrada que es vertical
-                    new InterseccionMueble({x: 0.4, y: 0.3}, Orientacion.Vertical, new Date("2025-05-24")), // Se recorta por el horizontal de y: 0.35
+                    new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical), // Bloquea y corta la horizontal pero la ultima entrada no lo detecta
+                    new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical, new Date("2025-05-24")),
+// Se recorta por el horizontal de y: 0.35
 
                 ],
             }
