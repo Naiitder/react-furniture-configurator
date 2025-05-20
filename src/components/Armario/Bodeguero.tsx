@@ -377,9 +377,9 @@ const BodegueroFuncional = (
                                     botY = Math.max(botY, hy - actualEspesor / 2);
                                 }
                             } else if (hy > verticalY) {
-                                topY = Math.min(topY, hy);
+                                topY = Math.min(topY, hy - actualEspesor / 2);
                             } else {
-                                botY = Math.max(botY, hy);
+                                botY = Math.max(botY, hy + actualEspesor / 2);
                             }
                         }
                     }
