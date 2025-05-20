@@ -150,28 +150,6 @@ export const Experience = () => {
                     new InterseccionMueble({x: 0.75, y: 0}, Orientacion.Vertical, new Date("2025-05-14")),
                     new InterseccionMueble({x: 0, y: 0.1}, Orientacion.Horizontal, new Date("2025-05-13")),
 
-                    new InterseccionMueble({x: 0.25, y: 0.1}, Orientacion.Vertical, new Date("2025-05-13")),
-                    new InterseccionMueble({x: 0.5, y: 0.3}, Orientacion.Horizontal, new Date("2025-05-14")),
-                    new InterseccionMueble({x: 0.75, y: 0.1}, Orientacion.Vertical, new Date("2025-05-15")),
-                    new InterseccionMueble({x: 0.5, y: 0.1}, Orientacion.Vertical, new Date("2025-05-15")),
-
-                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal, new Date("2025-05-16")),
-                    new InterseccionMueble({x: 0.75, y: 0.3}, Orientacion.Vertical, new Date("2025-05-17")),
-                    new InterseccionMueble({x: 0.75, y: 0.7}, Orientacion.Horizontal, new Date("2025-05-18")),
-                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Vertical, new Date("2025-05-18")),
-
-                    new InterseccionMueble({x: 0.6, y: 0.5}, Orientacion.Vertical, new Date("2025-05-18")),
-                    new InterseccionMueble({x: 0.8, y: 0.7}, Orientacion.Vertical, new Date("2025-05-14")),
-                    new InterseccionMueble({x: 0.55, y: 0.6}, Orientacion.Horizontal, new Date("2025-05-18")),
-
-
-                    new InterseccionMueble({x: 0.9, y: 0.6}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.1, y: 0.6}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0, y: 0.7}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.2, y: 0.4}, Orientacion.Horizontal),
-
-                    new InterseccionMueble({x: 0.25, y: 0.9}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.5, y: 0.9}, Orientacion.Vertical),
 
                 ],
             }
@@ -245,15 +223,15 @@ export const Experience = () => {
             raycaster.setFromCamera(mouse, camera);
 
             const intersectObject = raycaster.intersectObject(refItem.groupRef, true)[0];
-            console.log("OTRA LINEAS") // A partir de aquí ya no ejecuta, aunque el objeto anterior no sea ni nulo o undefined
-            /*
+
+
             const intersecciones = cascoData.intersecciones || [];
 
             // Create a new intersection
             const newInterseccion = new InterseccionMueble(
                 {
-                    x: 0.5,
-                    y: 0.4
+                    x: intersectObject.uv.x,
+                    y: intersectObject.uv.y,
                 },
                 item.type === INTERSECTION_TYPES.HORIZONTAL ? Orientacion.Horizontal : Orientacion.Vertical
             );
@@ -265,9 +243,19 @@ export const Experience = () => {
                 // Add the new intersection to the existing ones
                 updatedCasco.intersecciones = [...intersecciones, newInterseccion];
 
+                console.log("updatedCasco", updatedCasco);
+
                 updated[cascoKey] = updatedCasco;
                 return updated;
-            });*/
+            });
+
+            if (refItem?.groupRef) {
+                const ud = refItem.groupRef.userData;
+                ud.intersecciones = [...(ud.intersecciones || []), newInterseccion];
+            }
+
+            // 3) bump the version to force your Bodeguero to pull new userData:
+            setVersion(v => v + 1);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),

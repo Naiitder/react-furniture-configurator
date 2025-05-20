@@ -411,16 +411,16 @@ const BodegueroFuncional = (
                                 // Guardamos referencia a la vertical que coincide exactamente
                                 exactMatchVertical = v;
                                 exactMatchVerticalIndex = i;
-                                console.log(`¡Coincidencia exacta! Horizontal [${horizontalIndex}] y Vertical [${i}] en x=${v.position.x.toFixed(2)}`);
+                                //console.log(`¡Coincidencia exacta! Horizontal [${horizontalIndex}] y Vertical [${i}] en x=${v.position.x.toFixed(2)}`);
                             } else if (vx < hx && vx > leftX) {
                                 leftX = vx;
-                                console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por izquierda en x=${v.position.x.toFixed(2)}`);
+                                //console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por izquierda en x=${v.position.x.toFixed(2)}`);
                             } else if (vx > hx && vx < rightX) {
                                 rightX = vx;
-                                console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por derecha en x=${v.position.x.toFixed(2)}`);
+                                //console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por derecha en x=${v.position.x.toFixed(2)}`);
                             }
                         } else {
-                            console.log(`Vertical [${i}] en x=${v.position.x.toFixed(2)} NO intersecta con horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}, rango vertical: [${vBotY.toFixed(2)}, ${vTopY.toFixed(2)}]`);
+                            //console.log(`Vertical [${i}] en x=${v.position.x.toFixed(2)} NO intersecta con horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}, rango vertical: [${vBotY.toFixed(2)}, ${vTopY.toFixed(2)}]`);
                         }
                     }
                 }
@@ -443,12 +443,12 @@ const BodegueroFuncional = (
                 // Comparamos para ver hacia dónde expandir
                 if (espacioIzquierda >= espacioDerecha) {
                     // Más espacio a la izquierda, expandimos desde la vertical hacia la izquierda
-                    console.log(`Expandiendo horizontal hacia la izquierda desde la vertical`);
+                    //console.log(`Expandiendo horizontal hacia la izquierda desde la vertical`);
                     // La vertical marca el límite derecho, restamos medio espesor
                     rightX = vx - actualEspesor/2;
                 } else {
                     // Más espacio a la derecha, expandimos desde la vertical hacia la derecha
-                    console.log(`Expandiendo horizontal hacia la derecha desde la vertical`);
+                    //console.log(`Expandiendo horizontal hacia la derecha desde la vertical`);
                     // La vertical marca el límite izquierdo, sumamos medio espesor
                     leftX = vx + actualEspesor/2;
                 }
@@ -498,7 +498,7 @@ const BodegueroFuncional = (
 
                 // Verificamos que la altura calculada sea positiva
                 if (heightSeg <= 0) {
-                    console.log(`Vertical [${idx}] en ${x},${y} tiene altura inválida: ${heightSeg}`);
+                    //console.log(`Vertical [${idx}] en ${x},${y} tiene altura inválida: ${heightSeg}`);
                     return null; // No renderizamos verticales con altura inválida
                 }
 
