@@ -310,14 +310,7 @@ const BodegueroFuncional = (
         // Extraemos las intersecciones ordenadas
         const sorted = sortedWithIndices.map(item => item.inter);
 
-        // Para debugging
-        console.log("Intersecciones ordenadas:", sorted.map((i, idx) => ({
-            indice: idx,
-            tipo: i.orientation === Orientacion.Horizontal ? "Horizontal" : "Vertical",
-            x: i.position.x.toFixed(2),
-            y: i.position.y.toFixed(2),
-            fecha: i.createdAt.toLocaleDateString()
-        })));
+
 
         // Función auxiliar: calcula el rango vertical real de una intersección vertical
         const getVerticalRange = (vertical, verticalIndex) => {
@@ -365,7 +358,7 @@ const BodegueroFuncional = (
                                 if (hy > verticalY) {
                                     topY = Math.min(topY, hy - actualEspesor/2);
                                 } else {
-                                    botY = Math.max(botY, hy + actualEspesor/2);
+                                    botY = Math.max(botY, hy - actualEspesor/2);
                                 }
                             } else if (hy > verticalY) {
                                 topY = Math.min(topY, hy);
@@ -377,7 +370,6 @@ const BodegueroFuncional = (
                 }
             }
 
-            console.log(`Vertical [${verticalIndex}] en x=${vertical.position.x.toFixed(2)}, y=${vertical.position.y.toFixed(2)}: rango [${botY.toFixed(2)}, ${topY.toFixed(2)}]`);
             return [botY, topY];
         };
 
@@ -444,7 +436,6 @@ const BodegueroFuncional = (
                 const espacioIzquierda = hx - leftX;
                 const espacioDerecha = rightX - hx;
 
-                console.log(`Espacios disponibles: izquierda=${espacioIzquierda.toFixed(2)}, derecha=${espacioDerecha.toFixed(2)}`);
 
                 // Obtenemos la posición X exacta de la vertical (en el sistema de coordenadas de renderizado)
                 const vx = (exactMatchVertical.position.x - 0.5) * actualWidth;
@@ -465,7 +456,6 @@ const BodegueroFuncional = (
 
             const result = [leftX, rightX];
 
-            console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: rango calculado [${result[0].toFixed(2)}, ${result[1].toFixed(2)}]`);
             return result;
         };
 

@@ -244,35 +244,16 @@ export const Experience = () => {
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
 
-            const intersects = refItem.detectionRef
-                ? raycaster.intersectObject(refItem.detectionRef, true)
-                : [];
-            if (intersects.length === 0) return;
-
-            const point = intersects[0].point;
-            const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
-            refItem.groupRef.updateMatrixWorld(true);
-            const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
-
-            const {
-                width: cascoWidth,
-                height: cascoHeight,
-                depth: cascoDepth,
-                espesor,
-                alturaPatas
-            } = refItem.groupRef.userData;
-
-            let adjustedWidth = cascoWidth;
-            let adjustedHeight = cascoHeight;
-            let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
-
+            const intersectObject = raycaster.intersectObject(refItem.groupRef, true)[0];
+            console.log("OTRA LINEAS") // A partir de aquí ya no ejecuta, aunque el objeto anterior no sea ni nulo o undefined
+            /*
             const intersecciones = cascoData.intersecciones || [];
 
             // Create a new intersection
             const newInterseccion = new InterseccionMueble(
                 {
-                    x: adjustedPosition[0] / cascoWidth,
-                    y: adjustedPosition[1] / cascoHeight - alturaPatas
+                    x: 0.5,
+                    y: 0.4
                 },
                 item.type === INTERSECTION_TYPES.HORIZONTAL ? Orientacion.Horizontal : Orientacion.Vertical
             );
@@ -286,7 +267,7 @@ export const Experience = () => {
 
                 updated[cascoKey] = updatedCasco;
                 return updated;
-            });
+            });*/
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
