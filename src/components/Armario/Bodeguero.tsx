@@ -1,10 +1,10 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, {useRef, useEffect, useCallback, useState} from "react";
 import * as THREE from "three";
 import Tabla from "../Casco/Tabla";
-import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
-import { useMaterial } from "../../assets/materials";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import {useMaterial} from "../../assets/materials";
 import {Outlines} from "@react-three/drei";
-import InterseccionMueble, { Orientacion } from "../Interseccion";
+import InterseccionMueble, {Orientacion} from "../Interseccion";
 
 // Definición de los props para el componente Casco
 export type BodegueroProps = {
@@ -29,7 +29,7 @@ export type BodegueroProps = {
     intersecciones?: InterseccionMueble[];
     version?: any[];
     setVersion?: (version: any) => void;
-
+    // https://musicart.xboxlive.com/7/16182200-0000-0000-0000-000000000002/504/image.jpg
 };
 
 const BodegueroFuncional = (
@@ -71,7 +71,7 @@ const BodegueroFuncional = (
     const horizontalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
     const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
 
-    const { refItem } = useSelectedItemProvider();
+    const {refItem} = useSelectedItemProvider();
 
     // Valores iniciales para este casco
     const initialData = {
@@ -99,7 +99,7 @@ const BodegueroFuncional = (
 
     useEffect(() => {
         if (groupRef.current && Object.keys(groupRef.current.userData).length === 0) {
-            groupRef.current.userData = { ...initialData };
+            groupRef.current.userData = {...initialData};
         }
 
         if (!groupRef.current.name && props.id) {
@@ -119,7 +119,7 @@ const BodegueroFuncional = (
                 const hasChanged = Object.keys(newConfig).some(
                     key => newConfig[key] !== prev[key]
                 );
-                return hasChanged ? { ...prev, ...newConfig } : prev;
+                return hasChanged ? {...prev, ...newConfig} : prev;
             });
         }
     }, [refItem, isSelected, version]);
@@ -128,10 +128,10 @@ const BodegueroFuncional = (
     // como en el userData del objeto Three.js
     const updateConfig = (key: string, value: any) => {
         setLocalConfig((prev) => {
-            const newConfig = { ...prev, [key]: value };
+            const newConfig = {...prev, [key]: value};
             // Actualizamos el userData si existe
             if (refItem && refItem.groupRef) {
-                refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
+                refItem.groupRef.userData = {...refItem.groupRef.userData, [key]: value};
                 if (refItem.groupRef.setVersion) {
                     refItem.groupRef.setVersion((prev: number) => prev + 1);
                 }
@@ -291,7 +291,7 @@ const BodegueroFuncional = (
     const renderIntersecciones = () => {
         // 1) Ordenamos por fecha de creación y mantenemos el orden original si las fechas son iguales
         // Primero mapeamos para incluir el índice original
-        const withIndices = actualIntersecciones.map((inter, idx) => ({ inter, originalIndex: idx }));
+        const withIndices = actualIntersecciones.map((inter, idx) => ({inter, originalIndex: idx}));
 
         // Ordenamos por fecha, y en caso de fechas iguales, por índice original
         const sortedWithIndices = withIndices.sort((a, b) => {
@@ -311,7 +311,6 @@ const BodegueroFuncional = (
         const sorted = sortedWithIndices.map(item => item.inter);
 
 
-
         // Función auxiliar: calcula el rango vertical real de una intersección vertical
         const getVerticalRange = (vertical, verticalIndex) => {
             const x = (vertical.position.x - 0.5) * actualWidth;
@@ -322,8 +321,6 @@ const BodegueroFuncional = (
             for (let i = 0; i < verticalIndex; i++) {
                 const h = sorted[i];
                 if (h.orientation === Orientacion.Horizontal) {
-                    // Si la horizontal tiene fecha anterior o igual (y menor índice)
-                    // puede recortar a esta vertical
                     const horizontalTime = h.createdAt.getTime();
                     const verticalTime = vertical.createdAt.getTime();
 
@@ -335,13 +332,32 @@ const BodegueroFuncional = (
 
                         // Buscamos verticales que limiten esta horizontal
                         // Solo las verticales con índice menor que i pueden afectar
+                        let isBlocked = false;
                         for (let j = 0; j < i; j++) {
                             const v = sorted[j];
-                            if (v.orientation === Orientacion.Vertical && v.id !== vertical.id) {
+                            if (v.orientation === Orientacion.Vertical) {
                                 const vx = (v.position.x - 0.5) * actualWidth;
-                                if (vx < hx && vx > leftX) leftX = vx;
-                                if (vx > hx && vx < rightX) rightX = vx;
+                                // Verificamos si esta vertical está en el rango Y de la horizontal
+                                const hy = h.position.y * actualHeight + extraAltura;
+                                const [vBotY, vTopY] = getVerticalRange(v, j); // Calculamos el rango Y de la vertical bloqueadora
+                                const mismoEspacioEnY = hy >= vBotY - actualEspesor / 2 && hy <= vTopY + actualEspesor / 2;
+
+                                if (mismoEspacioEnY) {
+                                    // Si esta vertical está entre la horizontal y nuestra vertical objetivo
+                                    if ((vx < hx && vx > x && x < hx) || (vx > hx && vx < x && x > hx)) {
+                                        isBlocked = true; // La horizontal está bloqueada por esta vertical
+                                        break;
+                                    }
+                                    // Actualizamos los límites de la horizontal
+                                    if (vx < hx && vx > leftX) leftX = vx;
+                                    if (vx > hx && vx < rightX) rightX = vx;
+                                }
                             }
+                        }
+
+                        if (isBlocked) {
+                            // Si la horizontal está bloqueada por otra vertical, no recorta nuestra vertical
+                            continue;
                         }
 
                         leftX += actualEspesor / 2;
@@ -353,12 +369,12 @@ const BodegueroFuncional = (
                             const verticalY = vertical.position.y * actualHeight + extraAltura;
 
                             // Revisamos si esta horizontal cruza nuestra vertical
-                            if (Math.abs(hy - verticalY) <= actualEspesor/2) {
+                            if (Math.abs(hy - verticalY) <= actualEspesor / 2) {
                                 // Está justo en la intersección, recortamos
                                 if (hy > verticalY) {
-                                    topY = Math.min(topY, hy - actualEspesor/2);
+                                    topY = Math.min(topY, hy - actualEspesor / 2);
                                 } else {
-                                    botY = Math.max(botY, hy - actualEspesor/2);
+                                    botY = Math.max(botY, hy - actualEspesor / 2);
                                 }
                             } else if (hy > verticalY) {
                                 topY = Math.min(topY, hy);
@@ -403,9 +419,9 @@ const BodegueroFuncional = (
 
                         // El punto clave: solo consideramos esta vertical si realmente
                         // se cruza con nuestra horizontal, teniendo en cuenta el espesor
-                        const intersecta = hy >= vBotY - actualEspesor/2 && hy <= vTopY + actualEspesor/2;
+                        const mismoEspacioEnY = hy >= vBotY - actualEspesor / 2 && hy <= vTopY + actualEspesor / 2;
 
-                        if (intersecta) {
+                        if (mismoEspacioEnY) {
                             // Detectamos si hay coincidencia exacta en X (con un pequeño margen de tolerancia)
                             if (Math.abs(vx - hx) < 0.001) {
                                 // Guardamos referencia a la vertical que coincide exactamente
@@ -445,12 +461,12 @@ const BodegueroFuncional = (
                     // Más espacio a la izquierda, expandimos desde la vertical hacia la izquierda
                     //console.log(`Expandiendo horizontal hacia la izquierda desde la vertical`);
                     // La vertical marca el límite derecho, restamos medio espesor
-                    rightX = vx - actualEspesor/2;
+                    rightX = vx - actualEspesor / 2;
                 } else {
                     // Más espacio a la derecha, expandimos desde la vertical hacia la derecha
                     //console.log(`Expandiendo horizontal hacia la derecha desde la vertical`);
                     // La vertical marca el límite izquierdo, sumamos medio espesor
-                    leftX = vx + actualEspesor/2;
+                    leftX = vx + actualEspesor / 2;
                 }
             }
 
@@ -529,7 +545,7 @@ const BodegueroFuncional = (
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (groupRef.current && detectionBoxRef.current) {
-            setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
+            setContextRef({groupRef: groupRef.current, detectionRef: detectionBoxRef.current});
         }
     };
 
@@ -546,11 +562,10 @@ const BodegueroFuncional = (
                 const hasChanged = Object.keys(newConfig).some(
                     key => newConfig[key] !== prev[key]
                 );
-                return hasChanged ? { ...prev, ...newConfig } : prev;
+                return hasChanged ? {...prev, ...newConfig} : prev;
             });
         }
     }, [refItem, isSelected]);
-
 
 
     return (
@@ -715,7 +730,7 @@ const BodegueroFuncional = (
                         (actualHeight - (actualEspesor)) + extraAltura,
                         (actualDepth / 2) + (actualEspesor / 2)
                     ]}
-                    width={actualWidth - (actualEspesor ) * 4}
+                    width={actualWidth - (actualEspesor) * 4}
                     height={actualEspesor * 2}
                     depth={actualEspesor}
                     material={materiales.Artico}
@@ -727,10 +742,11 @@ const BodegueroFuncional = (
             <group
                 ref={detectionBoxRef}>
                 <mesh
-                    position={[0,actualHeight/2+extraAltura,actualRetranqueoTrasero/2]}
+                    position={[0, actualHeight / 2 + extraAltura, actualRetranqueoTrasero / 2]}
                     material={materiales.Transparent}
                 >
-                    <boxGeometry args={[actualWidth-actualEspesor*2, actualHeight-actualEspesor*2, actualDepth-actualEspesor/4-actualRetranqueoTrasero]}/>
+                    <boxGeometry
+                        args={[actualWidth - actualEspesor * 2, actualHeight - actualEspesor * 2, actualDepth - actualEspesor / 4 - actualRetranqueoTrasero]}/>
                 </mesh>
             </group>
         </group>
@@ -739,7 +755,7 @@ const BodegueroFuncional = (
 
 // Componente de alto nivel: el que actualiza el contexto únicamente si es el casco seleccionado.
 const BodegueroWithContext = (props: any) => {
-    const { refItem, setRefItem, version} = useSelectedItemProvider();
+    const {refItem, setRefItem, version} = useSelectedItemProvider();
     const meshRef = useRef<any>(null);
     const materiales = useMaterial();
 

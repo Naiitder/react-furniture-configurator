@@ -1,3 +1,4 @@
+import {v4 as uuidv4} from 'uuid';
 
 export enum Orientacion {
     Vertical = 'vertical',
@@ -13,12 +14,6 @@ export default class InterseccionMueble {
     position: Posicion;
     orientation: Orientacion;
     createdAt: Date;
-
-    // Propiedades para extender hasta los límites
-    extendToLeft: boolean = true;
-    extendToRight: boolean = true;
-    extendToTop: boolean = true;
-    extendToBottom: boolean = true;
 
     constructor(position: Posicion, orientation: Orientacion, createdAt?: Date) {
         this.position = position;
