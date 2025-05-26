@@ -65,7 +65,6 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
     return null;
 };
 
-
 export const Experience = () => {
     const transformRef = useRef();
     const glRef = useRef();
@@ -200,7 +199,6 @@ export const Experience = () => {
         }
     }, [transformMode, refItem, version]);
 
-
     // TODO Usar coordenadas UV del click
     const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
@@ -227,14 +225,24 @@ export const Experience = () => {
 
             const intersectObject = raycaster.intersectObject(refItem.groupRef, true)[0];
 
-
             const intersecciones = cascoData.intersecciones || [];
+
+            const rawX = intersectObject.uv.x;
+            const rawY = intersectObject.uv.y;
+
+            // Pos final, antes de redondear
+            let posX = rawX;
+            let posY = rawY;
+            
+            const round2 = v => Math.round(v * 100) / 100;
+            posX = round2(posX);
+            posY = round2(posY);
 
             // Create a new intersection
             const newInterseccion = new InterseccionMueble(
                 {
-                    x: intersectObject.uv.x,
-                    y: intersectObject.uv.y,
+                    x: posX,
+                    y: posY,
                 },
                 item.type === INTERSECTION_TYPES.HORIZONTAL ? Orientacion.Horizontal : Orientacion.Vertical
             );
@@ -246,7 +254,7 @@ export const Experience = () => {
                 // Add the new intersection to the existing ones
                 updatedCasco.intersecciones = [...intersecciones, newInterseccion];
 
-                console.log("updatedCasco", updatedCasco);
+                console.log("updatedCasco", newInterseccion);
 
                 updated[cascoKey] = updatedCasco;
                 return updated;
@@ -433,7 +441,6 @@ export const Experience = () => {
             </Canvas>
             {interfaceComponents[selectedItem]}
 
-
             {refPiece && (
                 <ChildItemConfigurationInterface
                     title="Tabla Configurator"
@@ -451,7 +458,6 @@ export const Experience = () => {
                     <CajonConfigContent/>
                 </ChildItemConfigurationInterface>
             )}
-
 
             <RoomConfigPanel/>
         </>
