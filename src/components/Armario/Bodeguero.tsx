@@ -5,6 +5,9 @@ import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
 import {useMaterial} from "../../assets/materials";
 import {Outlines} from "@react-three/drei";
 import InterseccionMueble, {Orientacion} from "../Interseccion";
+import { renderIntersecciones } from "../../utils/interseccionesRenderer";
+import {calcularDimensiones} from "../../utils/calculadoraDimensiones";
+import {calcularPosiciones} from "../../utils/calculadoraPosiciones";
 
 // Definición de los props para el componente Casco
 export type BodegueroProps = {
@@ -167,377 +170,23 @@ const BodegueroFuncional = (
     let indiceActualPuerta = localConfig.indicePuerta ?? indicePuerta;
     if (indiceActualPuerta > 0) indiceActualPuerta--;
 
-    // Función que calcula las dimensiones de cada parte
-    const calcularDimensiones = () => {
-        return {
-            suelo: {
-                width: actualSueloDentro ? actualWidth - actualEspesor * 2 : actualWidth,
-                height: actualEspesor,
-                depth:
-                    (actualSueloDentro ? offsetDepthTraseroDentro : actualDepth) -
-                    (actualRetranquearSuelo
-                        ? actualRetranqueoTrasero - actualEspesor + (actualEspesor % 2)
-                        : 0),
-            },
-            techo: {
-                width: actualTechoDentro ? actualWidth - actualEspesor * 2 : actualWidth,
-                height: actualEspesor,
-                depth: actualTechoDentro ? offsetDepthTraseroDentro : actualDepth,
-            },
-            lateral: {
-                width: actualEspesor,
-                height:
-                    actualHeight -
-                    (actualSueloDentro ? 0 : actualEspesor) -
-                    (actualTechoDentro ? 0 : actualEspesor) -
-                    (actualEsquinaZTriangulada && actualEsquinaXTriangulada
-                        ? actualEspesor
-                        : 0),
-                depth: offsetDepthTraseroDentro,
-            },
-            trasero: {
-                width: actualTraseroDentro ? actualWidth - actualEspesor * 2 : actualWidth,
-                height:
-                    actualHeight -
-                    (actualSueloDentro
-                        ? actualSueloDentro && !actualTraseroDentro
-                            ? 0
-                            : actualEspesor
-                        : actualEspesor) -
-                    (actualTechoDentro
-                        ? actualTechoDentro && !actualTraseroDentro
-                            ? 0
-                            : actualEspesor
-                        : actualEspesor),
-                depth: actualEspesor,
-            },
-        };
-    };
-
-    const calcularPosiciones = () => {
-        const mitadAncho = actualWidth / 2;
-        const mitadProfundidad = actualDepth / 2;
-        const extraAltura = patas && indiceActualPata !== -1 ? actualAlturaPatas : 0;
-        const alturaLaterales =
-            (actualHeight -
-                (actualSueloDentro ? 0 : actualEspesor) -
-                (actualTechoDentro ? 0 : actualEspesor)) /
-            2 +
-            (actualSueloDentro ? 0 : actualEspesor) -
-            (actualEsquinaZTriangulada && actualEsquinaXTriangulada
-                ? actualEspesor / 2
-                : 0);
-
-        return {
-            suelo: [
-                0,
-                actualEspesor / 2 + extraAltura,
-                (actualSueloDentro && !actualTraseroDentro
-                    ? actualEspesor / 2
-                    : 0) + (actualRetranquearSuelo ? actualRetranqueoTrasero / 2 : 0),
-            ] as [number, number, number],
-            techo: [
-                0,
-                actualHeight - actualEspesor / 2 + extraAltura,
-                (actualTechoDentro && actualEsquinaZTriangulada
-                    ? 0
-                    : actualTechoDentro && !actualTraseroDentro
-                        ? actualEspesor / 2
-                        : 0) - (actualEsquinaZTriangulada && actualTraseroDentro
-                    ? actualEspesor / 2
-                    : 0),
-            ] as [number, number, number],
-            izquierda: [
-                -mitadAncho + actualEspesor / 2,
-                alturaLaterales + extraAltura,
-                !actualTraseroDentro ? actualEspesor / 2 : 0,
-            ] as [number, number, number],
-            derecha: [
-                mitadAncho - actualEspesor / 2,
-                alturaLaterales + extraAltura,
-                !actualTraseroDentro ? actualEspesor / 2 : 0,
-            ] as [number, number, number],
-            trasero: [
-                0,
-                (actualHeight -
-                    (actualSueloDentro
-                        ? actualSueloDentro && !actualTraseroDentro
-                            ? 0
-                            : actualEspesor
-                        : actualEspesor) -
-                    (actualTechoDentro
-                        ? actualTechoDentro && !actualTraseroDentro
-                            ? 0
-                            : actualEspesor
-                        : actualEspesor)) /
-                2 +
-                (actualSueloDentro
-                    ? actualSueloDentro && !actualTraseroDentro
-                        ? 0
-                        : actualEspesor
-                    : actualEspesor) +
+    const renderInterseccionesInternas = () => {
+        return renderIntersecciones({
+            intersecciones: actualIntersecciones,
+            dimensiones: {
+                width: actualWidth,
+                height: actualHeight,
+                depth: actualDepth,
+                espesor: actualEspesor,
+                retranqueoTrasero: actualRetranqueoTrasero,
                 extraAltura,
-                -mitadProfundidad + actualEspesor / 2 + (actualTraseroDentro ? actualRetranqueoTrasero : 0),
-            ] as [number, number, number],
-            puerta: [
-                (actualWidth / 2) - (actualEspesor * 2),
-                (actualHeight / 4) +
-                extraAltura,
-                actualDepth / 2 + actualEspesor / 2,
-            ] as [number, number, number],
-        };
-    };
-
-    const renderIntersecciones = () => {
-        // 1) Ordenamos por fecha de creación y mantenemos el orden original si las fechas son iguales
-        // Primero mapeamos para incluir el índice original
-        const withIndices = actualIntersecciones.map((inter, idx) => ({inter, originalIndex: idx}));
-
-        // Ordenamos por fecha, y en caso de fechas iguales, por índice original
-        const sortedWithIndices = withIndices.sort((a, b) => {
-            const timeA = a.inter.createdAt.getTime();
-            const timeB = b.inter.createdAt.getTime();
-
-            // Si las fechas son diferentes, ordenamos por fecha
-            if (timeA !== timeB) {
-                return timeA - timeB;
-            }
-
-            // Si las fechas son iguales, ordenamos por posición original en el array
-            return a.originalIndex - b.originalIndex;
-        });
-
-        // Extraemos las intersecciones ordenadas
-        const sorted = sortedWithIndices.map(item => item.inter);
-
-
-        // Función auxiliar: calcula el rango vertical real de una intersección vertical
-        const getVerticalRange = (vertical, verticalIndex) => {
-            const x = (vertical.position.x - 0.5) * actualWidth;
-            let topY = extraAltura + actualHeight - actualEspesor;
-            let botY = extraAltura + actualEspesor;
-
-            // Buscamos horizontales anteriores o CON LA MISMA FECHA que recorten esta vertical
-            for (let i = 0; i < verticalIndex; i++) {
-                const h = sorted[i];
-                if (h.orientation === Orientacion.Horizontal) {
-                    const horizontalTime = h.createdAt.getTime();
-                    const verticalTime = vertical.createdAt.getTime();
-
-                    if (horizontalTime <= verticalTime) {
-                        // Calculamos el rango horizontal de esta horizontal
-                        const hx = (h.position.x - 0.5) * actualWidth;
-                        let leftX = -actualWidth / 2;
-                        let rightX = actualWidth / 2;
-
-                        // Buscamos verticales que limiten esta horizontal
-                        // Solo las verticales con índice menor que i pueden afectar
-                        let isBlocked = false;
-                        for (let j = 0; j < i; j++) {
-                            const v = sorted[j];
-                            if (v.orientation === Orientacion.Vertical) {
-                                const vx = (v.position.x - 0.5) * actualWidth;
-                                // Verificamos si esta vertical está en el rango Y de la horizontal
-                                const hy = h.position.y * actualHeight + extraAltura;
-                                const [vBotY, vTopY] = getVerticalRange(v, j); // Calculamos el rango Y de la vertical bloqueadora
-                                const mismoEspacioEnY = hy >= vBotY - actualEspesor / 2 && hy <= vTopY + actualEspesor / 2;
-
-                                if (mismoEspacioEnY) {
-                                    // Si esta vertical está entre la horizontal y nuestra vertical objetivo
-                                    if ((vx < hx && vx > x && x < hx) || (vx > hx && vx < x && x > hx)) {
-                                        isBlocked = true; // La horizontal está bloqueada por esta vertical
-                                        break;
-                                    }
-                                    // Actualizamos los límites de la horizontal
-                                    if (vx < hx && vx > leftX) leftX = vx;
-                                    if (vx > hx && vx < rightX) rightX = vx;
-                                }
-                            }
-                        }
-
-                        if (isBlocked) {
-                            // Si la horizontal está bloqueada por otra vertical, no recorta nuestra vertical
-                            continue;
-                        }
-
-                        leftX += actualEspesor / 2;
-                        rightX -= actualEspesor / 2;
-
-                        // Solo recortamos si nuestra x está dentro del rango de esta horizontal
-                        if (x >= leftX && x <= rightX) {
-                            const hy = h.position.y * actualHeight + extraAltura;
-                            const verticalY = vertical.position.y * actualHeight + extraAltura;
-
-                            // Revisamos si esta horizontal cruza nuestra vertical
-                            if (Math.abs(hy - verticalY) <= actualEspesor / 2) {
-                                // Está justo en la intersección, recortamos
-                                if (hy > verticalY) {
-                                    topY = Math.min(topY, hy - actualEspesor / 2);
-                                } else {
-                                    botY = Math.max(botY, hy - actualEspesor / 2);
-                                }
-                            } else if (hy > verticalY) {
-                                topY = Math.min(topY, hy - actualEspesor / 2);
-                            } else {
-                                botY = Math.max(botY, hy + actualEspesor / 2);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return [botY, topY];
-        };
-
-        // Helper: devuelve [leftX, rightX] de una horizontal teniendo en cuenta
-        // los rangos verticales reales de las verticales
-        const computeHorizontalRange = (h, horizontalIndex) => {
-            const hx = (h.position.x - 0.5) * actualWidth;
-            const hy = h.position.y * actualHeight + extraAltura;
-            let leftX = -actualWidth / 2;
-            let rightX = actualWidth / 2;
-
-            // Para manejar el caso de verticales exactamente en la misma X
-            let exactMatchVertical = null;
-            let exactMatchVerticalIndex = -1;
-
-            // Solo verticales anteriores o CON LA MISMA FECHA que h
-            // Pero solo hasta el índice de esta horizontal
-            for (let i = 0; i < horizontalIndex; i++) {
-                const v = sorted[i];
-
-                if (v.orientation === Orientacion.Vertical) {
-                    const verticalTime = v.createdAt.getTime();
-                    const horizontalTime = h.createdAt.getTime();
-
-                    // Consideramos verticales anteriores o con la misma fecha (pero menor índice)
-                    if (verticalTime <= horizontalTime) {
-                        const vx = (v.position.x - 0.5) * actualWidth;
-
-                        // Verificamos si la vertical realmente intersecta con la horizontal en Y
-                        const [vBotY, vTopY] = getVerticalRange(v, i);
-
-                        // El punto clave: solo consideramos esta vertical si realmente
-                        // se cruza con nuestra horizontal, teniendo en cuenta el espesor
-                        const mismoEspacioEnY = hy >= vBotY - actualEspesor / 2 && hy <= vTopY + actualEspesor / 2;
-
-                        if (mismoEspacioEnY) {
-                            // Detectamos si hay coincidencia exacta en X (con un pequeño margen de tolerancia)
-                            if (Math.abs(vx - hx) < 0.001) {
-                                // Guardamos referencia a la vertical que coincide exactamente
-                                exactMatchVertical = v;
-                                exactMatchVerticalIndex = i;
-                                //console.log(`¡Coincidencia exacta! Horizontal [${horizontalIndex}] y Vertical [${i}] en x=${v.position.x.toFixed(2)}`);
-                            } else if (vx < hx && vx > leftX) {
-                                leftX = vx;
-                                //console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por izquierda en x=${v.position.x.toFixed(2)}`);
-                            } else if (vx > hx && vx < rightX) {
-                                rightX = vx;
-                                //console.log(`Horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}: limitada por derecha en x=${v.position.x.toFixed(2)}`);
-                            }
-                        } else {
-                            //console.log(`Vertical [${i}] en x=${v.position.x.toFixed(2)} NO intersecta con horizontal [${horizontalIndex}] en y=${h.position.y.toFixed(2)}, rango vertical: [${vBotY.toFixed(2)}, ${vTopY.toFixed(2)}]`);
-                        }
-                    }
-                }
-            }
-
-            // Ajustamos márgenes por espesor
-            leftX += actualEspesor / 2;
-            rightX -= actualEspesor / 2;
-
-            // Si hay coincidencia exacta en X, desplazamos la horizontal al lado con más espacio
-            if (exactMatchVertical !== null) {
-                // Calculamos espacio disponible a cada lado
-                const espacioIzquierda = hx - leftX;
-                const espacioDerecha = rightX - hx;
-
-
-                // Obtenemos la posición X exacta de la vertical (en el sistema de coordenadas de renderizado)
-                const vx = (exactMatchVertical.position.x - 0.5) * actualWidth;
-
-                // Comparamos para ver hacia dónde expandir
-                if (espacioIzquierda >= espacioDerecha) {
-                    // Más espacio a la izquierda, expandimos desde la vertical hacia la izquierda
-                    //console.log(`Expandiendo horizontal hacia la izquierda desde la vertical`);
-                    // La vertical marca el límite derecho, restamos medio espesor
-                    rightX = vx - actualEspesor / 2;
-                } else {
-                    // Más espacio a la derecha, expandimos desde la vertical hacia la derecha
-                    //console.log(`Expandiendo horizontal hacia la derecha desde la vertical`);
-                    // La vertical marca el límite izquierdo, sumamos medio espesor
-                    leftX = vx + actualEspesor / 2;
-                }
-            }
-
-            const result = [leftX, rightX];
-
-            return result;
-        };
-
-        return sorted.map((inter, idx) => {
-            const x = (inter.position.x - 0.5) * actualWidth;
-            const y = inter.position.y * actualHeight + extraAltura;
-
-            if (inter.orientation === Orientacion.Horizontal) {
-                // ——————— BRANCH HORIZONTAL ———————
-                // Si hay verticales posteriores a esta horizontal, no deberían afectarla
-                const [leftX, rightX] = computeHorizontalRange(inter, idx);
-                const widthSeg = rightX - leftX;
-                const centerX = (leftX + rightX) / 2;
-
-                return (
-                    <Tabla
-                        key={`int-${idx}`}
-                        parentRef={groupRef}
-                        insideRef={detectionBoxRef}
-                        shape="box"
-                        position={[
-                            centerX,
-                            y,
-                            actualEspesor / 2 +
-                            (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
-                        ]}
-                        width={widthSeg}
-                        height={actualEspesor}
-                        depth={actualDepth - actualRetranqueoTrasero - actualEspesor}
-                        material={materiales.Artico}
-                        espesorBase={actualEspesor}
-                    />
-                );
-            } else {
-                // ——————— BRANCH VERTICAL ———————
-                // Calculamos el rango vertical real considerando horizontales previas
-                const [botY, topY] = getVerticalRange(inter, idx);
-                const heightSeg = topY - botY;
-                const centerY = (topY + botY) / 2;
-
-                // Verificamos que la altura calculada sea positiva
-                if (heightSeg <= 0) {
-                    //console.log(`Vertical [${idx}] en ${x},${y} tiene altura inválida: ${heightSeg}`);
-                    return null; // No renderizamos verticales con altura inválida
-                }
-
-                return (
-                    <Tabla
-                        key={`int-${idx}`}
-                        parentRef={groupRef}
-                        insideRef={detectionBoxRef}
-                        shape="box"
-                        position={[
-                            x,
-                            centerY,
-                            actualEspesor / 2 +
-                            (actualTraseroDentro ? actualRetranqueoTrasero / 2 : 0),
-                        ]}
-                        width={actualEspesor}
-                        height={heightSeg}
-                        depth={actualDepth - actualRetranqueoTrasero - actualEspesor}
-                        material={materiales.Artico}
-                        espesorBase={actualEspesor}
-                    />
-                );
-            }
+                traseroDentro: actualTraseroDentro
+            },
+            refs: {
+                groupRef,
+                detectionBoxRef
+            },
+            materiales
         });
     };
 
@@ -550,8 +199,8 @@ const BodegueroFuncional = (
     };
 
 
-    const dimensiones = calcularDimensiones();
-    const posiciones = calcularPosiciones();
+    const dimensiones = calcularDimensiones(localConfig);
+    const posiciones = calcularPosiciones({...localConfig, patas});
 
     // Actualizamos el userData del grupo cuando cambia la configuración
     useEffect(() => {
@@ -684,7 +333,7 @@ const BodegueroFuncional = (
                 )}
 
                 {/* Renderizar intersecciones */}
-                {renderIntersecciones()}
+                {renderInterseccionesInternas()}
             </group>
             <group>
                 <Tabla
