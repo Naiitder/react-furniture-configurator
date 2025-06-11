@@ -26,6 +26,7 @@ export type BodegueroProps = {
     version?: any[];
     setVersion?: (version: any) => void;
     id?: string;
+    materialPrincipal?: any;
 };
 
 const Bodeguero = (props: BodegueroProps) => {
@@ -52,6 +53,7 @@ const Bodeguero = (props: BodegueroProps) => {
         version,
         setVersion,
         id,
+        materialPrincipal,
     } = props;
 
     const materiales = useMaterial();
@@ -85,7 +87,7 @@ const Bodeguero = (props: BodegueroProps) => {
                     width={actualEspesor * 2}
                     height={actualHeight}
                     depth={actualEspesor}
-                    material={materiales.Artico}
+                    material={materialPrincipal || materiales.Artico}
                     posicionCaja="left"
                     shape="box"
                 />
@@ -103,7 +105,7 @@ const Bodeguero = (props: BodegueroProps) => {
                     width={actualEspesor * 2}
                     height={actualHeight}
                     depth={actualEspesor}
-                    material={materiales.Artico}
+                    material={materialPrincipal || materiales.Artico}
                     posicionCaja="right"
                     shape="box"
                 />
@@ -121,7 +123,7 @@ const Bodeguero = (props: BodegueroProps) => {
                     width={actualWidth - (actualEspesor * 4)}
                     height={actualEspesor * 2}
                     depth={actualEspesor}
-                    material={materiales.Artico}
+                    material={materialPrincipal || materiales.Artico}
                     posicionCaja="top"
                     shape="box"
                 />
@@ -147,9 +149,10 @@ const Bodeguero = (props: BodegueroProps) => {
     return (
         <Casco
             {...props}
-            material={materiales.Artico}
+            materialPrincipal={materialPrincipal || materiales.Artico}
             renderExtraParts={renderExtraParts}
             puertas={adjustedPuertas}
+            materiales={materiales}
         />
     );
 };
