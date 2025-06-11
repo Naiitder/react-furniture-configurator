@@ -1,10 +1,10 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, {useRef, useEffect, useCallback, useState} from "react";
 import * as THREE from "three";
 import Tabla from "./Tabla";
-import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
-import { useMaterial } from "../../assets/materials";
-import { calcularDimensiones } from "../../utils/calculadoraDimensiones";
-import { calcularPosiciones } from "../../utils/calculadoraPosiciones";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
+import {useMaterial} from "../../assets/materials";
+import {calcularDimensiones} from "../../utils/calculadoraDimensiones";
+import {calcularPosiciones} from "../../utils/calculadoraPosiciones";
 import {renderIntersecciones} from "../../utils/interseccionesRenderer";
 
 // Definición de los props para el componente Casco
@@ -28,7 +28,12 @@ export type CascoProps = {
     puertas?: React.ReactNode[];
     indicePuerta?: number;
     intersecciones?: any[];
-    renderExtraParts?: (params: { localConfig: any; dimensiones: any; posiciones: any; materiales: any }) => React.ReactNode;
+    renderExtraParts?: (params: {
+        localConfig: any;
+        dimensiones: any;
+        posiciones: any;
+        materiales: any
+    }) => React.ReactNode;
     seccionesHorizontales?: any[];
     seccionesVerticales?: any[];
     version?: any[];
@@ -80,7 +85,7 @@ const CascoFuncional = (
     const detectionBoxRef = useRef<THREE.Group>(null);
     const horizontalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
     const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
-    const { refItem } = useSelectedItemProvider();
+    const {refItem} = useSelectedItemProvider();
 
     // Valores iniciales para este casco
     const initialData = {
@@ -107,7 +112,7 @@ const CascoFuncional = (
     // Inicializar userData y nombre
     useEffect(() => {
         if (groupRef.current && Object.keys(groupRef.current.userData).length === 0) {
-            groupRef.current.userData = { ...initialData };
+            groupRef.current.userData = {...initialData};
         }
         if (groupRef.current && id && !groupRef.current.name) {
             groupRef.current.name = id;
@@ -123,7 +128,7 @@ const CascoFuncional = (
                 const hasChanged = Object.keys(newConfig).some(
                     (key) => newConfig[key] !== prev[key]
                 );
-                return hasChanged ? { ...prev, ...newConfig } : prev;
+                return hasChanged ? {...prev, ...newConfig} : prev;
             });
         }
     }, [refItem, isSelected, version]);
@@ -131,9 +136,9 @@ const CascoFuncional = (
     // Actualizar configuración
     const updateConfig = (key: string, value: any) => {
         setLocalConfig((prev) => {
-            const newConfig = { ...prev, [key]: value };
+            const newConfig = {...prev, [key]: value};
             if (refItem && refItem.groupRef) {
-                refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
+                refItem.groupRef.userData = {...refItem.groupRef.userData, [key]: value};
                 if (refItem.groupRef.setVersion) {
                     refItem.groupRef.setVersion((prev: number) => prev + 1);
                 }
@@ -169,13 +174,13 @@ const CascoFuncional = (
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (groupRef.current && detectionBoxRef.current) {
-            setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
+            setContextRef({groupRef: groupRef.current, detectionRef: detectionBoxRef.current});
         }
     };
 
     // Calcular dimensiones y posiciones
     const dimensiones = calcularDimensiones(localConfig);
-    const posiciones = calcularPosiciones({ ...localConfig, patas });
+    const posiciones = calcularPosiciones({...localConfig, patas});
 
     // Renderizar intersecciones
     const renderInterseccionesInternas = () => {
@@ -199,6 +204,7 @@ const CascoFuncional = (
         });
     };
 
+    // TODO: Coger material de los props, quitar los valores hard-coded
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
             <group onClick={handleClick}>
@@ -331,7 +337,7 @@ const CascoFuncional = (
                 {renderInterseccionesInternas()}
 
                 {/* Piezas adicionales dinámicas */}
-                {renderExtraParts && renderExtraParts({ localConfig, dimensiones, posiciones, materiales })}
+                {renderExtraParts && renderExtraParts({localConfig, dimensiones, posiciones, materiales})}
 
                 {/* Children dinámicos */}
                 {children}
@@ -352,7 +358,7 @@ const CascoFuncional = (
 };
 
 const CascoWithContext = (props: any) => {
-    const { refItem, setRefItem, version } = useSelectedItemProvider();
+    const {refItem, setRefItem, version} = useSelectedItemProvider();
     const meshRef = useRef<any>(null);
     const materiales = useMaterial();
 

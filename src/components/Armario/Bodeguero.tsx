@@ -1,8 +1,7 @@
 import React from "react";
 import Casco from "../Casco/Casco";
 import Tabla from "../Casco/Tabla";
-import { useMaterial } from "../../assets/materials";
-import { renderIntersecciones } from "../../utils/interseccionesRenderer";
+import {useMaterial} from "../../assets/materials";
 
 export type BodegueroProps = {
     width?: number;
@@ -54,6 +53,8 @@ const Bodeguero = (props: BodegueroProps) => {
         setVersion,
         id,
     } = props;
+
+    const materiales = useMaterial();
 
     const renderExtraParts = ({ localConfig, dimensiones, posiciones, materiales }: { localConfig: any; dimensiones: any; posiciones: any; materiales: any }) => {
         const actualWidth = localConfig.width || width;
@@ -115,18 +116,27 @@ const Bodeguero = (props: BodegueroProps) => {
         );
     };
 
+
+    // Ajustar la puerta para la mitad inferior
+    const doorHeight = height / 4;
+    const doorPositionY = -height / 2 + (doorHeight / 2) + (patas && indicePata !== -1 ? alturaPatas : 0); // Base de la mitad inferior, ajustada por extraAltura
+    const adjustedPuertas = puertas.map((puerta) =>
+        React.cloneElement(puerta as React.ReactElement, {
+            width: width - espesor,
+            height: 2,
+            depth: espesor,
+            position: [0, doorPositionY, 0],
+            extraAltura: patas && indicePata !== -1 ? alturaPatas : 0,
+            pivot: "right",
+        })
+    );
+
     return (
         <Casco
             {...props}
+            material={materiales.Artico}
             renderExtraParts={renderExtraParts}
-            puertas={puertas.map((puerta) =>
-                React.cloneElement(puerta as React.ReactElement, {
-                    width: width - espesor * 4,
-                    height: height / 2,
-                    depth: espesor,
-                    pivot: "right",
-                })
-            )}
+            puertas={adjustedPuertas}
         />
     );
 };
