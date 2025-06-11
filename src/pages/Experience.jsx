@@ -67,8 +67,8 @@ export const Experience = () => {
     const params = new URLSearchParams(location.search);
     const selectedItem = params.get("item");
 
-    const [transformEnabled, setTransformEnabled] = useState(true);
-    const [transformMode, setTransformMode] = useState("translate");
+    const [transformEnabled, setTransformEnabled] = useState(false);
+    const [transformMode, setTransformMode] = useState("");
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
     const {refItem, setRefItem, version, setVersion} = useSelectedItemProvider();
     const {refPiece, setRefPiece} = useSelectedPieceProvider();
@@ -185,13 +185,15 @@ export const Experience = () => {
                     };
                     refItem.groupRef.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
                     setVersion((v) => v + 1);
+                } else if (transformMode === "translate" ) {
+                    console.log("MOVIENDO INTERSECCION")
                 }
             };
 
             controls.addEventListener("objectChange", onObjectChange);
             return () => controls.removeEventListener("objectChange", onObjectChange);
         }
-    }, [transformMode, refItem, version]);
+    }, [transformMode, refItem, version, setVersion]);
 
 
     const [{isOver}, drop] = useDrop(() => ({

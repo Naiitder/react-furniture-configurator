@@ -56,7 +56,7 @@ const Bodeguero = (props: BodegueroProps) => {
 
     const materiales = useMaterial();
 
-    const renderExtraParts = ({ localConfig, dimensiones, posiciones, materiales }: { localConfig: any; dimensiones: any; posiciones: any; materiales: any }) => {
+    const renderExtraParts = ({ localConfig, dimensiones, posiciones, materiales , parentRef}: { localConfig: any; dimensiones: any; posiciones: any; materiales: any , parentRef: any}) => {
         const actualWidth = localConfig.width || width;
         const actualHeight = localConfig.height || height;
         const actualDepth = localConfig.depth || depth;
@@ -67,6 +67,7 @@ const Bodeguero = (props: BodegueroProps) => {
             <group>
                 {/* Lateral izquierdo adicional */}
                 <Tabla
+                    parentRef={parentRef}
                     espesorBase={actualEspesor}
                     position={[
                         -((actualWidth / 2) - actualEspesor),
@@ -83,6 +84,7 @@ const Bodeguero = (props: BodegueroProps) => {
 
                 {/* Lateral derecho adicional */}
                 <Tabla
+                    parentRef={parentRef}
                     espesorBase={actualEspesor}
                     position={[
                         ((actualWidth / 2) - actualEspesor),
@@ -99,6 +101,7 @@ const Bodeguero = (props: BodegueroProps) => {
 
                 {/* Techo adicional */}
                 <Tabla
+                    parentRef={parentRef}
                     espesorBase={actualEspesor}
                     position={[
                         0,
