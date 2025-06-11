@@ -331,7 +331,7 @@ const CascoFuncional = (
                 {renderInterseccionesInternas()}
 
                 {/* Piezas adicionales dinámicas */}
-                {renderExtraParts && renderExtraParts({localConfig, dimensiones, posiciones, materiales, parentRef: groupRef})}
+                {renderExtraParts && renderExtraParts({localConfig, dimensiones, posiciones, materiales, parentRef: groupRef, insideRef: detectionBoxRef})}
 
                 {/* Children dinámicos */}
                 {children}

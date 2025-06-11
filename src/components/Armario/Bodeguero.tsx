@@ -56,7 +56,14 @@ const Bodeguero = (props: BodegueroProps) => {
 
     const materiales = useMaterial();
 
-    const renderExtraParts = ({ localConfig, dimensiones, posiciones, materiales , parentRef}: { localConfig: any; dimensiones: any; posiciones: any; materiales: any , parentRef: any}) => {
+    const renderExtraParts = ({localConfig, dimensiones, posiciones, materiales, parentRef, insideRef}: {
+        localConfig: any;
+        dimensiones: any;
+        posiciones: any;
+        materiales: any,
+        parentRef: any,
+        insideRef: any
+    }) => {
         const actualWidth = localConfig.width || width;
         const actualHeight = localConfig.height || height;
         const actualDepth = localConfig.depth || depth;
@@ -68,6 +75,7 @@ const Bodeguero = (props: BodegueroProps) => {
                 {/* Lateral izquierdo adicional */}
                 <Tabla
                     parentRef={parentRef}
+                    insideRef={insideRef}
                     espesorBase={actualEspesor}
                     position={[
                         -((actualWidth / 2) - actualEspesor),
@@ -85,6 +93,7 @@ const Bodeguero = (props: BodegueroProps) => {
                 {/* Lateral derecho adicional */}
                 <Tabla
                     parentRef={parentRef}
+                    insideRef={insideRef}
                     espesorBase={actualEspesor}
                     position={[
                         ((actualWidth / 2) - actualEspesor),
@@ -102,6 +111,7 @@ const Bodeguero = (props: BodegueroProps) => {
                 {/* Techo adicional */}
                 <Tabla
                     parentRef={parentRef}
+                    insideRef={insideRef}
                     espesorBase={actualEspesor}
                     position={[
                         0,
@@ -125,8 +135,8 @@ const Bodeguero = (props: BodegueroProps) => {
     const doorPositionY = -height / 2 + (doorHeight / 2) + (patas && indicePata !== -1 ? alturaPatas : 0); // Base de la mitad inferior, ajustada por extraAltura
     const adjustedPuertas = puertas.map((puerta) =>
         React.cloneElement(puerta as React.ReactElement, {
-            width: width - espesor*4,
-            height: height/2,
+            width: width - espesor * 4,
+            height: height / 2,
             depth: espesor,
             position: [0, doorPositionY, 0],
             extraAltura: patas && indicePata !== -1 ? alturaPatas : 0,
