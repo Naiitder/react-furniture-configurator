@@ -618,13 +618,14 @@ export const Experience = () => {
     return (
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
-                    onPointerMissed={() => {
-                setRefPiece(null);
-                setRefCajon(null);
-                setRefItem(null);
-            }}>
+                    onPointerMissed={(event) => {
+                        if (event.button === 2) return true;
+                        setRefPiece(null);
+                        setRefCajon(null);
+                        setRefItem(null);
+                    }}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
-                <Room positionY={3.5} />
+                <Room positionY={3.5}/>
                 <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={1}>
                     <directionalLight
                         castShadow
@@ -638,7 +639,7 @@ export const Experience = () => {
                                        mode={transformMode}/>
                 )}
 
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
             </Canvas>
             {interfaceComponents[selectedItem]}
 
