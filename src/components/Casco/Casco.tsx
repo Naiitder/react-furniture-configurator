@@ -34,6 +34,7 @@ export type CascoProps = {
         posiciones: any;
         materiales: any
     }) => React.ReactNode;
+    material: any[];
     seccionesHorizontales?: any[];
     seccionesVerticales?: any[];
     version?: any[];
@@ -76,6 +77,7 @@ const CascoFuncional = (
         contextRef,
         setContextRef,
         materiales,
+        material,
         version,
         children,
         id,
@@ -217,7 +219,7 @@ const CascoFuncional = (
                     width={dimensiones.suelo.width}
                     height={dimensiones.suelo.height}
                     depth={dimensiones.suelo.depth}
-                    material={materiales.OakWood}
+                    material={material}
                     posicionCaja="bottom"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                     bordeEjeY={false}
@@ -232,7 +234,7 @@ const CascoFuncional = (
                     width={dimensiones.lateral.width}
                     height={dimensiones.lateral.height}
                     depth={dimensiones.lateral.depth}
-                    material={materiales.DarkWood}
+                    material={material}
                     posicionCaja="left"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
@@ -246,7 +248,7 @@ const CascoFuncional = (
                     width={dimensiones.lateral.width}
                     height={dimensiones.lateral.height}
                     depth={dimensiones.lateral.depth}
-                    material={materiales.DarkWood}
+                    material={material}
                     posicionCaja="right"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
@@ -260,7 +262,7 @@ const CascoFuncional = (
                     width={dimensiones.trasero.width}
                     height={dimensiones.trasero.height}
                     depth={dimensiones.trasero.depth}
-                    material={materiales.DarkWood}
+                    material={material}
                     shape="box"
                 />
 
@@ -273,7 +275,7 @@ const CascoFuncional = (
                     width={dimensiones.techo.width}
                     height={dimensiones.techo.height}
                     depth={dimensiones.techo.depth}
-                    material={materiales.OakWood}
+                    material={material}
                     posicionCaja="top"
                     shape={actualEsquinaXTriangulada || actualEsquinaZTriangulada ? "trapezoid" : "box"}
                     bordeEjeY={false}
