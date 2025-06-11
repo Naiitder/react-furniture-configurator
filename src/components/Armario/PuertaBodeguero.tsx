@@ -73,7 +73,7 @@ const PuertaBodeguero: React.FC<PuertaProps & { extraAltura?: number }> = ({
                     bordeEjeZ={false}
                     stopPropagation={false}
                 />
-                <AgarreBodeguero position={[-(width / 2), height / 2, 0]} /> {/* Centrado en la puerta */}
+                <AgarreBodeguero position={[boxPosition[0], height / 2, 0]} /> {/* Centrado en la puerta */}
             </group>
         </group>
     );
