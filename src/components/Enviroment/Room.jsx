@@ -18,12 +18,7 @@ export function Room({positionY = 4, ...props}) {
     const verticalOffset = positionY + (roomHeight - 10) / 2;
 
     return (
-        <group {...props} dispose={null} position={[0, verticalOffset, 0]} onClick={() =>
-        {
-            setRefPiece(null);
-            setRefCajon(null);
-            setRefItem(null);
-        }}>
+        <group {...props} dispose={null} position={[0, verticalOffset, 0]}>
             {/* Pared frontal */}
             <mesh position={[0, 0, -halfRoomWidth]} receiveShadow={false} castShadow={false}>
                 <planeGeometry args={[roomWidth, roomHeight]}/>

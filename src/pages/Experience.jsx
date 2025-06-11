@@ -79,7 +79,7 @@ export const Experience = () => {
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
     const {refItem, setRefItem, version, setVersion} = useSelectedItemProvider();
     const {refPiece, setRefPiece} = useSelectedPieceProvider();
-    const {refCajon} = useSelectedCajonProvider();
+    const {refCajon, setRefCajon} = useSelectedCajonProvider();
     const [scaleDimensions, setScaleDimensions] = useState({x: 2, y: 2, z: 2});
 
     useEffect(() => {
@@ -615,11 +615,18 @@ export const Experience = () => {
 
     };
 
+    const [isDragging, setIsDragging] = useState(false);
+
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}>
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
+                    onPointerMissed={() => {
+                setRefPiece(null);
+                setRefCajon(null);
+                setRefItem(null);
+            }}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
-                <Room positionY={3.5}/>
+                <Room positionY={3.5} isDragging={isDragging}/>
                 <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={1}>
                     <directionalLight
                         castShadow
@@ -633,7 +640,7 @@ export const Experience = () => {
                                        mode={transformMode}/>
                 )}
 
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
             </Canvas>
             {interfaceComponents[selectedItem]}
 
