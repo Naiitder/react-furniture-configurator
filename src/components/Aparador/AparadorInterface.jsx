@@ -4,8 +4,6 @@ import ItemSelector from "../ItemSelector.jsx";
 import TextureUploader from "../TextureUploader.jsx";
 import { useEffect, useState } from "react";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
-import DraggableIntersection, { INTERSECTION_TYPES } from "../Casco/DraggableIntersection.js";
-import * as THREE from "three";
 
 const { Title } = Typography;
 const { TabPane } = Tabs;

@@ -1,6 +1,5 @@
-import { Form, Checkbox, Typography } from "antd";
-import React from "react";
-const { Title } = Typography;
+import { Form } from "antd";
+import * as React from "react";
 
 const TransformControlPanel = ({ show, setShow, mode, setMode }) => {
     return (

@@ -2,12 +2,11 @@ import * as React from "react";
 import * as THREE from "three";
 import '@react-three/fiber';
 import BordeTriangular from "./BordeTriangular";
-import {useMaterial} from "../../assets/materials";
 import {useEffect, useRef, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 import {useSelectedCajonProvider} from "../../contexts/SelectedCajonProvider"
-import {Edges, Outlines} from "@react-three/drei";
+import {Edges} from "@react-three/drei";
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 

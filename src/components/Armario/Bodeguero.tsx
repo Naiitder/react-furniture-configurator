@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import Casco from "../Casco/Casco";
 import Tabla from "../Casco/Tabla";
 import {useMaterial} from "../../assets/materials";

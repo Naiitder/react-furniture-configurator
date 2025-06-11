@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState, useRef, useCallback, useMemo} from 'react';
+import React, {createContext, useContext, useState, useCallback, useMemo} from 'react';
 
 export const SelectedItemContext = createContext();
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {Slider, Space, Form, Typography, Button, FloatButton} from 'antd';
+import {Slider, Space, Form, Typography, FloatButton} from 'antd';
 import { useRoomConfigurator } from "../../contexts/RoomConfigurator.jsx";
 import { MoreOutlined } from "@ant-design/icons";
 

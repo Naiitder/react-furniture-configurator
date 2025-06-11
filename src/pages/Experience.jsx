@@ -1,10 +1,6 @@
-import React, {useRef, useState, useEffect} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Canvas, useThree} from "@react-three/fiber";
-import {
-    TransformControls,
-    OrbitControls,
-    Stage, Outlines, Edges,
-} from "@react-three/drei";
+import {OrbitControls, Stage, TransformControls,} from "@react-three/drei";
 import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
@@ -16,7 +12,6 @@ import {useDrop} from "react-dnd";
 import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
-import CascoSimple from "../components/CascoBrr/CascoSimple.js";
 import ChildItemConfigurationInterface from "../components/ChildItemConfigurationInterface.jsx";
 import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
@@ -29,8 +24,6 @@ import Armario from "../components/Armario/Armario.js";
 import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
 import Bodeguero from "../components/Armario/Bodeguero.js";
 import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
-import {Color} from "three";
-import Tabla from "../components/Casco/Tabla.js";
 import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import IntersectionOverlay from "../components/InterseccionOverlay.js";
 
@@ -242,7 +235,6 @@ export const Experience = () => {
             const orientacion = item.type === INTERSECTION_TYPES.HORIZONTAL ? Orientacion.Horizontal : Orientacion.Vertical;
             const tolerancia = 0.03;
 
-            console.log(`Posición raw antes del procesamiento: X=${rawX}, Y=${rawY}`);
 
 // Función auxiliar: verifica si una vertical puede expandirse en una zona Y
             const puedeVerticalExpandirseEnY = (xPos, yInicio, yFin, interseccionesExistentes) => {
@@ -326,7 +318,6 @@ export const Experience = () => {
                     for (const snapY of posiblesSnaps) {
                         if (Math.abs(posY - snapY) <= toleranciaSnap) {
                             posY = snapY;
-                            console.log(`Intersección horizontal centrada automáticamente en Y=${snapY} (snap aplicado por proximidad)`);
                             snapAplicado = true;
                             break;
                         }
@@ -364,16 +355,13 @@ export const Experience = () => {
 
                             if (alturaSegmento > 0.1 && distanciaDelCentroSegmento < toleranciaCentrado) {
                                 mejorY = round2(centroSegmento);
-                                console.log(`Intersección horizontal centrada en Y=${mejorY} (centro del segmento [${inferior}, ${superior}])`);
                             } else {
-                                console.log(`Intersección horizontal mantenida en Y=${posY} (no está cerca del centro del segmento)`);
                             }
                             break;
                         }
                     }
 
                     if (!segmentoEncontrado) {
-                        console.log(`Intersección horizontal mantenida en Y=${posY} (fuera de segmentos válidos)`);
                     }
 
                     posY = mejorY;
@@ -407,14 +395,12 @@ export const Experience = () => {
                     for (const snapX of posiblesSnaps) {
                         if (Math.abs(posX - snapX) <= toleranciaSnap) {
                             posX = snapX;
-                            console.log(`Intersección vertical centrada automáticamente en X=${snapX} (snap aplicado por proximidad)`);
                             snapAplicado = true;
                             break;
                         }
                     }
 
                     if (!snapAplicado) {
-                        console.log(`Intersección vertical mantenida en X=${posX} (fuera de zona de snap)`);
                     }
                 } else {
                     verticalesCompetidoras.sort((a, b) => a.position.x - b.position.x);
@@ -427,7 +413,6 @@ export const Experience = () => {
                         if (posX >= izquierda && posX <= derecha) {
                             const centro = (izquierda + derecha) / 2;
                             posX = round2(centro);
-                            console.log(`Intersección vertical centrada en X=${posX} entre ${izquierda} y ${derecha}`);
                             break;
                         }
                     }
@@ -449,9 +434,6 @@ export const Experience = () => {
 
                 // Add the new intersection to the existing ones
                 updatedCasco.intersecciones = [...intersecciones, newInterseccion];
-
-                console.log("updatedCasco", newInterseccion);
-
                 updated[cascoKey] = updatedCasco;
                 return updated;
             });

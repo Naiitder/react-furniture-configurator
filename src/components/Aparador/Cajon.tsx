@@ -1,7 +1,6 @@
 import * as React from "react";
 import * as THREE from "three";
 import '@react-three/fiber';
-import BordeTriangular from "../Casco/BordeTriangular";
 import {useMaterial} from "../../assets/materials";
 import {useEffect, useRef, useState} from "react";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
