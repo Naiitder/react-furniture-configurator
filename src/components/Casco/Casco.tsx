@@ -3,8 +3,9 @@ import * as THREE from "three";
 import Tabla from "./Tabla";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import { useMaterial } from "../../assets/materials";
-import {calcularDimensiones} from "../../utils/calculadoraDimensiones";
-import {calcularPosiciones} from "../../utils/calculadoraPosiciones";
+import { calcularDimensiones } from "../../utils/calculadoraDimensiones";
+import { calcularPosiciones } from "../../utils/calculadoraPosiciones";
+import {renderIntersecciones} from "../../utils/interseccionesRenderer";
 
 // Definición de los props para el componente Casco
 export type CascoProps = {
@@ -26,11 +27,14 @@ export type CascoProps = {
     indicePata?: number;
     puertas?: React.ReactNode[];
     indicePuerta?: number;
+    intersecciones?: any[];
+    renderExtraParts?: (params: { localConfig: any; dimensiones: any; posiciones: any; materiales: any }) => React.ReactNode;
     seccionesHorizontales?: any[];
     seccionesVerticales?: any[];
     version?: any[];
     setVersion?: (version: any) => void;
-
+    children?: React.ReactNode;
+    id?: string;
 };
 
 const CascoFuncional = (
@@ -40,7 +44,7 @@ const CascoFuncional = (
         materiales: any;
     }
 ) => {
-    // Valores por defecto (equivalentes a defaultProps)
+    // Valores por defecto
     const {
         width = 2,
         height = 2,
@@ -60,19 +64,22 @@ const CascoFuncional = (
         indicePata = -1,
         puertas = [],
         indicePuerta = 0,
+        intersecciones = [],
+        renderExtraParts,
         seccionesHorizontales = [],
         seccionesVerticales = [],
         contextRef,
         setContextRef,
         materiales,
         version,
+        children,
+        id,
     } = props;
 
     const groupRef = useRef<THREE.Group>(null);
     const detectionBoxRef = useRef<THREE.Group>(null);
     const horizontalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
     const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
-
     const { refItem } = useSelectedItemProvider();
 
     // Valores iniciales para este casco
@@ -91,46 +98,40 @@ const CascoFuncional = (
         alturaPatas,
         indicePata,
         indicePuerta,
+        intersecciones,
     };
 
-
-    // Usamos estado local para la configuración de este casco.
-    // De esta forma, cada vez que se cambie la configuración se provoca un re-render.
+    // Estado local para la configuración
     const [localConfig, setLocalConfig] = useState(initialData);
 
+    // Inicializar userData y nombre
     useEffect(() => {
         if (groupRef.current && Object.keys(groupRef.current.userData).length === 0) {
             groupRef.current.userData = { ...initialData };
         }
-
-        if (!groupRef.current.name && props.id) {
-            groupRef.current.name = props.id; // 🔑 esto permite identificar el casco
+        if (groupRef.current && id && !groupRef.current.name) {
+            groupRef.current.name = id;
         }
-    }, []);
+    }, [id]);
 
-
-    // Si el casco está seleccionado (comparando referencias) y existe la configuración en el contexto,
-    // sincronizamos el estado local con esos datos.
+    // Sincronizar configuración cuando está seleccionado
     const isSelected = refItem && refItem.groupRef === groupRef.current;
     useEffect(() => {
         if (refItem && isSelected) {
             const newConfig = refItem.groupRef?.userData ?? refItem.userData ?? initialData;
-
             setLocalConfig((prev) => {
                 const hasChanged = Object.keys(newConfig).some(
-                    key => newConfig[key] !== prev[key]
+                    (key) => newConfig[key] !== prev[key]
                 );
                 return hasChanged ? { ...prev, ...newConfig } : prev;
             });
         }
     }, [refItem, isSelected, version]);
 
-    // Función para actualizar la configuración tanto en el estado local
-    // como en el userData del objeto Three.js
+    // Actualizar configuración
     const updateConfig = (key: string, value: any) => {
         setLocalConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
-            // Actualizamos el userData si existe
             if (refItem && refItem.groupRef) {
                 refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
                 if (refItem.groupRef.setVersion) {
@@ -141,7 +142,7 @@ const CascoFuncional = (
         });
     };
 
-    // Extraemos las variables desde el estado local (localConfig)
+    // Extraer variables del estado local
     const actualWidth = localConfig.width || width;
     const actualHeight = localConfig.height || height;
     const actualDepth = localConfig.depth || depth;
@@ -149,25 +150,22 @@ const CascoFuncional = (
     const actualSueloDentro = localConfig.sueloDentro ?? sueloDentro;
     const actualTechoDentro = localConfig.techoDentro ?? techoDentro;
     const actualTraseroDentro = localConfig.traseroDentro ?? traseroDentro;
+    const actualIntersecciones = localConfig.intersecciones ?? intersecciones;
     const offsetDepthTraseroDentro = actualTraseroDentro
         ? actualDepth
         : actualDepth - actualEspesor;
-    const actualRetranqueoTrasero =
-        localConfig.retranqueoTrasero ?? retranqueoTrasero;
-    const actualRetranquearSuelo =
-        localConfig.retranquearSuelo ?? retranquearSuelo;
-    const actualEsquinaXTriangulada =
-        localConfig.esquinaXTriangulada ?? esquinaXTriangulada;
-    const actualEsquinaZTriangulada =
-        localConfig.esquinaZTriangulada ?? esquinaZTriangulada;
+    const actualRetranqueoTrasero = localConfig.retranqueoTrasero ?? retranqueoTrasero;
+    const actualRetranquearSuelo = localConfig.retranquearSuelo ?? retranquearSuelo;
+    const actualEsquinaXTriangulada = localConfig.esquinaXTriangulada ?? esquinaXTriangulada;
+    const actualEsquinaZTriangulada = localConfig.esquinaZTriangulada ?? esquinaZTriangulada;
     const actualAlturaPatas = localConfig.alturaPatas || alturaPatas;
+    const extraAltura = patas && indicePata !== -1 ? actualAlturaPatas : 0;
     let indiceActualPata = localConfig.indicePata ?? indicePata;
-    const extraAltura = patas && indiceActualPata !== -1 ? actualAlturaPatas : 0;
     if (indiceActualPata > 0) indiceActualPata--;
     let indiceActualPuerta = localConfig.indicePuerta ?? indicePuerta;
     if (indiceActualPuerta > 0) indiceActualPuerta--;
 
-    // Manejador del clic: actualiza la ref de contexto para el casco seleccionado
+    // Manejador de clics
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (groupRef.current && detectionBoxRef.current) {
@@ -175,30 +173,36 @@ const CascoFuncional = (
         }
     };
 
-
+    // Calcular dimensiones y posiciones
     const dimensiones = calcularDimensiones(localConfig);
-    const posiciones = calcularPosiciones({...localConfig, patas});
+    const posiciones = calcularPosiciones({ ...localConfig, patas });
 
-    // Actualizamos el userData del grupo cuando cambia la configuración
-    useEffect(() => {
-        if (refItem && isSelected) {
-            const newConfig = refItem.groupRef?.userData ?? refItem.userData ?? initialData;
-
-            setLocalConfig((prev) => {
-                const hasChanged = Object.keys(newConfig).some(
-                    key => newConfig[key] !== prev[key]
-                );
-                return hasChanged ? { ...prev, ...newConfig } : prev;
-            });
-        }
-    }, [refItem, isSelected]);
-
-
+    // Renderizar intersecciones
+    const renderInterseccionesInternas = () => {
+        if (!actualIntersecciones.length) return null;
+        return renderIntersecciones({
+            intersecciones: actualIntersecciones,
+            dimensiones: {
+                width: actualWidth,
+                height: actualHeight,
+                depth: actualDepth,
+                espesor: actualEspesor,
+                retranqueoTrasero: actualRetranqueoTrasero,
+                extraAltura,
+                traseroDentro: actualTraseroDentro,
+            },
+            refs: {
+                groupRef,
+                detectionBoxRef,
+            },
+            materiales,
+        });
+    };
 
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
             <group onClick={handleClick}>
-                {/* Tablon inferior (suelo) */}
+                {/* Suelo */}
                 <Tabla
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
@@ -213,7 +217,7 @@ const CascoFuncional = (
                     bordeEjeY={false}
                 />
 
-                {/* Tablon lado izquierdo */}
+                {/* Lado izquierdo */}
                 <Tabla
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
@@ -227,7 +231,7 @@ const CascoFuncional = (
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
 
-                {/* Tablon lado derecho */}
+                {/* Lado derecho */}
                 <Tabla
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
@@ -241,7 +245,7 @@ const CascoFuncional = (
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
 
-                {/* Tablon detrás */}
+                {/* Trasero */}
                 <Tabla
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
@@ -254,7 +258,7 @@ const CascoFuncional = (
                     shape="box"
                 />
 
-                {/* Tablon arriba (techo) */}
+                {/* Techo */}
                 <Tabla
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
@@ -273,7 +277,7 @@ const CascoFuncional = (
                     }
                 />
 
-                {/* Renderizar patas */}
+                {/* Patas */}
                 {patas && indiceActualPata !== -1 && patas[indiceActualPata] && (
                     <group>
                         {React.cloneElement(patas[indiceActualPata] as React.ReactElement, {
@@ -295,7 +299,7 @@ const CascoFuncional = (
                     </group>
                 )}
 
-                {/* Renderizar puertas */}
+                {/* Puertas */}
                 {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
                     <>
                         {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
@@ -322,34 +326,41 @@ const CascoFuncional = (
                         )}
                     </>
                 )}
+
+                {/* Intersecciones */}
+                {renderInterseccionesInternas()}
+
+                {/* Piezas adicionales dinámicas */}
+                {renderExtraParts && renderExtraParts({ localConfig, dimensiones, posiciones, materiales })}
+
+                {/* Children dinámicos */}
+                {children}
             </group>
-            <group
-                ref={detectionBoxRef}>
+
+            <group ref={detectionBoxRef}>
                 <mesh
-                    position={[0,actualHeight/2+extraAltura,actualRetranqueoTrasero/2]}
+                    position={[0, actualHeight / 2 + extraAltura, actualRetranqueoTrasero / 2]}
                     material={materiales.Transparent}
                 >
-                    <boxGeometry args={[actualWidth-actualEspesor*2, actualHeight-actualEspesor*2, actualDepth-actualEspesor/4-actualRetranqueoTrasero]}/>
+                    <boxGeometry
+                        args={[actualWidth - actualEspesor * 2, actualHeight - actualEspesor * 2, actualDepth - actualEspesor / 2 - actualRetranqueoTrasero]}
+                    />
                 </mesh>
             </group>
         </group>
     );
 };
 
-// Componente de alto nivel: el que actualiza el contexto únicamente si es el casco seleccionado.
 const CascoWithContext = (props: any) => {
-    const { refItem, setRefItem, version} = useSelectedItemProvider();
+    const { refItem, setRefItem, version } = useSelectedItemProvider();
     const meshRef = useRef<any>(null);
     const materiales = useMaterial();
 
-    const updateContextRef = useCallback(
-        (ref: any) => {
-            if (ref && (!refItem || ref.groupRef !== refItem.groupRef)) {
-                setRefItem(ref);
-            }
-        },
-        [refItem, setRefItem]
-    );
+    const updateContextRef = useCallback((ref: any) => {
+        if (ref && (!refItem || ref.groupRef !== refItem.groupRef)) {
+            setRefItem(ref);
+        }
+    }, [refItem, setRefItem]);
 
     return (
         <CascoFuncional
