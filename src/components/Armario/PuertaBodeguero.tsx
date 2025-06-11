@@ -1,20 +1,21 @@
 import * as React from "react";
-import {useEffect, useRef} from "react";
-import {useMaterial} from "../../assets/materials";
+import { useEffect, useRef } from "react";
+import { useMaterial } from "../../assets/materials";
 import Tabla from "../Casco/Tabla";
-import {PuertaProps} from "../Casco/Puerta";
-import {Box} from "@react-three/drei";
-import {AgarreBodeguero} from "./AgarreBodeguero";
+import { PuertaProps } from "../Casco/Puerta";
+import { AgarreBodeguero } from "./AgarreBodeguero";
 
-const PuertaBodeguero: React.FC<PuertaProps> = ({
-                                           parentRef, insideRef,
-                                           position = [0, 0, 0],
-                                           width,
-                                           height,
-                                           depth,
-                                           color = "#654321",
-                                           pivot = "right"
-                                       }) => {
+const PuertaBodeguero: React.FC<PuertaProps & { extraAltura?: number }> = ({
+                                                                               parentRef,
+                                                                               insideRef,
+                                                                               position = [0, 0, 0],
+                                                                               width,
+                                                                               height,
+                                                                               depth,
+                                                                               color = "#654321",
+                                                                               pivot = "right",
+                                                                               extraAltura = 0,
+                                                                           }) => {
     const [doorRotation, setDoorRotation] = React.useState(0);
     const [targetRotation, setTargetRotation] = React.useState(0);
     const doorRef = useRef(null);
@@ -45,14 +46,14 @@ const PuertaBodeguero: React.FC<PuertaProps> = ({
     const doorX = (pivot === "right" ? direction : -direction) * offset;
     const doorZ = direction * offset;
 
-    const materials = useMaterial();
-
-    // Ajustar la posición inicial de la caja según el pivote
+    // Ajustar la posición inicial de la caja desde la base de la puerta
     const boxPosition: [number, number, number] = [
         width / 2 * (pivot === "right" ? -1 : 1),
+        0, // Comienza desde la base, el offset Y viene del position prop
         0,
-        0
     ];
+
+    const materials = useMaterial();
 
     return (
         <group position={position} onClick={handleClick}>
@@ -66,15 +67,13 @@ const PuertaBodeguero: React.FC<PuertaProps> = ({
                     height={height}
                     depth={depth}
                     material={materials.Nogal}
-                    espesorBase={0.1} // Ajusta según necesites
+                    espesorBase={0.1}
                     shape={"box"}
                     bordeEjeY={false}
                     bordeEjeZ={false}
                     stopPropagation={false}
-                >
-
-                </Tabla>
-                <AgarreBodeguero position={[-(width / 2), (height / 2), 0]}/>
+                />
+                <AgarreBodeguero position={[boxPosition[0], height / 2, 0]} /> {/* Centrado en la puerta */}
             </group>
         </group>
     );

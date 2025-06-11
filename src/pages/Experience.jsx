@@ -31,7 +31,8 @@ import Bodeguero from "../components/Armario/Bodeguero.js";
 import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 import {Color} from "three";
 import Tabla from "../components/Casco/Tabla.js";
-import casco from "../components/Casco/Casco.js";
+import InterseccionMueble, {Orientacion} from "../components/Interseccion";
+import IntersectionOverlay from "../components/InterseccionOverlay.js";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -50,15 +51,10 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
             mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
-
-            // Asegurarse de que refItem sea un objeto Three.js válido
             if (refItem) {
-                const intersects = refItem.detectionRef
-                    ? raycaster.intersectObject(refItem.detectionRef, true)
-                    : [];
-                console.log(refItem.detectionRef);
+                const intersects = raycaster.intersectObject(refItem.groupRef, true);
                 if (intersects.length > 0) {
-                    console.log("👉 Intersección con Casco en:", intersects[0].point);
+                    console.log(intersects[0]);
                 }
             }
         };
@@ -69,7 +65,6 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
 
     return null;
 };
-
 
 export const Experience = () => {
     const transformRef = useRef();
@@ -84,12 +79,8 @@ export const Experience = () => {
     const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
     const {refItem, setRefItem, version, setVersion} = useSelectedItemProvider();
     const {refPiece, setRefPiece} = useSelectedPieceProvider();
-    const {refCajon} = useSelectedCajonProvider();
+    const {refCajon, setRefCajon} = useSelectedCajonProvider();
     const [scaleDimensions, setScaleDimensions] = useState({x: 2, y: 2, z: 2});
-
-    // @Pruden
-    const [selectedCascoId, setSelectedCascoId] = useState(null);
-
 
     useEffect(() => {
         setCascoInstances({
@@ -101,8 +92,7 @@ export const Experience = () => {
                 userData: {width: 2, height: 2, depth: 2, espesor: 0.3},
                 patas: [<Pata height={1}/>],
                 puertas: [<Puerta/>],
-                seccionesHorizontales: [],
-                seccionesVerticales: [],
+                intersecciones: [],
             },
             casco2: {
                 id: 'casco2',
@@ -112,8 +102,7 @@ export const Experience = () => {
                 userData: {width: 2, height: 2, depth: 3, espesor: 0.1},
                 patas: [<Pata height={1}/>],
                 puertas: [<Puerta/>],
-                seccionesHorizontales: [],
-                seccionesVerticales: [],
+                intersecciones: [],
             },
             casco3: {
                 id: 'casco3',
@@ -123,8 +112,7 @@ export const Experience = () => {
                 userData: {width: 2, height: 2, depth: 2, espesor: 0.1},
                 patas: [<Pata height={1}/>],
                 puertas: [<Puerta/>],
-                seccionesHorizontales: [],
-                seccionesVerticales: [],
+                intersecciones: [],
             },
             casco4: {
                 id: 'casco4',
@@ -141,51 +129,10 @@ export const Experience = () => {
                 position: [0, 0, 0],
                 rotation: [0, 0, 0],
                 userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
-                seccionesHorizontales: [
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569613,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.05,
-                        relativePosition:
-                            [0, 0.75, 0.5],
-                        relativeWidth:
-                            1,
-                    }
-                ],
-                seccionesVerticales: [
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            343243234,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.26,
-                        relativePosition:
-                            [0, 0.6225, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            23425332,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.24,
-                        relativePosition:
-                            [0, 0.87, 0.5],
-                        relativeWidth:
-                            1,
-                    }
+                intersecciones: [
+                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: 0.6225}, Orientacion.Vertical),
+                    new InterseccionMueble({x: 0.5, y: 0.87}, Orientacion.Vertical),
                 ],
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<Puerta/>],
@@ -198,79 +145,14 @@ export const Experience = () => {
                 userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
-                seccionesHorizontales: [
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569613,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.05,
-                        relativePosition:
-                            [0, 0.7, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569614,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.05,
-                        relativePosition:
-                            [0, 0.5, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569615,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.05,
-                        relativePosition:
-                            [0, 0.25, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                ],
-                seccionesVerticales: [
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569613,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.3,
-                        relativePosition:
-                            [0, 0.85, 0.5],
-                        relativeWidth:
-                            1,
-                    },
-                    {
-                        color:
-                            "#8B4513",
-                        id:
-                            1746631569614,
-                        relativeDepth:
-                            1,
-                        relativeHeight:
-                            0.2,
-                        relativePosition:
-                            [0, 0.6, 0.5],
-                        relativeWidth:
-                            1,
-                    },
+                intersecciones: [
+                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.75, y: .25}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0, y: 0.75}, Orientacion.Horizontal),
+
+                    new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical), // Bloquea y corta la horizontal pero la ultima entrada no lo detecta
+                    new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical),
+// Se recorta por el horizontal de y: 0.35
 
                 ],
             }
@@ -342,129 +224,245 @@ export const Experience = () => {
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
 
-            const intersects = refItem.detectionRef
-                ? raycaster.intersectObject(refItem.detectionRef, true)
-                : [];
-            if (intersects.length === 0) return;
+            const intersectObject = raycaster.intersectObject(refItem.groupRef, true)[0];
+            const intersecciones = cascoData.intersecciones || [];
 
-            const point = intersects[0].point;
-            const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
-            refItem.groupRef.updateMatrixWorld(true);
-            const localPosition = refItem.groupRef.worldToLocal(worldPosition.clone());
+            const rawX = intersectObject.uv.x;
+            const rawY = intersectObject.uv.y;
 
-            const {width: cascoWidth, height: cascoHeight, depth: cascoDepth, espesor} = refItem.groupRef.userData;
+// Pos final, antes de redondear
+            let posX = rawX;
+            let posY = rawY;
 
-            let adjustedWidth = cascoWidth;
-            let adjustedHeight = cascoHeight;
-            let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
+            const round2 = v => Math.round(v * 100) / 100;
 
-            const horizontalCubes = cascoData.seccionesHorizontales || [];
-            const verticalCubes = cascoData.seccionesVerticales || [];
+            posX = round2(posX);
+            posY = round2(posY);
 
-            if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                const relevantVerticals = verticalCubes.filter((cube) => {
-                    const cubeMinY = cube.relativePosition[1] * cascoHeight - (cube.relativeHeight * cascoHeight) / 2;
-                    const cubeMaxY = cube.relativePosition[1] * cascoHeight + (cube.relativeHeight * cascoHeight) / 2;
-                    return localPosition.y >= cubeMinY && localPosition.y <= cubeMaxY;
-                });
+            const orientacion = item.type === INTERSECTION_TYPES.HORIZONTAL ? Orientacion.Horizontal : Orientacion.Vertical;
+            const tolerancia = 0.03;
 
-                const verticalSections = relevantVerticals
-                    .map((cube) => cube.relativePosition[0] * cascoWidth)
-                    .sort((a, b) => a - b);
+            console.log(`Posición raw antes del procesamiento: X=${rawX}, Y=${rawY}`);
 
-                const boundaries = [-cascoWidth / 2, ...verticalSections, cascoWidth / 2];
-                const leftBoundary = boundaries.filter((pos) => pos < localPosition.x).sort((a, b) => b - a)[0] || -cascoWidth / 2;
-                const rightBoundary = boundaries.filter((pos) => pos > localPosition.x).sort((a, b) => a - b)[0] || cascoWidth / 2;
+// Función auxiliar: verifica si una vertical puede expandirse en una zona Y
+            const puedeVerticalExpandirseEnY = (xPos, yInicio, yFin, interseccionesExistentes) => {
+                // Busca horizontales que estén en este rango Y y que crucen por esta X
+                for (const h of interseccionesExistentes) {
+                    if (h.orientation === Orientacion.Horizontal) {
+                        const hy = h.position.y;
+                        // Si hay una horizontal en el rango Y que necesitamos
+                        if (hy > yInicio && hy < yFin) {
+                            // Verificamos si esta horizontal puede llegar hasta nuestra X
+                            // Simplificamos: si no hay verticales entre la horizontal y nuestra X, puede llegar
+                            const verticalesQueBloquean = interseccionesExistentes.filter(v =>
+                                v.orientation === Orientacion.Vertical &&
+                                Math.abs(v.position.y - hy) < tolerancia &&
+                                ((v.position.x > Math.min(h.position.x, xPos) && v.position.x < Math.max(h.position.x, xPos)))
+                            );
 
-                adjustedWidth = rightBoundary - leftBoundary;
-                adjustedPosition[0] = (leftBoundary + rightBoundary) / 2;
-
-                const exists = horizontalCubes.some((cube) => {
-                    const cubeX = cube.relativePosition[0] * cascoWidth;
-                    const cubeY = cube.relativePosition[1] * cascoHeight;
-                    const cubeWidth = cube.relativeWidth * cascoWidth;
-                    const cubeMinX = cubeX - cubeWidth / 2;
-                    const cubeMaxX = cubeX + cubeWidth / 2;
-                    const newMinX = adjustedPosition[0] - adjustedWidth / 2;
-                    const newMaxX = adjustedPosition[0] + adjustedWidth / 2;
-                    const sameY = Math.abs(cubeY - localPosition.y) < 0.1;
-                    const overlapsX = !(newMaxX <= cubeMinX || newMinX >= cubeMaxX);
-                    return sameY && overlapsX;
-                });
-
-                if (exists) {
-                    console.warn("Ya existe una sección horizontal en esta posición Y");
-                    return;
+                            if (verticalesQueBloquean.length === 0) {
+                                return false; // La horizontal bloquea la expansión de la vertical
+                            }
+                        }
+                    }
                 }
-            }
-
-            if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                const relevantHorizontals = horizontalCubes.filter((cube) => {
-                    const cubeX = cube.relativePosition[0] * cascoWidth;
-                    const cubeWidth = cube.relativeWidth * cascoWidth;
-                    const cubeMinX = cubeX - cubeWidth / 2;
-                    const cubeMaxX = cubeX + cubeWidth / 2;
-                    return localPosition.x >= cubeMinX && localPosition.x <= cubeMaxX;
-                });
-
-                const horizontalSections = relevantHorizontals
-                    .map((cube) => cube.relativePosition[1] * cascoHeight)
-                    .sort((a, b) => a - b);
-
-                const boundaries = [0, ...horizontalSections, cascoHeight];
-                const bottomBoundary = boundaries.filter((pos) => pos < localPosition.y).sort((a, b) => b - a)[0] || 0;
-                const topBoundary = boundaries.filter((pos) => pos > localPosition.y).sort((a, b) => a - b)[0] || cascoHeight;
-
-                adjustedHeight = topBoundary - bottomBoundary;
-                adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
-
-                const exists = verticalCubes.some((cube) => {
-                    const cubeX = cube.relativePosition[0] * cascoWidth;
-                    const cubeY = cube.relativePosition[1] * cascoHeight;
-                    const cubeHeight = cube.relativeHeight * cascoHeight;
-                    const cubeMinY = cubeY - cubeHeight / 2;
-                    const cubeMaxY = cubeY + cubeHeight / 2;
-                    const newMinY = adjustedPosition[1] - adjustedHeight / 2;
-                    const newMaxY = adjustedPosition[1] + adjustedHeight / 2;
-                    const sameX = Math.abs(cubeX - localPosition.x) < 0.1;
-                    const overlapsY = !(newMaxY <= cubeMinY || newMinY >= cubeMaxY);
-                    return sameX && overlapsY;
-                });
-
-                if (exists) {
-                    console.warn("Ya existe una sección vertical en esta posición X");
-                    return;
-                }
-            }
-
-            const newCube = {
-                id: Date.now(),
-                relativePosition: [
-                    adjustedPosition[0] / cascoWidth,
-                    adjustedPosition[1] / cascoHeight,
-                    adjustedPosition[2] / cascoDepth,
-                ],
-                relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
-                relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
-                relativeDepth: (cascoDepth - (refItem.userData?.traseroDentro ? refItem.userData?.retranqueoTrasero || 0 : 0)) / cascoDepth,
-                color: item.color || "#8B4513",
+                return true; // La vertical puede expandirse libremente en este rango Y
             };
+
+// Función auxiliar: verifica si una horizontal puede expandirse en una zona X
+            const puedeHorizontalExpandirseEnX = (yPos, xInicio, xFin, interseccionesExistentes) => {
+                // Busca verticales que estén en este rango X y que crucen por esta Y
+                for (const v of interseccionesExistentes) {
+                    if (v.orientation === Orientacion.Vertical) {
+                        const vx = v.position.x;
+                        // Si hay una vertical en el rango X que necesitamos
+                        if (vx > xInicio && vx < xFin) {
+                            // Verificamos si esta vertical puede llegar hasta nuestra Y
+                            // Simplificamos: si no hay horizontales entre la vertical y nuestra Y, puede llegar
+                            const horizontalesQueBloquean = interseccionesExistentes.filter(h =>
+                                h.orientation === Orientacion.Horizontal &&
+                                Math.abs(h.position.x - vx) < tolerancia &&
+                                ((h.position.y > Math.min(v.position.y, yPos) && h.position.y < Math.max(v.position.y, yPos)))
+                            );
+
+                            if (horizontalesQueBloquean.length === 0) {
+                                return false; // La vertical bloquea la expansión de la horizontal
+                            }
+                        }
+                    }
+                }
+                return true; // La horizontal puede expandirse libremente en este rango X
+            };
+
+            if (orientacion === Orientacion.Horizontal) {
+                // Para intersecciones horizontales
+                // Primero, encontramos todas las horizontales que realmente pueden competir por el espacio
+                // en el rango X donde se va a expandir esta horizontal
+
+                const horizontalesEnRango = [];
+
+                // Calculamos qué horizontales están en el mismo "corredor" horizontal
+                for (const h of intersecciones) {
+                    if (h.orientation === Orientacion.Horizontal) {
+                        // Una horizontal compite si puede expandirse hacia nuestra zona X
+                        // y nuestra horizontal puede expandirse hacia su zona X
+                        const xMin = Math.min(h.position.x, posX) - 0.1; // Margen de seguridad
+                        const xMax = Math.max(h.position.x, posX) + 0.1;
+
+                        // Verificamos si ambas horizontales pueden coexistir en el mismo rango Y
+                        // (es decir, si hay espacio para ambas o si una bloquea a la otra)
+                        if (puedeHorizontalExpandirseEnX(h.position.y, xMin, xMax, intersecciones) &&
+                            puedeHorizontalExpandirseEnX(posY, xMin, xMax, intersecciones)) {
+                            horizontalesEnRango.push(h);
+                        }
+                    }
+                }
+
+                if (horizontalesEnRango.length === 0) {
+                    const posiblesSnaps = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+                    const toleranciaSnap = 0.04;
+                    let snapAplicado = false;
+
+                    for (const snapY of posiblesSnaps) {
+                        if (Math.abs(posY - snapY) <= toleranciaSnap) {
+                            posY = snapY;
+                            console.log(`Intersección horizontal centrada automáticamente en Y=${snapY} (snap aplicado por proximidad)`);
+                            snapAplicado = true;
+                            break;
+                        }
+                    }
+
+                    if (!snapAplicado) {
+                        console.log(`Intersección horizontal mantenida en Y=${posY} (fuera de zona de snap)`);
+                    }
+                } else {
+                    // Hay otras horizontales, necesitamos encontrar el mejor espacio disponible
+                    horizontalesEnRango.sort((a, b) => a.position.y - b.position.y);
+
+                    // Crear lista de posiciones Y ocupadas, incluyendo los bordes
+                    const posicionesOcupadas = [0, ...horizontalesEnRango.map(h => h.position.y), 1];
+
+                    // Encontrar el segmento donde cae nuestra posición Y
+                    let mejorY = posY;
+                    let segmentoEncontrado = false;
+
+                    for (let i = 0; i < posicionesOcupadas.length - 1; i++) {
+                        const inferior = posicionesOcupadas[i];
+                        const superior = posicionesOcupadas[i + 1];
+                        const centroSegmento = (inferior + superior) / 2;
+                        const alturaSegmento = superior - inferior;
+
+                        // Verificamos si nuestra posición Y cae en este segmento
+                        if (posY >= inferior && posY <= superior) {
+                            segmentoEncontrado = true;
+
+                            // Solo centramos automáticamente si:
+                            // 1. El segmento es suficientemente grande (> 0.1)
+                            // 2. La posición está cerca del centro del segmento
+                            const distanciaDelCentroSegmento = Math.abs(posY - centroSegmento);
+                            const toleranciaCentrado = Math.min(0.1, alturaSegmento * 0.3); // Tolerancia proporcional
+
+                            if (alturaSegmento > 0.1 && distanciaDelCentroSegmento < toleranciaCentrado) {
+                                mejorY = round2(centroSegmento);
+                                console.log(`Intersección horizontal centrada en Y=${mejorY} (centro del segmento [${inferior}, ${superior}])`);
+                            } else {
+                                console.log(`Intersección horizontal mantenida en Y=${posY} (no está cerca del centro del segmento)`);
+                            }
+                            break;
+                        }
+                    }
+
+                    if (!segmentoEncontrado) {
+                        console.log(`Intersección horizontal mantenida en Y=${posY} (fuera de segmentos válidos)`);
+                    }
+
+                    posY = mejorY;
+                }
+            } else {
+                // Para intersecciones verticales
+                // Buscamos verticales que podrían competir por el mismo espacio
+                const verticalesCompetidoras = [];
+
+                for (const v of intersecciones) {
+                    if (v.orientation === Orientacion.Vertical) {
+                        const distanciaY = Math.abs(v.position.y - posY);
+                        if (distanciaY < 0.3) {
+                            const yMin = Math.min(v.position.y, posY);
+                            const yMax = Math.max(v.position.y, posY);
+
+                            if (puedeVerticalExpandirseEnY(posX, yMin, yMax, intersecciones)) {
+                                verticalesCompetidoras.push(v);
+                            }
+                        }
+                    }
+                }
+
+                if (verticalesCompetidoras.length === 0) {
+                    // Buscar snaps cercanos (por ejemplo, 0.25, 0.5, 0.75)
+                    const posiblesSnaps = [0.25, 0.5, 0.75];
+                    const toleranciaSnap = 0.04;
+
+                    let snapAplicado = false;
+
+                    for (const snapX of posiblesSnaps) {
+                        if (Math.abs(posX - snapX) <= toleranciaSnap) {
+                            posX = snapX;
+                            console.log(`Intersección vertical centrada automáticamente en X=${snapX} (snap aplicado por proximidad)`);
+                            snapAplicado = true;
+                            break;
+                        }
+                    }
+
+                    if (!snapAplicado) {
+                        console.log(`Intersección vertical mantenida en X=${posX} (fuera de zona de snap)`);
+                    }
+                } else {
+                    verticalesCompetidoras.sort((a, b) => a.position.x - b.position.x);
+                    const puntos = [0, ...verticalesCompetidoras.map(v => v.position.x), 1];
+
+                    for (let i = 0; i < puntos.length - 1; i++) {
+                        const izquierda = puntos[i];
+                        const derecha = puntos[i + 1];
+
+                        if (posX >= izquierda && posX <= derecha) {
+                            const centro = (izquierda + derecha) / 2;
+                            posX = round2(centro);
+                            console.log(`Intersección vertical centrada en X=${posX} entre ${izquierda} y ${derecha}`);
+                            break;
+                        }
+                    }
+                }
+            }
+
+// Create a new intersection
+            const newInterseccion = new InterseccionMueble(
+                {
+                    x: posX,
+                    y: posY,
+                },
+                orientacion,
+            );
 
             setCascoInstances((prev) => {
                 const updated = {...prev};
                 const updatedCasco = {...updated[cascoKey]};
 
-                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                    updatedCasco.seccionesHorizontales = [...horizontalCubes, newCube];
-                    console.log(newCube);
-                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                    updatedCasco.seccionesVerticales = [...verticalCubes, newCube];
-                    console.log(newCube);
-                }
+                // Add the new intersection to the existing ones
+                updatedCasco.intersecciones = [...intersecciones, newInterseccion];
+
+                console.log("updatedCasco", newInterseccion);
 
                 updated[cascoKey] = updatedCasco;
                 return updated;
             });
+
+            if (refItem?.groupRef) {
+                const ud = refItem.groupRef.userData;
+                ud.intersecciones = [...(ud.intersecciones || []), newInterseccion];
+            }
+
+            // 3) bump the version to force your Bodeguero to pull new userData:
+            setVersion(v => v + 1);
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -537,8 +535,7 @@ export const Experience = () => {
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
                                 version={version}
-                                seccionesHorizontales={casco.seccionesHorizontales}
-                                seccionesVerticales={casco.seccionesVerticales}
+                                intersecciones={casco.intersecciones}
                             />
                         </group>
                     ))}
@@ -579,8 +576,7 @@ export const Experience = () => {
                                 position={casco.position}
                                 rotation={casco.rotation}
                                 {...casco.userData}
-                                seccionesHorizontales={casco.seccionesHorizontales}
-                                seccionesVerticales={casco.seccionesVerticales}
+                                intersecciones={casco.intersecciones}
                                 patas={casco.patas}
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
@@ -604,8 +600,7 @@ export const Experience = () => {
                                 position={casco.position}
                                 rotation={casco.rotation}
                                 {...casco.userData}
-                                seccionesHorizontales={casco.seccionesHorizontales}
-                                seccionesVerticales={casco.seccionesVerticales}
+                                intersecciones={casco.intersecciones}
                                 patas={casco.patas}
                                 puertas={casco.puertas}
                                 onClick={handleCascoClick}
@@ -620,9 +615,86 @@ export const Experience = () => {
 
     };
 
+// justo encima de `export const Experience = () => { … }`
+    function IntersectionOverlayController({ setOverlayData }) {
+        const { refPiece } = useSelectedPieceProvider();
+        const { camera, size } = useThree(); // sólo los lee, no los mete como deps
+
+        useEffect(() => {
+            if (refPiece?.userData.isInterseccion) {
+                // 1. calcula posición 3D → NDC → píxeles
+                const worldPos = new THREE.Vector3();
+                refPiece.getWorldPosition(worldPos);
+                const ndc = worldPos.clone().project(camera);
+                const x = (ndc.x * 0.5 + 0.5) * size.width;
+                const y = (-ndc.y * 0.5 + 0.5) * size.height;
+
+                // 2. datos de overlay
+                const orientation = refPiece.userData.orientation || 'horizontal';
+                const placement = orientation === 'vertical' ? 'right' : 'top';
+                const newData = {
+                    isVisible: true,
+                    overlayPositions: {
+                        primary: { x, y, placement },
+                        secondary: { x: x + 10, y: y + 10, placement }
+                    },
+                    intersectionData: {
+                        id: refPiece.uuid,
+                        originalIndex: refPiece.userData.originalIndex ?? 0,
+                        position: {
+                            x: refPiece.userData.positionX ?? worldPos.x,
+                            y: refPiece.userData.positionY ?? worldPos.y
+                        },
+                        orientation,
+                        createdAt: refPiece.userData.createdAt ?? new Date(),
+                        dimensions: {
+                            width:  refPiece.userData.widthExtra  ?? 0,
+                            height: refPiece.userData.heightExtra ?? 0,
+                            depth:  refPiece.userData.depthExtra  ?? 0
+                        }
+                    }
+                };
+
+                // 3. sólo setea si realmente cambia algo
+                setOverlayData(prev => {
+                    const pp = prev.overlayPositions?.primary;
+                    if (
+                        prev.isVisible
+                        && prev.intersectionData?.id === newData.intersectionData.id
+                        && pp && Math.abs(pp.x - x) < 1 && Math.abs(pp.y - y) < 1
+                        && pp.placement === placement
+                    ) {
+                        return prev; // nada que actualizar
+                    }
+                    return newData;
+                });
+            } else {
+                // si no hay pieza o ya no es intersección, ocultamos sólo si estaba visible
+                setOverlayData(prev => {
+                    if (!prev.isVisible) return prev;
+                    return { ...prev, isVisible: false };
+                });
+            }
+        }, [refPiece]); // 🔥 sólo refPiece aquí
+
+        return null;
+    }
+
+    const [overlayData, setOverlayData] = useState({
+        isVisible: false,
+        overlayPositions: null,
+        intersectionData: null
+    });
+
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}>
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
+                    onPointerMissed={(event) => {
+                        if(event.button === 2) return;
+                setRefPiece(null);
+                setRefCajon(null);
+                setRefItem(null);
+            }}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
                 <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={1}>
@@ -631,16 +703,6 @@ export const Experience = () => {
                         position={[5, 5, 5]}
                         intensity={4}
                     />
-                    <mesh receiveShadow={true} position={[0,-.1,.75]}>
-                        <boxGeometry args={[5,.1,2.5]}/>
-                        <meshStandardMaterial color="#fefefe" />
-                        <Edges threshold={15} color={"black"}/>
-                    </mesh>
-                    <mesh receiveShadow={true} position={[0,.96,-.5]}>
-                        <boxGeometry args={[5,2,.1]}/>
-                        <meshStandardMaterial color="#fefefe" />
-                        <Edges threshold={15} color={"black"}/>
-                    </mesh>
                     {itemComponents[selectedItem]}
                 </Stage>
                 {transformEnabled && refItem && (
@@ -648,9 +710,17 @@ export const Experience = () => {
                                        mode={transformMode}/>
                 )}
 
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+
+                <IntersectionOverlayController setOverlayData={setOverlayData} />
             </Canvas>
             {interfaceComponents[selectedItem]}
+
+            <IntersectionOverlay
+                isVisible={overlayData.isVisible}
+                overlayPositions={overlayData.overlayPositions}
+                intersectionData={overlayData.intersectionData}
+            />
 
 
             {refPiece && (

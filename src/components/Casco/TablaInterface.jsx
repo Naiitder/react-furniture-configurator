@@ -18,7 +18,6 @@ const TablaConfigContent = () => {
             const newConfig = refPiece && refPiece.userData
                 ? refPiece.userData
                 : (refPiece.userData || {});
-            console.log(refPiece.userData);
             setConfig(prev => ({
                 ...prev,
                 ...newConfig,

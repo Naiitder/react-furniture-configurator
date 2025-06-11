@@ -35,6 +35,7 @@ type TablaProps = {
     bordeEjeY?: boolean;
     bordeEjeZ?: boolean;
     orientacionBordeZ?: "vertical" | "front";
+    isInterseccion?: boolean;
 }
 
 const Tabla: React.FC<TablaProps> = ({
@@ -57,7 +58,8 @@ const Tabla: React.FC<TablaProps> = ({
                                        posicionCaja = "top",
                                        orientacionBordeZ = "front",
                                        disableAdjustedWidth = false,
-                                       stopPropagation = true
+                                       stopPropagation = true,
+                                         isInterseccion = false,
                                    }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
@@ -67,6 +69,7 @@ const Tabla: React.FC<TablaProps> = ({
         heightExtra,
         depthExtra,
         espesor: espesorBase,
+        isInterseccion: isInterseccion,
     };
 
     useEffect(() => {
@@ -81,7 +84,8 @@ const Tabla: React.FC<TablaProps> = ({
                 widthExtra,
                 heightExtra,
                 depthExtra,
-                espesor: espesorBase
+                espesor: espesorBase,
+                isInterseccion: isInterseccion,
             };
         }
     }, [widthExtra, heightExtra, depthExtra, espesorBase]);
@@ -90,7 +94,8 @@ const Tabla: React.FC<TablaProps> = ({
         widthExtra: 0,
         heightExtra: 0,
         depthExtra: 0,
-        espesor: espesorBase
+        espesor: espesorBase,
+        isinterseccion: isInterseccion,
     });
 
     useEffect(() => {
