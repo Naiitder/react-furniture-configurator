@@ -188,6 +188,7 @@ export const renderIntersecciones = ({
                     depth={depth - retranqueoTrasero - espesor}
                     material={materiales.Artico}
                     espesorBase={espesor}
+                    isInterseccion={true}
                 />
             );
         } else {
@@ -217,6 +218,7 @@ export const renderIntersecciones = ({
                     depth={depth - retranqueoTrasero - espesor}
                     material={materiales.Artico}
                     espesorBase={espesor}
+                    isInterseccion={true}
                 />
             );
         }

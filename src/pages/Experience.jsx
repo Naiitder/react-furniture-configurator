@@ -615,10 +615,82 @@ export const Experience = () => {
 
     };
 
+// justo encima de `export const Experience = () => { … }`
+    function IntersectionOverlayController({ setOverlayData }) {
+        const { refPiece } = useSelectedPieceProvider();
+        const { camera, size } = useThree(); // sólo los lee, no los mete como deps
+
+        useEffect(() => {
+            if (refPiece?.userData.isInterseccion) {
+                // 1. calcula posición 3D → NDC → píxeles
+                const worldPos = new THREE.Vector3();
+                refPiece.getWorldPosition(worldPos);
+                const ndc = worldPos.clone().project(camera);
+                const x = (ndc.x * 0.5 + 0.5) * size.width;
+                const y = (-ndc.y * 0.5 + 0.5) * size.height;
+
+                // 2. datos de overlay
+                const orientation = refPiece.userData.orientation || 'horizontal';
+                const placement = orientation === 'vertical' ? 'right' : 'top';
+                const newData = {
+                    isVisible: true,
+                    overlayPositions: {
+                        primary: { x, y, placement },
+                        secondary: { x: x + 10, y: y + 10, placement }
+                    },
+                    intersectionData: {
+                        id: refPiece.uuid,
+                        originalIndex: refPiece.userData.originalIndex ?? 0,
+                        position: {
+                            x: refPiece.userData.positionX ?? worldPos.x,
+                            y: refPiece.userData.positionY ?? worldPos.y
+                        },
+                        orientation,
+                        createdAt: refPiece.userData.createdAt ?? new Date(),
+                        dimensions: {
+                            width:  refPiece.userData.widthExtra  ?? 0,
+                            height: refPiece.userData.heightExtra ?? 0,
+                            depth:  refPiece.userData.depthExtra  ?? 0
+                        }
+                    }
+                };
+
+                // 3. sólo setea si realmente cambia algo
+                setOverlayData(prev => {
+                    const pp = prev.overlayPositions?.primary;
+                    if (
+                        prev.isVisible
+                        && prev.intersectionData?.id === newData.intersectionData.id
+                        && pp && Math.abs(pp.x - x) < 1 && Math.abs(pp.y - y) < 1
+                        && pp.placement === placement
+                    ) {
+                        return prev; // nada que actualizar
+                    }
+                    return newData;
+                });
+            } else {
+                // si no hay pieza o ya no es intersección, ocultamos sólo si estaba visible
+                setOverlayData(prev => {
+                    if (!prev.isVisible) return prev;
+                    return { ...prev, isVisible: false };
+                });
+            }
+        }, [refPiece]); // 🔥 sólo refPiece aquí
+
+        return null;
+    }
+
+    const [overlayData, setOverlayData] = useState({
+        isVisible: false,
+        overlayPositions: null,
+        intersectionData: null
+    });
+
     return (
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
-                    onPointerMissed={() => {
+                    onPointerMissed={(event) => {
+                        if(event.button === 2) return;
                 setRefPiece(null);
                 setRefCajon(null);
                 setRefItem(null);
@@ -639,14 +711,17 @@ export const Experience = () => {
                 )}
 
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+
+                <IntersectionOverlayController setOverlayData={setOverlayData} />
             </Canvas>
             {interfaceComponents[selectedItem]}
 
             <IntersectionOverlay
-                isVisible={false} // overlayData.isIntersection
-                overlayPositions={undefined} // overlayData.overlayPositions
-                intersectionData={undefined} // overlayData.intersectionData
+                isVisible={overlayData.isVisible}
+                overlayPositions={overlayData.overlayPositions}
+                intersectionData={overlayData.intersectionData}
             />
+
 
             {refPiece && (
                 <ChildItemConfigurationInterface

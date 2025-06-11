@@ -33,6 +33,15 @@ const IntersectionOverlay: React.FC<IntersectionOverlayProps> = ({
                                                                  }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+    useEffect(() => {
+        if (isDragging) {
+            const handleGlobalMouseUp = () => setIsDragging(false);
+            document.addEventListener('mouseup', handleGlobalMouseUp);
+            return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+        }
+    }, [isDragging]);
+
     if (!isVisible || !overlayPositions || !intersectionData) {
         return null;
     }
@@ -235,15 +244,6 @@ const IntersectionOverlay: React.FC<IntersectionOverlayProps> = ({
         setIsDragging(false);
     };
 
-    // Effect para manejar eventos globales de mouse
-    useEffect(() => {
-        if (isDragging) {
-            const handleGlobalMouseUp = () => setIsDragging(false);
-            document.addEventListener('mouseup', handleGlobalMouseUp);
-            return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
-        }
-    }, [isDragging]);
-
     return (
         <>
             {/* Overlay principal */}
@@ -262,21 +262,6 @@ const IntersectionOverlay: React.FC<IntersectionOverlayProps> = ({
                 {getOverlayContent(overlayPositions.primary.placement, true)}
             </div>
 
-            {/* Overlay secundario */}
-            <div
-                className="overlay-container"
-                style={{
-                    ...baseStyle,
-                    left: overlayPositions.secondary.x,
-                    top: overlayPositions.secondary.y,
-                    transform: getTransformStyle(overlayPositions.secondary.placement),
-                }}
-                onMouseDown={(e) => handleMouseDown(e, 'secondary')}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-            >
-                {getOverlayContent(overlayPositions.secondary.placement, false)}
-            </div>
         </>
     );
 };
