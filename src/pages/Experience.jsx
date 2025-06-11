@@ -615,8 +615,6 @@ export const Experience = () => {
 
     };
 
-    const [isDragging, setIsDragging] = useState(false);
-
     return (
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
@@ -626,7 +624,7 @@ export const Experience = () => {
                 setRefItem(null);
             }}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
-                <Room positionY={3.5} isDragging={isDragging}/>
+                <Room positionY={3.5} />
                 <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={1}>
                     <directionalLight
                         castShadow
