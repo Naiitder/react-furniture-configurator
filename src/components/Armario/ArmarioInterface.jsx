@@ -8,7 +8,6 @@ import DraggableIntersection, { INTERSECTION_TYPES } from "../Casco/DraggableInt
 import * as THREE from "three";
 
 const { Title } = Typography;
-const { TabPane } = Tabs;
 
 const ArmarioInterface = ({ show, setShow, mode, setMode }) => {
     const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
@@ -153,57 +152,63 @@ const ArmarioInterface = ({ show, setShow, mode, setMode }) => {
 
     // Renderizar las pestañas para secciones horizontales
     const renderHorizontalTabs = () => {
-        const numSections = config.cajonesHorizontales;
-        const currentRatios = config.ratiosHorizontales.split('/').map(Number);
+        const num = config.cajonesHorizontales;
+        const ratios = config.ratiosHorizontales.split("/").map(Number);
+
+        const items = Array.from({ length: num }).map((_, i) => ({
+            key: i.toString(),
+            label: `Sección ${i + 1}`,
+            children: (
+                <Form.Item label={`Tamaño de Sección ${i + 1}`}>
+                    <Slider
+                        min={1}
+                        max={3}
+                        step={0.1}
+                        value={ratios[i]}
+                        onChange={v => handleHorizontalRatioChange(i, v)}
+                    />
+                </Form.Item>
+            ),
+        }));
 
         return (
             <Tabs
                 activeKey={activeHorizontalTab}
-                onChange={(key) => setActiveHorizontalTab(key)}
+                onChange={setActiveHorizontalTab}
+                items={items}
                 style={{ marginTop: 8 }}
-            >
-                {Array.from({ length: numSections }).map((_, index) => (
-                    <TabPane tab={`Sección ${index + 1}`} key={index.toString()}>
-                        <Form.Item label={`Tamaño de Sección ${index + 1}`}>
-                            <Slider
-                                min={1}
-                                step={0.1}
-                                max={3}
-                                value={currentRatios[index]}
-                                onChange={(value) => handleHorizontalRatioChange(index, value)}
-                            />
-                        </Form.Item>
-                    </TabPane>
-                ))}
-            </Tabs>
+            />
         );
     };
 
     // Renderizar las pestañas para secciones verticales
     const renderVerticalTabs = () => {
-        const numSections = config.cajonesVerticales;
-        const currentRatios = config.ratiosVerticales.split('/').map(Number);
+        const num = config.cajonesVerticales;
+        const ratios = config.ratiosVerticales.split("/").map(Number);
+
+        const items = Array.from({ length: num }).map((_, i) => ({
+            key: i.toString(),
+            label: `Sección ${i + 1}`,
+            children: (
+                <Form.Item label={`Tamaño de Sección ${i + 1}`}>
+                    <Slider
+                        min={1}
+                        max={3}
+                        step={0.1}
+                        value={ratios[i]}
+                        onChange={v => handleVerticalRatioChange(i, v)}
+                    />
+                </Form.Item>
+            ),
+        }));
 
         return (
             <Tabs
                 activeKey={activeVerticalTab}
-                onChange={(key) => setActiveVerticalTab(key)}
+                onChange={setActiveVerticalTab}
+                items={items}
                 style={{ marginTop: 8 }}
-            >
-                {Array.from({ length: numSections }).map((_, index) => (
-                    <TabPane tab={`Sección ${index + 1}`} key={index.toString()}>
-                        <Form.Item label={`Tamaño de Sección ${index + 1}`}>
-                            <Slider
-                                min={1}
-                                step={0.1}
-                                max={3}
-                                value={currentRatios[index]}
-                                onChange={(value) => handleVerticalRatioChange(index, value)}
-                            />
-                        </Form.Item>
-                    </TabPane>
-                ))}
-            </Tabs>
+            />
         );
     };
 

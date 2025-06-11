@@ -106,7 +106,6 @@ const Tabla: React.FC<TablaProps> = ({
                 depthExtra: refPiece.userData.depthExtra || 0,
                 espesor: refPiece.userData.espesor || espesorBase
             });
-            console.log(refPiece.userData)
         }
     }, [refPiece, version]);
 

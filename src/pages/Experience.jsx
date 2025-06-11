@@ -690,12 +690,6 @@ export const Experience = () => {
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
                     onPointerMissed={(event) => {
-                        if (event.button === 2) return true;
-                        setRefPiece(null);
-                        setRefCajon(null);
-                        setRefItem(null);
-                    }}>
-                    onPointerMissed={(event) => {
                         if(event.button === 2) return;
                 setRefPiece(null);
                 setRefCajon(null);
@@ -717,6 +711,8 @@ export const Experience = () => {
                 )}
 
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+
+                <IntersectionOverlayController setOverlayData={setOverlayData} />
             </Canvas>
             {interfaceComponents[selectedItem]}
 
