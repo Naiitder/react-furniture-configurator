@@ -194,9 +194,49 @@ export const Experience = () => {
     }, [transformMode, refItem, version]);
 
 
+    const hoverTimeout = useRef(null);
+    const [previewIntersection, setPreviewIntersection] = useState(null);
+
+
     const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
+        hover(item, monitor) {
+            if (!refItem?.groupRef) return;
+            if (!monitor.isOver({ shallow: true })) {
+                // salimos -> limpiamos
+                if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+                hoverTimeout.current = null;
+                setPreviewIntersection(null);
+                return;
+            }
+
+            // calculamos uv como en drop()
+            const clientOffset = monitor.getClientOffset();
+            const bounds = glRef.current.domElement.getBoundingClientRect();
+            const mouse = new THREE.Vector2(
+                ((clientOffset.x - bounds.left) / bounds.width) * 2 - 1,
+                -((clientOffset.y - bounds.top) / bounds.height) * 2 + 1
+            );
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, cameraRef.current);
+
+            const intersect = raycaster.intersectObject(refItem.groupRef, true)[0];
+            if (!intersect || !intersect.uv) return;
+            let posX = intersect.uv.x;
+            let posY = intersect.uv.y;
+
+            if (!hoverTimeout.current) {
+                hoverTimeout.current = window.setTimeout(() => {
+                    setPreviewIntersection({ x: posX, y: posY, orientation: item.type });
+                }, 1000);
+            }
+        },
         drop: (item, monitor) => {
+
+            if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+            hoverTimeout.current = null;
+            setPreviewIntersection(null);
+
             const clientOffset = monitor.getClientOffset();
             const gl = glRef.current;
             const camera = cameraRef.current;
@@ -261,7 +301,6 @@ export const Experience = () => {
                 return true; // La vertical puede expandirse libremente en este rango Y
             };
 
-// Función auxiliar: verifica si una horizontal puede expandirse en una zona X
             const puedeHorizontalExpandirseEnX = (yPos, xInicio, xFin, interseccionesExistentes) => {
                 // Busca verticales que estén en este rango X y que crucen por esta Y
                 for (const v of interseccionesExistentes) {
@@ -419,7 +458,6 @@ export const Experience = () => {
                 }
             }
 
-// Create a new intersection
             const newInterseccion = new InterseccionMueble(
                 {
                     x: posX,
@@ -686,6 +724,21 @@ export const Experience = () => {
                         intensity={4}
                     />
                     {itemComponents[selectedItem]}
+
+                    {previewIntersection && refItem && (
+                        <group>
+                            <mesh
+                                position={[
+                                    previewIntersection.x,
+                                    previewIntersection.y,
+                                    (refItem.groupRef.userData.depth / 2) - refItem.groupRef.userData.espesor / 2
+                                ]}
+                            >
+                                <boxGeometry args={[0.5 , .05, .5]} />
+                                <meshBasicMaterial transparent opacity={0.5} color={0xff0000} />
+                            </mesh>
+                        </group>
+                    )}
                 </Stage>
                 {transformEnabled && refItem && (
                     <TransformControls ref={transformRef} object={refPiece ? refPiece : refItem.groupRef}
