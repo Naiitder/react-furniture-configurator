@@ -171,26 +171,50 @@ export const renderIntersecciones = ({
             const widthSeg = rightX - leftX;
             const centerX = (leftX + rightX) / 2;
 
-            return (
-                <Tabla
-                    key={`int-${idx}`}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[
-                        centerX,
-                        y,
-                        espesor / 2 +
-                        (traseroDentro ? retranqueoTrasero / 2 : 0),
-                    ]}
-                    width={widthSeg}
-                    height={espesor}
-                    depth={depth - retranqueoTrasero - espesor}
-                    material={materiales.Artico}
-                    espesorBase={espesor}
-                    isInterseccion={true}
-                />
-            );
+            if(!inter.previsualization){
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            centerX,
+                            y,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={widthSeg}
+                        height={espesor}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Artico}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                    />
+                );
+            }
+            else{
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            centerX,
+                            y,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={widthSeg}
+                        height={espesor}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Vidrio}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                    />
+                );
+            }
         } else {
             // ——————— BRANCH VERTICAL ———————
             const [botY, topY] = getVerticalRange(inter, idx);
@@ -201,26 +225,50 @@ export const renderIntersecciones = ({
                 return null;
             }
 
-            return (
-                <Tabla
-                    key={`int-${idx}`}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[
-                        x,
-                        centerY,
-                        espesor / 2 +
-                        (traseroDentro ? retranqueoTrasero / 2 : 0),
-                    ]}
-                    width={espesor}
-                    height={heightSeg}
-                    depth={depth - retranqueoTrasero - espesor}
-                    material={materiales.Artico}
-                    espesorBase={espesor}
-                    isInterseccion={true}
-                />
-            );
+            if(!inter.previsualization){
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            x,
+                            centerY,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={espesor}
+                        height={heightSeg}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Artico}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                    />
+                );
+            }
+            else {
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            x,
+                            centerY,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={espesor}
+                        height={heightSeg}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Vidrio}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                    />
+                );
+            }
         }
     });
 };

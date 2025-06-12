@@ -307,7 +307,6 @@ const CascoFuncional = (
                     </group>
                 )}
 
-                {/* Puertas */}
                 {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
                     <>
                         {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {

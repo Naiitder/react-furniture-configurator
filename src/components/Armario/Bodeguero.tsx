@@ -55,6 +55,7 @@ const Bodeguero = (props: BodegueroProps) => {
     } = props;
 
     const materiales = useMaterial();
+    console.log(materiales);
 
     const renderExtraParts = ({ localConfig, dimensiones, posiciones, materiales }: { localConfig: any; dimensiones: any; posiciones: any; materiales: any }) => {
         const actualWidth = localConfig.width || width;
