@@ -311,7 +311,7 @@ export const Experience = () => {
                 idleTimeRef.current += deltaTime;
                 lastTimestampRef.current = now;
 
-                if (idleTimeRef.current >= .5 && !previewCreatedRef.current) {
+                if (idleTimeRef.current >= .01 && !previewCreatedRef.current) {
                     previewCreatedRef.current = true;
                     createIntersect(item,monitor,true)
                 }
