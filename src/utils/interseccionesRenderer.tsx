@@ -1,6 +1,7 @@
 import * as React from "react";
 import InterseccionMueble, { Orientacion } from "../components/Interseccion";
 import Tabla from "../components/Casco/Tabla";
+import pata from "../components/Casco/Pata";
 
 // TODO Arreglar DEPTH al expandir el mueble
 export const renderIntersecciones = ({
