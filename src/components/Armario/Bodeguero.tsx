@@ -26,6 +26,7 @@ export type BodegueroProps = {
     version?: any[];
     setVersion?: (version: any) => void;
     id?: string;
+    materialPrincipal?: any;
 };
 
 const Bodeguero = (props: BodegueroProps) => {
@@ -52,21 +53,32 @@ const Bodeguero = (props: BodegueroProps) => {
         version,
         setVersion,
         id,
+        materialPrincipal,
     } = props;
 
     const materiales = useMaterial();
 
-    const renderExtraParts = ({ localConfig, dimensiones, posiciones, materiales }: { localConfig: any; dimensiones: any; posiciones: any; materiales: any }) => {
+    const renderExtraParts = ({localConfig, dimensiones, posiciones, materiales, parentRef, insideRef, indiceActualPata}: {
+        localConfig: any;
+        dimensiones: any;
+        posiciones: any;
+        materiales: any,
+        parentRef: any,
+        insideRef: any
+        indiceActualPata: number;
+    }) => {
         const actualWidth = localConfig.width || width;
         const actualHeight = localConfig.height || height;
         const actualDepth = localConfig.depth || depth;
         const actualEspesor = localConfig.espesor || espesor;
-        const extraAltura = patas && indicePata !== -1 ? localConfig.alturaPatas || alturaPatas : 0;
+        const extraAltura = patas && indiceActualPata !== -1 ? localConfig.extraAltura : 0;
 
         return (
             <group>
                 {/* Lateral izquierdo adicional */}
                 <Tabla
+                    parentRef={parentRef}
+                    insideRef={insideRef}
                     espesorBase={actualEspesor}
                     position={[
                         -((actualWidth / 2) - actualEspesor),
@@ -76,13 +88,15 @@ const Bodeguero = (props: BodegueroProps) => {
                     width={actualEspesor * 2}
                     height={actualHeight}
                     depth={actualEspesor}
-                    material={materiales.Artico}
+                    material={materialPrincipal || materiales.Artico}
                     posicionCaja="left"
                     shape="box"
                 />
 
                 {/* Lateral derecho adicional */}
                 <Tabla
+                    parentRef={parentRef}
+                    insideRef={insideRef}
                     espesorBase={actualEspesor}
                     position={[
                         ((actualWidth / 2) - actualEspesor),
@@ -92,13 +106,15 @@ const Bodeguero = (props: BodegueroProps) => {
                     width={actualEspesor * 2}
                     height={actualHeight}
                     depth={actualEspesor}
-                    material={materiales.Artico}
+                    material={materialPrincipal || materiales.Artico}
                     posicionCaja="right"
                     shape="box"
                 />
 
                 {/* Techo adicional */}
                 <Tabla
+                    parentRef={parentRef}
+                    insideRef={insideRef}
                     espesorBase={actualEspesor}
                     position={[
                         0,
@@ -108,7 +124,7 @@ const Bodeguero = (props: BodegueroProps) => {
                     width={actualWidth - (actualEspesor * 4)}
                     height={actualEspesor * 2}
                     depth={actualEspesor}
-                    material={materiales.Artico}
+                    material={materialPrincipal || materiales.Artico}
                     posicionCaja="top"
                     shape="box"
                 />
@@ -122,8 +138,8 @@ const Bodeguero = (props: BodegueroProps) => {
     const doorPositionY = -height / 2 + (doorHeight / 2) + (patas && indicePata !== -1 ? alturaPatas : 0); // Base de la mitad inferior, ajustada por extraAltura
     const adjustedPuertas = puertas.map((puerta) =>
         React.cloneElement(puerta as React.ReactElement, {
-            width: width - espesor*4,
-            height: height/2,
+            width: width - espesor * 4,
+            height: height / 2,
             depth: espesor,
             position: [0, doorPositionY, 0],
             extraAltura: patas && indicePata !== -1 ? alturaPatas : 0,
@@ -134,9 +150,10 @@ const Bodeguero = (props: BodegueroProps) => {
     return (
         <Casco
             {...props}
-            material={materiales.Artico}
+            materialPrincipal={materialPrincipal || materiales.Artico}
             renderExtraParts={renderExtraParts}
             puertas={adjustedPuertas}
+            materiales={materiales}
         />
     );
 };

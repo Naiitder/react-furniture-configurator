@@ -38,28 +38,28 @@ type TablaProps = {
 }
 
 const Tabla: React.FC<TablaProps> = ({
-                                       parentRef,
+                                         parentRef,
                                          insideRef,
-                                       ref = useRef<any>(null),
-                                       position,
-                                       rotation = [0, 0, 0],
-                                       espesorBase,
-                                       width,
+                                         ref = useRef<any>(null),
+                                         position,
+                                         rotation = [0, 0, 0],
+                                         espesorBase,
+                                         width,
                                          widthExtra = 0,
-                                       height,
+                                         height,
                                          heightExtra = 0,
-                                       depth,
+                                         depth,
                                          depthExtra = 0,
-                                       material,
-                                       shape = "box",
-                                       bordeEjeY = true,
-                                       bordeEjeZ = false,
-                                       posicionCaja = "top",
-                                       orientacionBordeZ = "front",
-                                       disableAdjustedWidth = false,
-                                       stopPropagation = true,
+                                         material,
+                                         shape = "box",
+                                         bordeEjeY = true,
+                                         bordeEjeZ = false,
+                                         posicionCaja = "top",
+                                         orientacionBordeZ = "front",
+                                         disableAdjustedWidth = false,
+                                         stopPropagation = true,
                                          isInterseccion = false,
-                                   }) => {
+                                     }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
@@ -73,7 +73,7 @@ const Tabla: React.FC<TablaProps> = ({
 
     useEffect(() => {
         if (ref.current && Object.keys(ref.current.userData).length === 0) {
-            ref.current.userData = { ...initialData };
+            ref.current.userData = {...initialData};
         }
     }, []);
 
@@ -88,7 +88,7 @@ const Tabla: React.FC<TablaProps> = ({
             };
         }
     }, [widthExtra, heightExtra, depthExtra, espesorBase]);
-    
+
     const [extra, setExtra] = useState({
         widthExtra: 0,
         heightExtra: 0,
@@ -205,17 +205,17 @@ const Tabla: React.FC<TablaProps> = ({
 
         const positions = new Float32Array([
             // Front
-            -hw, -hh,  hd,   hw, -hh,  hd,   hw,  hh,  hd,  -hw,  hh,  hd,
+            -hw, -hh, hd, hw, -hh, hd, hw, hh, hd, -hw, hh, hd,
             // Back
-            hw, -hh, -hd,  -hw, -hh, -hd,  -hw,  hh, -hd,   hw,  hh, -hd,
+            hw, -hh, -hd, -hw, -hh, -hd, -hw, hh, -hd, hw, hh, -hd,
             // Top
-            -hw,  hh,  hd,   hw,  hh,  hd,   hw,  hh, -hd,  -hw,  hh, -hd,
+            -hw, hh, hd, hw, hh, hd, hw, hh, -hd, -hw, hh, -hd,
             // Bottom
-            -hw, -hh, -hd,   hw, -hh, -hd,   hw, -hh,  hd,  -hw, -hh,  hd,
+            -hw, -hh, -hd, hw, -hh, -hd, hw, -hh, hd, -hw, -hh, hd,
             // Right
-            hw, -hh,  hd,   hw, -hh, -hd,   hw,  hh, -hd,   hw,  hh,  hd,
+            hw, -hh, hd, hw, -hh, -hd, hw, hh, -hd, hw, hh, hd,
             // Left
-            -hw, -hh, -hd,  -hw, -hh,  hd,  -hw,  hh,  hd,  -hw,  hh, -hd,
+            -hw, -hh, -hd, -hw, -hh, hd, -hw, hh, hd, -hw, hh, -hd,
         ]);
 
         const indices = [];
@@ -249,7 +249,6 @@ const Tabla: React.FC<TablaProps> = ({
         }
 
 
-
         geometry.setIndex(indices);
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs.flat()), 2));
@@ -275,15 +274,14 @@ const Tabla: React.FC<TablaProps> = ({
                         if (refItem?.groupRef !== parentRef.current) {
                             setRefPiece(null);
                             setRefCajon(null);
-                            setRefItem({ groupRef: parentRef.current, detectionRef: insideRef.current });
-                        }
-                        else {
+                            setRefItem({groupRef: parentRef.current, detectionRef: insideRef.current});
+                        } else {
                             setRefPiece(ref.current);
                             setRefCajon(null);
                         }
                     }}
                 >
-                    <Edges threshold={15} color={"black"} linewidth={0.5} />
+                    <Edges threshold={15} color={"black"} linewidth={0.5}/>
 
                 </mesh>
             )}
