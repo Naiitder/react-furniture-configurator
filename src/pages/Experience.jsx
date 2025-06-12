@@ -139,7 +139,6 @@ export const Experience = () => {
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
                 intersecciones: [
-                 
 // Se recorta por el horizontal de y: 0.35
 
                 ],
@@ -346,87 +345,93 @@ export const Experience = () => {
         }),
     }), [refItem, cascoInstances]);
 
+
     function createIntersect(item, monitor, previsualization = false) {
-        const clientOffset = monitor.getClientOffset();
-        const gl = glRef.current;
+        // 1) Obtener coordenadas del ratón sobre el canvas
+        const offset = monitor.getClientOffset();
+        const gl     = glRef.current;
         const camera = cameraRef.current;
-        if (!clientOffset || !gl || !camera || !refItem) return;
+        const ref    = refItem?.groupRef;
+        if (!offset || !gl || !camera || !ref) return;
 
-        const cascoKey = refItem.groupRef.name;
-        const cascoData = cascoInstances[cascoKey];
-        if (!cascoData) return;
-
-        const { x, y } = clientOffset;
+        // 2) Raycast para extraer las UV del punto de intersección
         const bounds = gl.domElement.getBoundingClientRect();
-        const mouse = new THREE.Vector2(
-            ((x - bounds.left) / bounds.width) * 2 - 1,
-            -((y - bounds.top) / bounds.height) * 2 + 1
+        const mouse  = new THREE.Vector2(
+            ((offset.x - bounds.left) / bounds.width) * 2 - 1,
+            -((offset.y - bounds.top)  / bounds.height)* 2 + 1
         );
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(mouse, camera);
-        const intersectObject = raycaster.intersectObject(refItem.groupRef, true)[0];
-        const intersecciones = cascoData.intersecciones || [];
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera(mouse, camera);
+        const hit = ray.intersectObject(ref, true)[0];
+        if (!hit?.uv) return;
+        const rawX = hit.uv.x;
+        const rawY = hit.uv.y;
 
-        let posX = Math.round(intersectObject.uv.x * 100) / 100;
-        let posY = Math.round(intersectObject.uv.y * 100) / 100;
+        // 3) Recuperar y ordenar cronológicamente todas las intersecciones previas
+        const prev = cascoInstances[ref.name]?.intersecciones || [];
+        const sorted = prev
+            .map((i, idx) => ({ i, idx }))
+            .sort((a, b) => {
+                const tA = a.i.createdAt.getTime(),
+                    tB = b.i.createdAt.getTime();
+                return tA !== tB ? tA - tB : a.idx - b.idx;
+            })
+            .map(o => o.i);
 
-        const orientacion =
-            item.type === INTERSECTION_TYPES.HORIZONTAL
-                ? Orientacion.Horizontal
-                : Orientacion.Vertical;
+        // 4) Construir arrays de “cortes” en X (verticales) y en Y (horizontales)
+        const xs = sorted
+            .filter(i => i.orientation === Orientacion.Vertical)
+            .map(i => i.position.x)
+            .sort((a, b) => a - b);
 
+        const ys = sorted
+            .filter(i => i.orientation === Orientacion.Horizontal)
+            .map(i => i.position.y)
+            .sort((a, b) => a - b);
 
-        if (orientacion === Orientacion.Horizontal) {
-            posX = 0.5;
-            const horizontales = intersecciones
-                .filter(h => h.orientation === Orientacion.Horizontal)
-                .map(h => h.position.y)
-                .sort((a, b) => a - b);
-            const cortes = [0, ...horizontales, 1];
-            for (let i = 0; i < cortes.length - 1; i++) {
-                const low = cortes[i], high = cortes[i + 1];
-                if (posY >= low && posY <= high) {
-                    posY = Math.round(((low + high) / 2) * 100) / 100;
-                    break;
-                }
+        // 5) Añadir 0 y 1 para cerrar los segmentos UV
+        const cutsX = [0, ...xs, 1];
+        const cutsY = [0, ...ys, 1];
+
+        // 6) Snap al punto medio del segmento que contiene rawX/rawY
+        const round2 = v => Math.round(v * 100) / 100;
+        let posX = rawX, posY = rawY;
+
+        for (let i = 0; i < cutsX.length - 1; i++) {
+            if (rawX >= cutsX[i] && rawX <= cutsX[i + 1]) {
+                posX = round2((cutsX[i] + cutsX[i + 1]) / 2);
+                break;
             }
-        } else {
-            posY = 0.5;
-            const verticales = intersecciones
-                .filter(v => v.orientation === Orientacion.Vertical)
-                .map(v => v.position.x)
-                .sort((a, b) => a - b);
-            const cortes = [0, ...verticales, 1];
-            for (let i = 0; i < cortes.length - 1; i++) {
-                const low = cortes[i], high = cortes[i + 1];
-                if (posX >= low && posX <= high) {
-                    posX = Math.round(((low + high) / 2) * 100) / 100;
-                    break;
-                }
+        }
+        for (let j = 0; j < cutsY.length - 1; j++) {
+            if (rawY >= cutsY[j] && rawY <= cutsY[j + 1]) {
+                posY = round2((cutsY[j] + cutsY[j + 1]) / 2);
+                break;
             }
         }
 
-        const newInterseccion = new InterseccionMueble(
-            { x: posX, y: posY },
-            orientacion,
-            previsualization
-        );
+        // 7) Crear la nueva intersección y actualizar estado + userData
+        const orient = item.type === INTERSECTION_TYPES.HORIZONTAL
+            ? Orientacion.Horizontal
+            : Orientacion.Vertical;
 
-        setCascoInstances(prev => {
-            const updated = { ...prev };
-            const updatedCasco = { ...updated[cascoKey] };
-            updatedCasco.intersecciones = [...(updatedCasco.intersecciones || []), newInterseccion];
-            updated[cascoKey] = updatedCasco;
-            return updated;
-        });
+        const nueva = new InterseccionMueble({ x: posX, y: posY }, orient, previsualization);
 
-        if (refItem?.groupRef) {
-            const ud = refItem.groupRef.userData;
-            ud.intersecciones = [...(ud.intersecciones || []), newInterseccion];
-        }
-
+        setCascoInstances(prev => ({
+            ...prev,
+            [ref.name]: {
+                ...prev[ref.name],
+                intersecciones: [...(prev[ref.name].intersecciones || []), nueva]
+            }
+        }));
+        ref.userData.intersecciones = [
+            ...(ref.userData.intersecciones || []),
+            nueva
+        ];
         setVersion(v => v + 1);
     }
+
+
 
     const interfaceComponents = {
         "Casco": (
