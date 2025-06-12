@@ -195,14 +195,58 @@ export const Experience = () => {
 
 
     const hoverTimeout = useRef(null);
+    const lastClientOffset = useRef(null);
 
+    function revertPreviewIntersections() {
+        setCascoInstances(prev => {
+            const updated = {};
+            for (const key in prev) {
+                const casco = prev[key];
+                const inters = casco.intersecciones ?? [];
+                // Generamos un nuevo array para forzar re-render
+                const newInters = inters.map(i => {
+                    if (i.previsualization) {
+                        // Creamos un nuevo objeto con el mismo createdAt
+                        return new InterseccionMueble(
+                            { x: i.position.x, y: i.position.y },
+                            i.orientation,
+                            false,            // previsualization -> false
+                            i.createdAt       // conservamos la fecha original
+                        );
+                    }
+                    return i;
+                });
+                updated[key] = {
+                    ...casco,
+                    intersecciones: newInters,
+                };
+            }
+            setVersion(v => v + 1);
+            return updated;
+        });
+
+        // Sincronizamos userData del mueble seleccionado
+        if (refItem?.groupRef) {
+            const ud = refItem.groupRef.userData;
+            ud.intersecciones = (ud.intersecciones ?? []).map(i => {
+                if (i.previsualization) {
+                    return new InterseccionMueble(
+                        { x: i.position.x, y: i.position.y },
+                        i.orientation,
+                        false,
+                        i.createdAt
+                    );
+                }
+                return i;
+            });
+        }
+    }
 
     function clearPreviewIntersections() {
         setCascoInstances(prev => {
             const updated = {};
             for (const key in prev) {
                 const casco = prev[key];
-                // <-- aquí: si intersecciones es undefined, usamos []
                 const inters = casco.intersecciones ?? [];
                 updated[key] = {
                     ...casco,
@@ -217,34 +261,87 @@ export const Experience = () => {
             // <-- mismo fallback aquí
             ud.intersecciones = (ud.intersecciones ?? []).filter(i => !i.previsualization);
         }
+
+        setVersion(v => v + 1);
     }
+
+    const idleTimeRef = useRef(0);
+    const lastTimestampRef = useRef(null);
+    const previewCreatedRef = useRef(false);
 
     const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
         hover(item, monitor) {
             if (!refItem?.groupRef) return;
+
             if (!monitor.isOver({ shallow: true })) {
-                if (hoverTimeout.current)
+                if (hoverTimeout.current) {
                     clearTimeout(hoverTimeout.current);
-                hoverTimeout.current = null;
-                clearPreviewIntersections();
+                    hoverTimeout.current = null;
+                    clearPreviewIntersections();
+                    previewCreatedRef.current = false;
+                    idleTimeRef.current = 0;
+                    lastTimestampRef.current = null;
+                }
+                lastClientOffset.current = null;
                 return;
             }
-            if (!hoverTimeout.current) {
-                hoverTimeout.current = window.setTimeout(() => {
-                    createIntersect(item, monitor, true);
-                }, 1000);
+
+            const clientOffset = monitor.getClientOffset();
+            if (!clientOffset) return;
+
+            const prev = lastClientOffset.current;
+            if (
+                !prev ||
+                prev.x !== clientOffset.x ||
+                prev.y !== clientOffset.y
+            ) {
+                clearPreviewIntersections();
+                previewCreatedRef.current = false;
+                idleTimeRef.current = 0;
+                lastTimestampRef.current = null;
+                lastClientOffset.current = clientOffset;
             }
+            else{
+                const now = performance.now();
+                if (lastTimestampRef.current == null) {
+                    lastTimestampRef.current = now;
+                }
+                const deltaTime = (now - lastTimestampRef.current) / 1000;
+                idleTimeRef.current += deltaTime;
+                lastTimestampRef.current = now;
+
+                if (idleTimeRef.current >= .5 && !previewCreatedRef.current) {
+                    previewCreatedRef.current = true;
+                    createIntersect(item,monitor,true)
+                }
+            }
+
+            if (hoverTimeout.current) {
+                clearTimeout(hoverTimeout.current);
+                clearPreviewIntersections();
+                previewCreatedRef.current = false;
+                idleTimeRef.current = 0;
+                lastTimestampRef.current = null;
+            }
+
+
         },
         drop: (item, monitor) => {
 
             if (hoverTimeout.current) {
                    clearTimeout(hoverTimeout.current);
                    hoverTimeout.current = null;
-                 }
-             clearPreviewIntersections();
+            }
+            if (!previewCreatedRef.current) {
+                createIntersect(item, monitor);
+            } else {
+                revertPreviewIntersections();
+            }
+            previewCreatedRef.current = false;
+            idleTimeRef.current = 0;
+            lastTimestampRef.current = null;
 
-            createIntersect(item, monitor);
 
         },
         collect: (monitor) => ({
