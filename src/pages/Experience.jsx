@@ -139,12 +139,7 @@ export const Experience = () => {
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
                 intersecciones: [
-                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.75, y: .25}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0, y: 0.75}, Orientacion.Horizontal),
-
-                    new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical), // Bloquea y corta la horizontal pero la ultima entrada no lo detecta
-                    new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical),
+                 
 // Se recorta por el horizontal de y: 0.35
 
                 ],
@@ -351,196 +346,76 @@ export const Experience = () => {
         }),
     }), [refItem, cascoInstances]);
 
-    function createIntersect(item, monitor, previsualization = false){
-
+    function createIntersect(item, monitor, previsualization = false) {
         const clientOffset = monitor.getClientOffset();
         const gl = glRef.current;
         const camera = cameraRef.current;
-
         if (!clientOffset || !gl || !camera || !refItem) return;
 
         const cascoKey = refItem.groupRef.name;
         const cascoData = cascoInstances[cascoKey];
         if (!cascoData) return;
 
-        const {x, y} = clientOffset;
+        const { x, y } = clientOffset;
         const bounds = gl.domElement.getBoundingClientRect();
         const mouse = new THREE.Vector2(
             ((x - bounds.left) / bounds.width) * 2 - 1,
             -((y - bounds.top) / bounds.height) * 2 + 1
         );
-
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
-
         const intersectObject = raycaster.intersectObject(refItem.groupRef, true)[0];
         const intersecciones = cascoData.intersecciones || [];
 
-        const rawX = intersectObject.uv.x;
-        const rawY = intersectObject.uv.y;
+        let posX = Math.round(intersectObject.uv.x * 100) / 100;
+        let posY = Math.round(intersectObject.uv.y * 100) / 100;
 
-        let posX = rawX;
-        let posY = rawY;
+        const orientacion =
+            item.type === INTERSECTION_TYPES.HORIZONTAL
+                ? Orientacion.Horizontal
+                : Orientacion.Vertical;
 
-        const round2 = v => Math.round(v * 100) / 100;
-
-        posX = round2(posX);
-        posY = round2(posY);
-
-        const orientacion = item.type === INTERSECTION_TYPES.HORIZONTAL ? Orientacion.Horizontal : Orientacion.Vertical;
-        const tolerancia = 0.03;
-
-        const puedeVerticalExpandirseEnY = (xPos, yInicio, yFin, interseccionesExistentes) => {
-            for (const h of interseccionesExistentes) {
-                if (h.orientation === Orientacion.Horizontal) {
-                    const hy = h.position.y;
-                    if (hy > yInicio && hy < yFin) {
-                        const verticalesQueBloquean = interseccionesExistentes.filter(v =>
-                            v.orientation === Orientacion.Vertical &&
-                            Math.abs(v.position.y - hy) < tolerancia &&
-                            ((v.position.x > Math.min(h.position.x, xPos) && v.position.x < Math.max(h.position.x, xPos)))
-                        );
-
-                        if (verticalesQueBloquean.length === 0) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
-        };
-
-        const puedeHorizontalExpandirseEnX = (yPos, xInicio, xFin, interseccionesExistentes) => {
-            for (const v of interseccionesExistentes) {
-                if (v.orientation === Orientacion.Vertical) {
-                    const vx = v.position.x;
-                    if (vx > xInicio && vx < xFin) {
-                        const horizontalesQueBloquean = interseccionesExistentes.filter(h =>
-                            h.orientation === Orientacion.Horizontal &&
-                            Math.abs(h.position.x - vx) < tolerancia &&
-                            ((h.position.y > Math.min(v.position.y, yPos) && h.position.y < Math.max(v.position.y, yPos)))
-                        );
-
-                        if (horizontalesQueBloquean.length === 0) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
-        };
 
         if (orientacion === Orientacion.Horizontal) {
-
-            const horizontalesEnRango = [];
-
-            for (const h of intersecciones) {
-                if (h.orientation === Orientacion.Horizontal) {
-                    const xMin = Math.min(h.position.x, posX) - 0.1;
-                    const xMax = Math.max(h.position.x, posX) + 0.1;
-
-                    if (puedeHorizontalExpandirseEnX(h.position.y, xMin, xMax, intersecciones) &&
-                        puedeHorizontalExpandirseEnX(posY, xMin, xMax, intersecciones)) {
-                        horizontalesEnRango.push(h);
-                    }
+            posX = 0.5;
+            const horizontales = intersecciones
+                .filter(h => h.orientation === Orientacion.Horizontal)
+                .map(h => h.position.y)
+                .sort((a, b) => a - b);
+            const cortes = [0, ...horizontales, 1];
+            for (let i = 0; i < cortes.length - 1; i++) {
+                const low = cortes[i], high = cortes[i + 1];
+                if (posY >= low && posY <= high) {
+                    posY = Math.round(((low + high) / 2) * 100) / 100;
+                    break;
                 }
-            }
-
-            if (horizontalesEnRango.length === 0) {
-                const posiblesSnaps = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
-                const toleranciaSnap = 0.04;
-
-                for (const snapY of posiblesSnaps) {
-                    if (Math.abs(posY - snapY) <= toleranciaSnap) {
-                        posY = snapY;
-                        break;
-                    }
-                }
-            } else {
-                horizontalesEnRango.sort((a, b) => a.position.y - b.position.y);
-
-                const posicionesOcupadas = [0, ...horizontalesEnRango.map(h => h.position.y), 1];
-
-                let mejorY = posY;
-
-                for (let i = 0; i < posicionesOcupadas.length - 1; i++) {
-                    const inferior = posicionesOcupadas[i];
-                    const superior = posicionesOcupadas[i + 1];
-                    const centroSegmento = (inferior + superior) / 2;
-                    const alturaSegmento = superior - inferior;
-
-                    if (posY >= inferior && posY <= superior) {
-                        const distanciaDelCentroSegmento = Math.abs(posY - centroSegmento);
-                        const toleranciaCentrado = Math.min(0.1, alturaSegmento * 0.3);
-
-                        if (alturaSegmento > 0.1 && distanciaDelCentroSegmento < toleranciaCentrado) {
-                            mejorY = round2(centroSegmento);
-                        }
-                        break;
-                    }
-                }
-
-                posY = mejorY;
             }
         } else {
-            const verticalesCompetidoras = [];
-
-            for (const v of intersecciones) {
-                if (v.orientation === Orientacion.Vertical) {
-                    const distanciaY = Math.abs(v.position.y - posY);
-                    if (distanciaY < 0.3) {
-                        const yMin = Math.min(v.position.y, posY);
-                        const yMax = Math.max(v.position.y, posY);
-
-                        if (puedeVerticalExpandirseEnY(posX, yMin, yMax, intersecciones)) {
-                            verticalesCompetidoras.push(v);
-                        }
-                    }
-                }
-            }
-
-            if (verticalesCompetidoras.length === 0) {
-                const posiblesSnaps = [0.25, 0.5, 0.75];
-                const toleranciaSnap = 0.04;
-
-                for (const snapX of posiblesSnaps) {
-                    if (Math.abs(posX - snapX) <= toleranciaSnap) {
-                        posX = snapX;
-                        break;
-                    }
-                }
-
-            } else {
-                verticalesCompetidoras.sort((a, b) => a.position.x - b.position.x);
-                const puntos = [0, ...verticalesCompetidoras.map(v => v.position.x), 1];
-
-                for (let i = 0; i < puntos.length - 1; i++) {
-                    const izquierda = puntos[i];
-                    const derecha = puntos[i + 1];
-
-                    if (posX >= izquierda && posX <= derecha) {
-                        const centro = (izquierda + derecha) / 2;
-                        posX = round2(centro);
-                        break;
-                    }
+            posY = 0.5;
+            const verticales = intersecciones
+                .filter(v => v.orientation === Orientacion.Vertical)
+                .map(v => v.position.x)
+                .sort((a, b) => a - b);
+            const cortes = [0, ...verticales, 1];
+            for (let i = 0; i < cortes.length - 1; i++) {
+                const low = cortes[i], high = cortes[i + 1];
+                if (posX >= low && posX <= high) {
+                    posX = Math.round(((low + high) / 2) * 100) / 100;
+                    break;
                 }
             }
         }
 
         const newInterseccion = new InterseccionMueble(
-            {
-                x: posX,
-                y: posY,
-            },
+            { x: posX, y: posY },
             orientacion,
-             previsualization
+            previsualization
         );
 
-        setCascoInstances((prev) => {
-            const updated = {...prev};
-            const updatedCasco = {...updated[cascoKey]};
-
-            updatedCasco.intersecciones = [...intersecciones, newInterseccion];
+        setCascoInstances(prev => {
+            const updated = { ...prev };
+            const updatedCasco = { ...updated[cascoKey] };
+            updatedCasco.intersecciones = [...(updatedCasco.intersecciones || []), newInterseccion];
             updated[cascoKey] = updatedCasco;
             return updated;
         });
