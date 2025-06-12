@@ -35,6 +35,7 @@ export type CascoProps = {
         materiales: any;
         parentRef: any;
         insideRef: any;
+        indiceActualPata: number;
     }) => React.ReactNode;
     seccionesHorizontales?: any[];
     seccionesVerticales?: any[];
@@ -169,6 +170,7 @@ const CascoFuncional = (
     const actualEsquinaZTriangulada = localConfig.esquinaZTriangulada ?? esquinaZTriangulada;
     const actualAlturaPatas = localConfig.alturaPatas || alturaPatas;
     const extraAltura = patas && indicePata !== -1 ? actualAlturaPatas : 0;
+    localConfig.extraAltura = extraAltura;
     let indiceActualPata = localConfig.indicePata ?? indicePata;
     if (indiceActualPata > 0) indiceActualPata--;
     let indiceActualPuerta = localConfig.indicePuerta ?? indicePuerta;
@@ -197,7 +199,7 @@ const CascoFuncional = (
                 depth: actualDepth,
                 espesor: actualEspesor,
                 retranqueoTrasero: actualRetranqueoTrasero,
-                extraAltura,
+                extraAltura: (patas && indiceActualPata !== -1) ? extraAltura : 0,
                 traseroDentro: actualTraseroDentro,
             },
             refs: {
@@ -335,7 +337,15 @@ const CascoFuncional = (
                 {renderInterseccionesInternas()}
 
                 {/* Piezas adicionales dinámicas */}
-                {renderExtraParts && renderExtraParts({localConfig, dimensiones, posiciones, materiales, parentRef: groupRef, insideRef: detectionBoxRef})}
+                {renderExtraParts && renderExtraParts({
+                    localConfig,
+                    dimensiones,
+                    posiciones,
+                    materiales,
+                    parentRef: groupRef,
+                    insideRef: detectionBoxRef,
+                    indiceActualPata
+                })}
 
                 {/* Children dinámicos */}
                 {children}

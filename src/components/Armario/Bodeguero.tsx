@@ -58,19 +58,20 @@ const Bodeguero = (props: BodegueroProps) => {
 
     const materiales = useMaterial();
 
-    const renderExtraParts = ({localConfig, dimensiones, posiciones, materiales, parentRef, insideRef}: {
+    const renderExtraParts = ({localConfig, dimensiones, posiciones, materiales, parentRef, insideRef, indiceActualPata}: {
         localConfig: any;
         dimensiones: any;
         posiciones: any;
         materiales: any,
         parentRef: any,
         insideRef: any
+        indiceActualPata: number;
     }) => {
         const actualWidth = localConfig.width || width;
         const actualHeight = localConfig.height || height;
         const actualDepth = localConfig.depth || depth;
         const actualEspesor = localConfig.espesor || espesor;
-        const extraAltura = patas && indicePata !== -1 ? localConfig.alturaPatas || alturaPatas : 0;
+        const extraAltura = patas && indiceActualPata !== -1 ? localConfig.extraAltura : 0;
 
         return (
             <group>
