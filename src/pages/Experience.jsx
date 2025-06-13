@@ -276,6 +276,22 @@ export const Experience = () => {
         setVersion(v => v + 1);
     }
 
+    function getHorizontalRange(horizontal, verticals) {
+        const x0 = horizontal.position.x;
+
+        let leftX  = 0;
+        let rightX = 1;
+
+        verticals.forEach(v => {
+            const vx = v.position.x;
+            console.log(" x")
+            if (vx < x0) leftX  = Math.max(leftX,  vx);
+            if (vx >= x0) rightX = Math.min(rightX, vx);
+        });
+
+        return [leftX, rightX];
+    }
+
     const idleTimeRef = useRef(0);
     const lastTimestampRef = useRef(null);
     const previewCreatedRef = useRef(false);
@@ -400,22 +416,168 @@ export const Experience = () => {
         const verticals   = sorted.filter(i => i.orientation === Orientacion.Vertical);
         const horizontals = sorted.filter(i => i.orientation === Orientacion.Horizontal);
 
+        const validHorizontals = horizontals.filter(h => {
+            const [lX, rX] = getHorizontalRange(h, verticals);
+            return rawX >= lX && rawX <= rX;
+        });
+
         let piezasAdyacientes, piezasLimitantes;
         if (orient === Orientacion.Horizontal) {
-            // horizontales: vecinos verticales izquierda/derecha
             piezasAdyacientes = findNeighbors(verticals, v => v.position.x, rawX);
-            // limitantes: vecinos horizontales abajo/arriba
-            piezasLimitantes   = findNeighbors(horizontals, h => h.position.y, rawY);
+            piezasLimitantes   = findNeighbors(validHorizontals, h => h.position.y, rawY);
         } else {
-            // verticales: vecinos horizontales abajo/arriba
             piezasAdyacientes = findNeighbors(horizontals, h => h.position.y, rawY);
-            // limitantes: vecinos verticales izquierda/derecha
             piezasLimitantes   = findNeighbors(verticals, v => v.position.x, rawX);
         }
 
+        let posX = rawX;
+        let posY = rawY;
+
+//        console.log('antes',posX, posY);
+
+        if(piezasLimitantes[0] != null && piezasLimitantes[1] != null){
+            if(orient === Orientacion.Horizontal) {
+                console.log("no")
+                posY = (piezasLimitantes[0].position.y+piezasLimitantes[1].position.y) / 2;
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posX = (piezasAdyacientes[0].position.x+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posX = piezasAdyacientes[1].position.x/2;
+                }
+                else{
+                    posX = 0.5;
+                }
+            }else {
+                posX = (piezasLimitantes[0].position.x+piezasLimitantes[1].position.x) / 2
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes.position.y) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posY = (piezasAdyacientes[0].position.y+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posY = piezasAdyacientes[1].position.y/2;
+                }
+                else{
+                    posY = 0.5;
+                }
+            }
+        }
+        else if (piezasLimitantes[0] != null && piezasLimitantes[1] === null){
+            if(orient === Orientacion.Horizontal) {
+                posY = (piezasLimitantes[0].position.y+1)/2;
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posX = (piezasAdyacientes[0].position.x+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posX = piezasAdyacientes[1].position.x/2;
+                }
+                else{
+                    posX = 0.5;
+                }
+            }
+            else {
+                posX = (piezasLimitantes[0].position.x+1) / 2
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes.position.y) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posY = (piezasAdyacientes[0].position.y+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posY = piezasAdyacientes[1].position.y/2;
+                }
+                else{
+                    posY = 0.5;
+                }
+            }
+        }
+        else if(piezasLimitantes[1] != null && piezasLimitantes[0] === null){
+            if(orient === Orientacion.Horizontal) {
+                posY = piezasLimitantes[1].position.y/2;
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posX = (piezasAdyacientes[0].position.x+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posX = piezasAdyacientes[1].position.x/2;
+                }
+                else{
+                    posX = 0.5;
+                }
+
+
+            }
+            else {
+                posX = piezasLimitantes[1].position.x / 2
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posY = (piezasAdyacientes[0].position.y+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posY = piezasAdyacientes[1].position.y/2;
+                }
+                else{
+                    posY = 0.5;
+                }
+            }
+        }
+        else {
+            if(orient === Orientacion.Horizontal) {
+                posY = 0.5;
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posX = (piezasAdyacientes[0].position.x+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posX = piezasAdyacientes[1].position.x/2;
+                }
+                else{
+                    posX = 0.5;
+                }
+            }
+            else {
+                posX = 0.5;
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes.position.y) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posY = (piezasAdyacientes[0].position.y+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posY = piezasAdyacientes[1].position.y/2;
+                }
+                else{
+                    posY = 0.5;
+                }
+            }
+        }
+
+       // console.log('despues', posX, posY);
+        console.log("Adyacientes",piezasAdyacientes)
+        console.log("Limitantes",piezasLimitantes)
 
         const nueva = new InterseccionMueble(
-            { x: rawX, y: rawY },
+            { x: posX, y: posY },
             orient,
             previsualization,
             undefined,               // createdAt (se genera dentro)
