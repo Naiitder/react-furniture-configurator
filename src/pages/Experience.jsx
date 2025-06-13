@@ -226,16 +226,31 @@ export const Experience = () => {
             const ud = refItem.groupRef.userData;
             ud.intersecciones = (ud.intersecciones ?? []).map(i => {
                 if (i.previsualization) {
-                    return new InterseccionMueble(
-                        { x: i.position.x, y: i.position.y },
-                        i.orientation,
-                        false,
-                        i.createdAt
-                    );
+                    i.previsualization = false;
+                    return i;
                 }
                 return i;
             });
         }
+    }
+
+
+    function findNeighbors(items, keyFn, target) {
+        // clonar y ordenar por la clave
+        const sorted = [...items].sort((a, b) => keyFn(a) - keyFn(b));
+        let prev = null;
+        let next = null;
+
+        for (const item of sorted) {
+            const val = keyFn(item);
+            if (val < target) {
+                prev = item;           // se quedará con el mayor < target
+            } else if (val > target && next === null) {
+                next = item;           // el primer > target
+            }
+        }
+
+        return [prev, next];
     }
 
     function clearPreviewIntersections() {
@@ -347,14 +362,13 @@ export const Experience = () => {
 
 
     function createIntersect(item, monitor, previsualization = false) {
-        // 1) Obtener coordenadas del ratón sobre el canvas
+        // 1) Coordenadas del ratón + raycast UV
         const offset = monitor.getClientOffset();
         const gl     = glRef.current;
         const camera = cameraRef.current;
         const ref    = refItem?.groupRef;
         if (!offset || !gl || !camera || !ref) return;
 
-        // 2) Raycast para extraer las UV del punto de intersección
         const bounds = gl.domElement.getBoundingClientRect();
         const mouse  = new THREE.Vector2(
             ((offset.x - bounds.left) / bounds.width) * 2 - 1,
@@ -367,7 +381,7 @@ export const Experience = () => {
         const rawX = hit.uv.x;
         const rawY = hit.uv.y;
 
-        // 3) Recuperar y ordenar cronológicamente todas las intersecciones previas
+        // 2) Ordenar cronológicamente las previas
         const prev = cascoInstances[ref.name]?.intersecciones || [];
         const sorted = prev
             .map((i, idx) => ({ i, idx }))
@@ -378,59 +392,51 @@ export const Experience = () => {
             })
             .map(o => o.i);
 
-        // 4) Construir arrays de “cortes” en X (verticales) y en Y (horizontales)
-        const xs = sorted
-            .filter(i => i.orientation === Orientacion.Vertical)
-            .map(i => i.position.x)
-            .sort((a, b) => a - b);
-
-        const ys = sorted
-            .filter(i => i.orientation === Orientacion.Horizontal)
-            .map(i => i.position.y)
-            .sort((a, b) => a - b);
-
-        // 5) Añadir 0 y 1 para cerrar los segmentos UV
-        const cutsX = [0, ...xs, 1];
-        const cutsY = [0, ...ys, 1];
-
-        // 6) Snap al punto medio del segmento que contiene rawX/rawY
-        const round2 = v => Math.round(v * 100) / 100;
-        let posX = rawX, posY = rawY;
-
-        for (let i = 0; i < cutsX.length - 1; i++) {
-            if (rawX >= cutsX[i] && rawX <= cutsX[i + 1]) {
-                posX = round2((cutsX[i] + cutsX[i + 1]) / 2);
-                break;
-            }
-        }
-        for (let j = 0; j < cutsY.length - 1; j++) {
-            if (rawY >= cutsY[j] && rawY <= cutsY[j + 1]) {
-                posY = round2((cutsY[j] + cutsY[j + 1]) / 2);
-                break;
-            }
-        }
-
-        // 7) Crear la nueva intersección y actualizar estado + userData
-        const orient = item.type === INTERSECTION_TYPES.HORIZONTAL
+        const isHoriz = item.type === INTERSECTION_TYPES.HORIZONTAL;
+        const orient = isHoriz
             ? Orientacion.Horizontal
             : Orientacion.Vertical;
 
-        const nueva = new InterseccionMueble({ x: posX, y: posY }, orient, previsualization);
+        const verticals   = sorted.filter(i => i.orientation === Orientacion.Vertical);
+        const horizontals = sorted.filter(i => i.orientation === Orientacion.Horizontal);
 
+        let piezasAdyacientes, piezasLimitantes;
+        if (orient === Orientacion.Horizontal) {
+            // horizontales: vecinos verticales izquierda/derecha
+            piezasAdyacientes = findNeighbors(verticals, v => v.position.x, rawX);
+            // limitantes: vecinos horizontales abajo/arriba
+            piezasLimitantes   = findNeighbors(horizontals, h => h.position.y, rawY);
+        } else {
+            // verticales: vecinos horizontales abajo/arriba
+            piezasAdyacientes = findNeighbors(horizontals, h => h.position.y, rawY);
+            // limitantes: vecinos verticales izquierda/derecha
+            piezasLimitantes   = findNeighbors(verticals, v => v.position.x, rawX);
+        }
+
+
+        const nueva = new InterseccionMueble(
+            { x: rawX, y: rawY },
+            orient,
+            previsualization,
+            undefined,               // createdAt (se genera dentro)
+            piezasAdyacientes,
+            piezasLimitantes
+        );
+
+        // 7) Actualizar estado y userData
         setCascoInstances(prev => ({
             ...prev,
             [ref.name]: {
                 ...prev[ref.name],
-                intersecciones: [...(prev[ref.name].intersecciones || []), nueva]
+                intersecciones: [...(prev[ref.name].intersecciones||[]), nueva]
             }
         }));
         ref.userData.intersecciones = [
-            ...(ref.userData.intersecciones || []),
+            ...(ref.userData.intersecciones||[]),
             nueva
         ];
         setVersion(v => v + 1);
     }
-
 
 
     const interfaceComponents = {

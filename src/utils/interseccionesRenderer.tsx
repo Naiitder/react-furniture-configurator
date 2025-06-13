@@ -22,6 +22,8 @@ export const renderIntersecciones = ({
 
     const { groupRef = { current: null }, detectionBoxRef = { current: null } } = refs;
 
+    console.log("renderIntersecciones", intersecciones);
+
     // 1) Ordenamos por fecha de creación y mantenemos el orden original si las fechas son iguales
     const withIndices = intersecciones.map((inter, idx) => ({inter, originalIndex: idx}));
 
