@@ -234,25 +234,6 @@ export const Experience = () => {
         }
     }
 
-
-    function findNeighbors(items, keyFn, target) {
-        // clonar y ordenar por la clave
-        const sorted = [...items].sort((a, b) => keyFn(a) - keyFn(b));
-        let prev = null;
-        let next = null;
-
-        for (const item of sorted) {
-            const val = keyFn(item);
-            if (val < target) {
-                prev = item;           // se quedará con el mayor < target
-            } else if (val > target && next === null) {
-                next = item;           // el primer > target
-            }
-        }
-
-        return [prev, next];
-    }
-
     function clearPreviewIntersections() {
         setCascoInstances(prev => {
             const updated = {};
@@ -276,20 +257,53 @@ export const Experience = () => {
         setVersion(v => v + 1);
     }
 
+    function findNeighbors(items, keyFn, target) {
+        const sorted = [...items].sort((a, b) => keyFn(a) - keyFn(b));
+        let prev = null, next = null;
+        for (const item of sorted) {
+            const v = keyFn(item);
+            if (v < target) prev = item;
+            else if (v > target && next === null) next = item;
+        }
+        return [prev, next];
+    }
+
     function getHorizontalRange(horizontal, verticals) {
-        const x0 = horizontal.position.x;
+        const x0 = horizontal.position.x;         // centro de tu horizontal
 
-        let leftX  = 0;
-        let rightX = 1;
+        // encuentra el vertical inmediatamente a la izquierda y
+        // el vertical inmediatamente a la derecha de x0
+        const [leftV, rightV] = findNeighbors(
+            verticals,
+            v => v.position.x,
+            x0
+        );
 
-        verticals.forEach(v => {
-            const vx = v.position.x;
-            console.log(" x")
-            if (vx < x0) leftX  = Math.max(leftX,  vx);
-            if (vx >= x0) rightX = Math.min(rightX, vx);
-        });
+        // si no hay vertical a la izquierda, se asume el borde 0
+        const leftX  = leftV  ? leftV.position.x : 0;
+        // si no hay vertical a la derecha, se asume el borde 1
+        const rightX = rightV ? rightV.position.x : 1;
+
+        // si quieres descontar el grosor de la tabla:
+        // const half = horizontal.userData.espesor / 2 / dimensiones.width;
+        // return [leftX + half, rightX - half];
 
         return [leftX, rightX];
+    }
+
+    function getVerticalRange(vertical, horizontals) {
+        const y0 = vertical.position.y;
+
+        let downY  = 0;
+        let upY = 1;
+
+        horizontals.forEach(h => {
+            const hy = h.position.y;
+            if (hy < y0) downY  = Math.max(downY,  hy);
+            if (hy >= y0) upY = Math.min(upY, hy);
+        });
+
+        return [upY, downY];
     }
 
     const idleTimeRef = useRef(0);
@@ -421,13 +435,18 @@ export const Experience = () => {
             return rawX >= lX && rawX <= rX;
         });
 
+        const validVerticals = verticals.filter(v => {
+            const [uY, dY] = getVerticalRange(v, horizontals);
+            return rawY >= dY && rawY <= uY;
+        });
+
         let piezasAdyacientes, piezasLimitantes;
         if (orient === Orientacion.Horizontal) {
             piezasAdyacientes = findNeighbors(verticals, v => v.position.x, rawX);
             piezasLimitantes   = findNeighbors(validHorizontals, h => h.position.y, rawY);
         } else {
             piezasAdyacientes = findNeighbors(horizontals, h => h.position.y, rawY);
-            piezasLimitantes   = findNeighbors(verticals, v => v.position.x, rawX);
+            piezasLimitantes   = findNeighbors(validVerticals, v => v.position.x, rawX);
         }
 
         let posX = rawX;
@@ -437,7 +456,6 @@ export const Experience = () => {
 
         if(piezasLimitantes[0] != null && piezasLimitantes[1] != null){
             if(orient === Orientacion.Horizontal) {
-                console.log("no")
                 posY = (piezasLimitantes[0].position.y+piezasLimitantes[1].position.y) / 2;
 
                 if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
@@ -456,7 +474,7 @@ export const Experience = () => {
                 posX = (piezasLimitantes[0].position.x+piezasLimitantes[1].position.x) / 2
 
                 if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes.position.y) / 2;
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
                 }
                 else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
                     posY = (piezasAdyacientes[0].position.y+1)/2;
@@ -490,7 +508,7 @@ export const Experience = () => {
                 posX = (piezasLimitantes[0].position.x+1) / 2
 
                 if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes.position.y) / 2;
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
                 }
                 else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
                     posY = (piezasAdyacientes[0].position.y+1)/2;
@@ -506,6 +524,7 @@ export const Experience = () => {
         else if(piezasLimitantes[1] != null && piezasLimitantes[0] === null){
             if(orient === Orientacion.Horizontal) {
                 posY = piezasLimitantes[1].position.y/2;
+                console.log(posY)
 
                 if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
                     posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
@@ -558,7 +577,7 @@ export const Experience = () => {
             else {
                 posX = 0.5;
                 if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes.position.y) / 2;
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
                 }
                 else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
                     posY = (piezasAdyacientes[0].position.y+1)/2;
