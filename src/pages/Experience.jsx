@@ -294,16 +294,25 @@ export const Experience = () => {
     function getVerticalRange(vertical, horizontals) {
         const y0 = vertical.position.y;
 
-        let downY  = 0;
-        let upY = 1;
+        // Inicializamos con null para saber si hay límites reales
+        let topY = null;
+        let bottomY = null;
 
         horizontals.forEach(h => {
             const hy = h.position.y;
-            if (hy < y0) downY  = Math.max(downY,  hy);
-            if (hy >= y0) upY = Math.min(upY, hy);
+            if (hy < y0) {
+                if (bottomY === null || hy > bottomY) bottomY = hy;
+            }
+            if (hy > y0) {
+                if (topY === null || hy < topY) topY = hy;
+            }
         });
 
-        return [upY, downY];
+        // Si no se encontró límite, asumimos borde del casco
+        if (bottomY === null) bottomY = 0;
+        if (topY === null) topY = 1;
+
+        return [topY, bottomY]; // De mayor a menor
     }
 
     const idleTimeRef = useRef(0);
@@ -436,10 +445,13 @@ export const Experience = () => {
         });
 
         const validVerticals = verticals.filter(v => {
-            const [uY, dY] = getVerticalRange(v, horizontals);
-            return rawY >= dY && rawY <= uY;
+            const [topY, bottomY] = getVerticalRange(v, horizontals);
+            console.log(topY, bottomY);
+            return rawY <= topY && rawY >= bottomY;
         });
 
+        console.log('vh',validHorizontals)
+        console.log('vv',validVerticals)
         let piezasAdyacientes, piezasLimitantes;
         if (orient === Orientacion.Horizontal) {
             piezasAdyacientes = findNeighbors(verticals, v => v.position.x, rawX);
