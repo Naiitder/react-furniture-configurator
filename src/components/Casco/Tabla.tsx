@@ -72,6 +72,12 @@ const Tabla: React.FC<TablaProps> = ({
     };
 
     useEffect(() => {
+        // De esta forma solo se ejecuta una vez cuando el componente se monta.
+        // Añade dependencias si necesitas que se vuelva a ejecutar cuando algo cambie.
+        shootRaycasts();
+    }, [ref.current, parentRef.current]); // Dependencias de ejemplo
+
+    useEffect(() => {
         if (ref.current && Object.keys(ref.current.userData).length === 0) {
             ref.current.userData = {...initialData};
         }
@@ -196,6 +202,68 @@ const Tabla: React.FC<TablaProps> = ({
             ref.current.rotation.set(rotation[0], rotation[1], rotation[2]);
         }
     }, [position, rotation, shape]);
+
+    const shootRaycasts = () => {
+        // Es mejor ejecutar esto en un useEffect para que no se llame en cada render.
+        // Te recomiendo mover esta lógica a un `useEffect` como se mostró en la respuesta anterior.
+        if (!ref.current || !parentRef.current) {
+            return;
+        }
+
+        // Mantengo tu condición por si la necesitas. Si quieres que todas las tablas disparen rayos, elimina esta línea.
+        if (ref.current?.userData?.isInterseccion === false) {
+            return;
+        }
+
+        // Recolectar solo las mallas que son tablas, excluyendo la actual
+        const objectsToIntersect = [];
+        parentRef.current.traverse(child => {
+            if (child.isMesh && child !== ref.current && child.userData.espesor !== undefined) {
+                objectsToIntersect.push(child);
+            }
+        });
+
+        if (objectsToIntersect.length === 0) return;
+
+        // Obtener la posición mundial del centro del objeto
+        const worldPosition = new THREE.Vector3();
+        ref.current.getWorldPosition(worldPosition);
+
+        // Un pequeño offset para que el rayo empiece fuera de la superficie
+        const epsilon = 0.001;
+
+        // --- Lógica combinada para los 4 ejes ---
+
+        // 1. Calcular los orígenes para los rayos verticales (eje Y)
+        const originUp = new THREE.Vector3(worldPosition.x, worldPosition.y + adjustedHeight / 2 + epsilon, worldPosition.z);
+        const originDown = new THREE.Vector3(worldPosition.x, worldPosition.y - adjustedHeight / 2 - epsilon, worldPosition.z);
+
+        // 2. Calcular los orígenes para los rayos horizontales (eje X)
+        const originRight = new THREE.Vector3(worldPosition.x + adjustedWidth / 2 + epsilon, worldPosition.y, worldPosition.z);
+        const originLeft = new THREE.Vector3(worldPosition.x - adjustedWidth / 2 - epsilon, worldPosition.y, worldPosition.z);
+
+        // 3. Crear los 4 Raycasters
+        const upRay = new THREE.Raycaster(originUp, new THREE.Vector3(0, 1, 0));
+        const downRay = new THREE.Raycaster(originDown, new THREE.Vector3(0, -1, 0));
+        const rightRay = new THREE.Raycaster(originRight, new THREE.Vector3(1, 0, 0));
+        const leftRay = new THREE.Raycaster(originLeft, new THREE.Vector3(-1, 0, 0));
+
+        // 4. Lanzar todos los rayos e intersectar con los objetos
+        const upHits = upRay.intersectObjects(objectsToIntersect);
+        const downHits = downRay.intersectObjects(objectsToIntersect);
+        const rightHits = rightRay.intersectObjects(objectsToIntersect);
+        const leftHits = leftRay.intersectObjects(objectsToIntersect);
+
+        // 5. Mostrar todos los resultados en la consola para depurar
+        console.log(`--- Raycast Results for: ${ref.current.uuid} ---`);
+        console.log({
+            arriba: upHits.map(hit => hit.object.uuid)[0],
+            abajo: downHits.map(hit => hit.object.uuid)[0],
+            derecha: rightHits.map(hit => hit.object.uuid)[0],
+            izquierda: leftHits.map(hit => hit.object.uuid)[0]
+        });
+        console.log("-----------------------------------------");
+    };
 
     const createTablaFinaGeometry = (width: number, height: number, depth: number) => {
         const geometry = new THREE.BufferGeometry();
