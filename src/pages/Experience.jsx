@@ -139,7 +139,12 @@ export const Experience = () => {
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
                 intersecciones: [
-// Se recorta por el horizontal de y: 0.35
+                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: .25}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
+
+                    new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical),
+                    new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical),
 
                 ],
             }
@@ -269,26 +274,25 @@ export const Experience = () => {
     }
 
     function getHorizontalRange(horizontal, verticals) {
-        const x0 = horizontal.position.x;         // centro de tu horizontal
+        const x0 = horizontal.position.x;
 
-        // encuentra el vertical inmediatamente a la izquierda y
-        // el vertical inmediatamente a la derecha de x0
         const [leftV, rightV] = findNeighbors(
             verticals,
             v => v.position.x,
             x0
         );
 
-        // si no hay vertical a la izquierda, se asume el borde 0
-        const leftX  = leftV  ? leftV.position.x : 0;
-        // si no hay vertical a la derecha, se asume el borde 1
+        // Si no hay vertical a la izquierda, usar borde izquierdo
+        const leftX = leftV ? leftV.position.x : 0;
+
+        // Si no hay vertical a la derecha, usar borde derecho
         const rightX = rightV ? rightV.position.x : 1;
 
-        // si quieres descontar el grosor de la tabla:
-        // const half = horizontal.userData.espesor / 2 / dimensiones.width;
-        // return [leftX + half, rightX - half];
+        // Asegura el orden: mayor -> menor (derecha -> izquierda)
+        const max = Math.max(leftX, rightX);
+        const min = Math.min(leftX, rightX);
 
-        return [leftX, rightX];
+        return [min, max];
     }
 
     function getVerticalRange(vertical, horizontals) {
@@ -440,13 +444,13 @@ export const Experience = () => {
         const horizontals = sorted.filter(i => i.orientation === Orientacion.Horizontal);
 
         const validHorizontals = horizontals.filter(h => {
-            const [lX, rX] = getHorizontalRange(h, verticals);
-            return rawX >= lX && rawX <= rX;
+            const [minX, maxX] = getHorizontalRange(h, verticals);
+            console.log('minX: ', minX, 'maxX: ', maxX);
+            return rawX >= minX && rawX <= maxX;
         });
 
         const validVerticals = verticals.filter(v => {
             const [topY, bottomY] = getVerticalRange(v, horizontals);
-            console.log(topY, bottomY);
             return rawY <= topY && rawY >= bottomY;
         });
 
