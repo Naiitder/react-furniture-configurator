@@ -1,6 +1,7 @@
 import * as React from "react";
 import InterseccionMueble, { Orientacion } from "../components/Interseccion";
 import Tabla from "../components/Casco/Tabla";
+import pata from "../components/Casco/Pata";
 
 // TODO Arreglar DEPTH al expandir el mueble
 export const renderIntersecciones = ({
@@ -20,6 +21,8 @@ export const renderIntersecciones = ({
     } = dimensiones;
 
     const { groupRef = { current: null }, detectionBoxRef = { current: null } } = refs;
+
+    //console.log("renderIntersecciones", intersecciones);
 
     // 1) Ordenamos por fecha de creación y mantenemos el orden original si las fechas son iguales
     const withIndices = intersecciones.map((inter, idx) => ({inter, originalIndex: idx}));
@@ -171,26 +174,50 @@ export const renderIntersecciones = ({
             const widthSeg = rightX - leftX;
             const centerX = (leftX + rightX) / 2;
 
-            return (
-                <Tabla
-                    key={`int-${idx}`}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[
-                        centerX,
-                        y,
-                        espesor / 2 +
-                        (traseroDentro ? retranqueoTrasero / 2 : 0),
-                    ]}
-                    width={widthSeg}
-                    height={espesor}
-                    depth={depth - retranqueoTrasero - espesor}
-                    material={materiales.Artico}
-                    espesorBase={espesor}
-                    isInterseccion={true}
-                />
-            );
+            if(!inter.previsualization){
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            centerX,
+                            y,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={widthSeg}
+                        height={espesor}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Artico}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                    />
+                );
+            }
+            else{
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            centerX,
+                            y,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={widthSeg}
+                        height={espesor}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Vidrio}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                    />
+                );
+            }
         } else {
             // ——————— BRANCH VERTICAL ———————
             const [botY, topY] = getVerticalRange(inter, idx);
@@ -201,26 +228,50 @@ export const renderIntersecciones = ({
                 return null;
             }
 
-            return (
-                <Tabla
-                    key={`int-${idx}`}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[
-                        x,
-                        centerY,
-                        espesor / 2 +
-                        (traseroDentro ? retranqueoTrasero / 2 : 0),
-                    ]}
-                    width={espesor}
-                    height={heightSeg}
-                    depth={depth - retranqueoTrasero - espesor}
-                    material={materiales.Artico}
-                    espesorBase={espesor}
-                    isInterseccion={true}
-                />
-            );
+            if(!inter.previsualization){
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            x,
+                            centerY,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={espesor}
+                        height={heightSeg}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Artico}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                    />
+                );
+            }
+            else {
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            x,
+                            centerY,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={espesor}
+                        height={heightSeg}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Vidrio}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                    />
+                );
+            }
         }
     });
 };

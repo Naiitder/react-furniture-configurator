@@ -1,3 +1,6 @@
+import * as React from "react";
+import {DimensionesParams} from "./calculadoraDimensiones";
+
 type PosicionesParams = DimensionesParams & {
     alturaPatas: number;
     indicePata: number;

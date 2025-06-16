@@ -1,7 +1,6 @@
 import * as React from "react";
 import '@react-three/fiber';
 import { useRef, useEffect } from "react";
-import * as THREE from "three";
 import {Pomo} from "./Pomo";
 import {useMaterial} from "../../assets/materials";
 import Tabla from "./Tabla"; // Asegúrate de importar el componente Tablon

@@ -1,5 +1,5 @@
-import React, {useState, useRef, useEffect} from "react";
-import {Layout, Menu, Row, Col, Card, Typography} from "antd";
+import React, {useEffect, useRef, useState} from "react";
+import {Col, Layout, Menu, Row, Typography} from "antd";
 import {AppstoreOutlined} from "@ant-design/icons";
 import {FurnitureMenuItem} from "../components/Menu/FurnitureMenuItem.jsx";
 

@@ -10,13 +10,13 @@ export const AppProviders = ({...props}) => {
         <>
             <SelectedItemProvider>
                 <SelectedCajonProvider>
-                <SelectedPieceProvider>
-                <DndProvider backend={HTML5Backend}>
-                    <RoomConfiguratorProvider>
-                            {props.children}
-                    </RoomConfiguratorProvider>
-                </DndProvider>
-                </SelectedPieceProvider>
+                    <SelectedPieceProvider>
+                        <DndProvider backend={HTML5Backend}>
+                            <RoomConfiguratorProvider>
+                                {props.children}
+                            </RoomConfiguratorProvider>
+                        </DndProvider>
+                    </SelectedPieceProvider>
                 </SelectedCajonProvider>
             </SelectedItemProvider>
         </>

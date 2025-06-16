@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useDrag } from 'react-dnd';
-import { Typography, Card } from 'antd';
+import { Typography } from 'antd';
 
 const { Text } = Typography;
 

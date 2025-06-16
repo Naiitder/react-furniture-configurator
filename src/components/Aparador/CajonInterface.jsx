@@ -1,4 +1,4 @@
-import { Form, Slider, Select } from "antd";
+import { Form } from "antd";
 import {useEffect, useState} from "react";
 import ItemSelector from "../ItemSelector.jsx";
 import {useSelectedCajonProvider} from "../../contexts/SelectedCajonProvider.jsx";

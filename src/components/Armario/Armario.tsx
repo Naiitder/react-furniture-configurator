@@ -335,7 +335,7 @@ const ArmarioFuncional = (
             const touchesRightEdge = Math.abs(rightEdge) < tolerance;
 
             let adjustedWidth = cube.relativeWidth * actualWidth - actualEspesor / 2;
-            let adjustedXposition = 0;
+            let adjustedXposition : number;
 
             if (!touchesLeftEdge && !touchesRightEdge) {
                 adjustedWidth -= actualEspesor / 2;

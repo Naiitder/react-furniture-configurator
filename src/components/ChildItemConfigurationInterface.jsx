@@ -1,5 +1,5 @@
 import {FloatButton, Space, Typography} from "antd";
-import {EyeInvisibleOutlined, EyeOutlined, MoreOutlined} from "@ant-design/icons";
+import {EyeInvisibleOutlined, EyeOutlined} from "@ant-design/icons";
 import React, {useState} from "react";
 
 const { Title } = Typography;

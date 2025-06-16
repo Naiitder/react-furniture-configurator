@@ -32,14 +32,19 @@ export type CascoProps = {
         localConfig: any;
         dimensiones: any;
         posiciones: any;
-        materiales: any
+        materiales: any;
+        parentRef: any;
+        insideRef: any;
+        indiceActualPata: number;
     }) => React.ReactNode;
+    material: any[];
     seccionesHorizontales?: any[];
     seccionesVerticales?: any[];
     version?: any[];
     setVersion?: (version: any) => void;
     children?: React.ReactNode;
     id?: string;
+    materialPrincipal?: any;
 };
 
 const CascoFuncional = (
@@ -76,9 +81,11 @@ const CascoFuncional = (
         contextRef,
         setContextRef,
         materiales,
+        material,
         version,
         children,
         id,
+        materialPrincipal,
     } = props;
 
     const groupRef = useRef<THREE.Group>(null);
@@ -165,6 +172,7 @@ const CascoFuncional = (
     const actualEsquinaZTriangulada = localConfig.esquinaZTriangulada ?? esquinaZTriangulada;
     const actualAlturaPatas = localConfig.alturaPatas || alturaPatas;
     const extraAltura = patas && indicePata !== -1 ? actualAlturaPatas : 0;
+    localConfig.extraAltura = extraAltura;
     let indiceActualPata = localConfig.indicePata ?? indicePata;
     if (indiceActualPata > 0) indiceActualPata--;
     let indiceActualPuerta = localConfig.indicePuerta ?? indicePuerta;
@@ -193,7 +201,7 @@ const CascoFuncional = (
                 depth: actualDepth,
                 espesor: actualEspesor,
                 retranqueoTrasero: actualRetranqueoTrasero,
-                extraAltura,
+                extraAltura: (patas && indiceActualPata !== -1) ? extraAltura : 0,
                 traseroDentro: actualTraseroDentro,
             },
             refs: {
@@ -217,7 +225,7 @@ const CascoFuncional = (
                     width={dimensiones.suelo.width}
                     height={dimensiones.suelo.height}
                     depth={dimensiones.suelo.depth}
-                    material={materiales.OakWood}
+                    material={materialPrincipal || materiales.OakWood}
                     posicionCaja="bottom"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                     bordeEjeY={false}
@@ -232,7 +240,7 @@ const CascoFuncional = (
                     width={dimensiones.lateral.width}
                     height={dimensiones.lateral.height}
                     depth={dimensiones.lateral.depth}
-                    material={materiales.DarkWood}
+                    material={materialPrincipal || materiales.DarkWood}
                     posicionCaja="left"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
@@ -246,7 +254,7 @@ const CascoFuncional = (
                     width={dimensiones.lateral.width}
                     height={dimensiones.lateral.height}
                     depth={dimensiones.lateral.depth}
-                    material={materiales.DarkWood}
+                    material={materialPrincipal || materiales.DarkWood}
                     posicionCaja="right"
                     shape={actualEsquinaXTriangulada ? "trapezoid" : "box"}
                 />
@@ -260,7 +268,7 @@ const CascoFuncional = (
                     width={dimensiones.trasero.width}
                     height={dimensiones.trasero.height}
                     depth={dimensiones.trasero.depth}
-                    material={materiales.DarkWood}
+                    material={materialPrincipal || materiales.DarkWood}
                     shape="box"
                 />
 
@@ -273,7 +281,7 @@ const CascoFuncional = (
                     width={dimensiones.techo.width}
                     height={dimensiones.techo.height}
                     depth={dimensiones.techo.depth}
-                    material={materiales.OakWood}
+                    material={materialPrincipal || materiales.OakWood}
                     posicionCaja="top"
                     shape={actualEsquinaXTriangulada || actualEsquinaZTriangulada ? "trapezoid" : "box"}
                     bordeEjeY={false}
@@ -305,7 +313,6 @@ const CascoFuncional = (
                     </group>
                 )}
 
-                {/* Puertas */}
                 {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
                     <>
                         {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
@@ -331,7 +338,15 @@ const CascoFuncional = (
                 {renderInterseccionesInternas()}
 
                 {/* Piezas adicionales dinámicas */}
-                {renderExtraParts && renderExtraParts({localConfig, dimensiones, posiciones, materiales})}
+                {renderExtraParts && renderExtraParts({
+                    localConfig,
+                    dimensiones,
+                    posiciones,
+                    materiales,
+                    parentRef: groupRef,
+                    insideRef: detectionBoxRef,
+                    indiceActualPata
+                })}
 
                 {/* Children dinámicos */}
                 {children}
@@ -367,8 +382,9 @@ const CascoWithContext = (props: any) => {
             {...props}
             contextRef={meshRef}
             setContextRef={updateContextRef}
-            materiales={materiales}
+            materiales={props.materiales || materiales}
             version={version}
+            materialPrincipal={props.materialPrincipal}
         />
     );
 };

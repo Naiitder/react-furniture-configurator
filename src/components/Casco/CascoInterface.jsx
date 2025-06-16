@@ -5,12 +5,11 @@ import TextureUploader from "../TextureUploader.jsx";
 import { useEffect, useState } from "react";
 import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
 import DraggableIntersection, { INTERSECTION_TYPES } from "./DraggableIntersection.js";
-import * as THREE from "three";
 
 const { Title } = Typography;
 
 const CascoInterface = ({ show, setShow, mode, setMode}) => {
-    const { refItem, setRefItem, version, setVersion } = useSelectedItemProvider();
+    const { refItem, version, setVersion } = useSelectedItemProvider();
 
     const [config, setConfig] = useState({
         width: 2,

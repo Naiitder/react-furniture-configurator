@@ -1,4 +1,4 @@
-type DimensionesParams = {
+export type DimensionesParams = {
     width: number;
     height: number;
     depth: number;
