@@ -5,7 +5,7 @@ import {FurnitureMenu} from "./pages/FurnitureMenu.jsx";
 function App() {
 
     return (
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Routes>
                 <Route index element={<FurnitureMenu/>}/>
                 <Route path="canvas" element={<Experience/>}/>

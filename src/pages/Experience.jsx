@@ -1,27 +1,35 @@
-import {useRef, useState, useEffect} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Canvas, useThree} from "@react-three/fiber";
-import {TransformControls, OrbitControls, Environment, Stage} from "@react-three/drei";
+import {OrbitControls, Stage, TransformControls,} from "@react-three/drei";
 import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
 import Pata from "../components/Casco/Pata.js";
 import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
-import CascoSeccionesAutomaticas from "../components/Casco/CascoSeccionesAutomaticas.tsx";
 import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import {useDrop} from "react-dnd";
 import * as THREE from "three";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
+import ChildItemConfigurationInterface from "../components/ChildItemConfigurationInterface.jsx";
+import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
-import CascoWithContext from "../components/Casco/Casco.js";
-import CascoSeccionesAutomaticasWithContext from "../components/Casco/CascoSeccionesAutomaticas.tsx";
-import {Group, Object3D} from "three";
+import PataAparador from "../components/Aparador/PataAparador.js";
+import Aparador from "../components/Aparador/Aparador.js";
+import AparadorInterface from "../components/Aparador/AparadorInterface.jsx";
+import {useSelectedCajonProvider} from "../contexts/SelectedCajonProvider.jsx";
+import CajonConfigContent from "../components/Aparador/CajonInterface.jsx";
+import Armario from "../components/Armario/Armario.js";
+import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
+import Bodeguero from "../components/Armario/Bodeguero.js";
+import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
+import InterseccionMueble, {Orientacion} from "../components/Interseccion";
+import IntersectionOverlay from "../components/InterseccionOverlay.js";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
-    const {ref} = useSelectedItemProvider();
-    const {refPiece} = useSelectedPieceProvider();
+    const {refItem} = useSelectedItemProvider();
 
     useEffect(() => {
         if (glRef) glRef.current = gl;
@@ -36,33 +44,22 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
             mouse.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
-
-            console.log("REF", ref)
-            if (ref?.groupRef) {
-                console.log(ref.groupRef);
-                const intersects = raycaster.intersectObject(ref.groupRef, true);
+            if (refItem) {
+                const intersects = raycaster.intersectObject(refItem.groupRef, true);
                 if (intersects.length > 0) {
-                    console.log("👉 Intersección con Casco en:", intersects[0].point);
+                    console.log(intersects[0]);
                 }
             }
         };
 
         gl.domElement.addEventListener("mouseup", onClick);
         return () => gl.domElement.removeEventListener("mouseup", onClick);
-    }, [camera, gl, ref?.transparentBoxRef]);
+    }, [camera, gl, refItem]); // Añadimos refItem como dependencia
 
     return null;
 };
 
 export const Experience = () => {
-    // Use a parent group for the entire scene
-    const parentGroupRef = useRef(new Group());
-
-    // Separate refs for each Casco
-    const casco1Ref = useRef(null);
-    const casco2Ref = useRef(null);
-
-    const {refPiece} = useSelectedPieceProvider();
     const transformRef = useRef();
     const glRef = useRef();
     const cameraRef = useRef();
@@ -70,440 +67,563 @@ export const Experience = () => {
     const params = new URLSearchParams(location.search);
     const selectedItem = params.get("item");
 
-    const [transformEnabled, setTransformEnabled] = useState(true);
-    const [transformMode, setTransformMode] = useState("translate");
-    const [undoStack, setUndoStack] = useState([]);
-    const [droppedHorizontalCubes, setDroppedHorizontalCubes] = useState([]);
-    const [droppedVerticalCubes, setDroppedVerticalCubes] = useState([]);
-    const [selectedCasco, setSelectedCasco] = useState('casco1');
+    const [transformEnabled, setTransformEnabled] = useState(false);
+    const [transformMode, setTransformMode] = useState("");
+    const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
+    const {refItem, setRefItem, version, setVersion} = useSelectedItemProvider();
+    const {refPiece, setRefPiece} = useSelectedPieceProvider();
+    const {refCajon, setRefCajon} = useSelectedCajonProvider();
+    const [scaleDimensions, setScaleDimensions] = useState({x: 2, y: 2, z: 2});
 
-    const selectionGroupRef = useRef(new Group());
-
-    // Mantén un mapeo de objetos originales a sus proxies
-    const objectToProxyMap = useRef(new Map());
-
-    // Handle initial setup
     useEffect(() => {
-        // Make sure our parent group is initialized
-        if (!parentGroupRef.current) {
-            parentGroupRef.current = new Group();
-        }
-        // Make sure selection group is initialized
-        if (!selectionGroupRef.current) {
-            selectionGroupRef.current = new Group();
-            parentGroupRef.current.add(selectionGroupRef.current);
-        }
+        setCascoInstances({
+            casco1: {
+                id: 'casco1',
+                name: 'Casco1',
+                position: [-3, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: {width: 2, height: 2, depth: 2, espesor: 0.3},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
+                intersecciones: [],
+            },
+            casco2: {
+                id: 'casco2',
+                name: 'Casco2',
+                position: [3, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: {width: 2, height: 2, depth: 3, espesor: 0.1},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
+                intersecciones: [],
+            },
+            casco3: {
+                id: 'casco3',
+                name: 'Casco3',
+                position: [0, 0, 0],
+                rotation: [0, Math.PI, 0],
+                userData: {width: 2, height: 2, depth: 2, espesor: 0.1},
+                patas: [<Pata height={1}/>],
+                puertas: [<Puerta/>],
+                intersecciones: [],
+            },
+            casco4: {
+                id: 'casco4',
+                name: 'Casco4',
+                position: [0, 0, 0],
+                rotation: [0, 0, 0],
+                userData: {width: 1.54, height: .93, depth: .6, espesor: 0.05},
+                patas: [<PataAparador height={.1}/>],
+                puertas: [<Puerta/>],
+            },
+            casco5: {
+                id: 'casco5',
+                name: 'Casco5',
+                position: [0, 0, 0],
+                rotation: [0, 0, 0],
+                userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
+                intersecciones: [
+                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: 0.6225}, Orientacion.Vertical),
+                    new InterseccionMueble({x: 0.5, y: 0.87}, Orientacion.Vertical),
+                ],
+                patas: [<PataAparador height={.1}/>],
+                puertas: [<Puerta/>],
+            },
+            casco6: {
+                id: 'casco6',
+                name: 'Casco6',
+                position: [0, 0, 0],
+                rotation: [0, 0, 0],
+                userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
+                patas: [<PataAparador height={.1}/>],
+                puertas: [<PuertaBodeguero/>],
+                intersecciones: [
+// Se recorta por el horizontal de y: 0.35
+
+                ],
+            }
+        });
     }, []);
 
-    // Update the TransformControls attachment logic
-    useEffect(() => {
-        if (!transformRef.current) return;
-
-        // Clean up selection group before reconfiguring
-        while (selectionGroupRef.current.children.length > 0) {
-            selectionGroupRef.current.remove(selectionGroupRef.current.children[0]);
-        }
-        objectToProxyMap.current.clear();
-
-        if (refPiece.length > 0) {
-            // Create proxies for selected pieces
-            refPiece.forEach((piece) => {
-                if (piece) {
-                    const proxy = new Object3D();
-                    proxy.position.copy(piece.position);
-                    proxy.rotation.copy(piece.rotation);
-                    proxy.scale.copy(piece.scale);
-                    selectionGroupRef.current.add(proxy);
-                    objectToProxyMap.current.set(piece, proxy);
-                }
-            });
-
-            // Attach to TransformControls
-            if (refPiece.length === 1) {
-                transformRef.current.attach(refPiece[0]);
-            } else if (refPiece.length > 1) {
-                transformRef.current.attach(selectionGroupRef.current);
-            }
-        } else {
-            // Attach to the selected Casco or parent group
-            const targetRef = selectedCasco === 'casco1' ? casco1Ref.current :
-                (selectedCasco === 'casco2' ? casco2Ref.current : parentGroupRef.current);
-
-            if (targetRef && typeof targetRef.updateMatrixWorld === 'function') {
-                transformRef.current.attach(targetRef);
-            } else {
-                console.warn("Invalid object reference for TransformControls", targetRef);
-                transformRef.current.attach(parentGroupRef.current);
-            }
-        }
-    }, [refPiece, selectedCasco]);
-
-    // Sync TransformControls changes with original objects
-    useEffect(() => {
-        if (!transformRef.current) return;
-
-        const onObjectChange = () => {
-            if (
-                transformRef.current.object === selectionGroupRef.current &&
-                refPiece.length > 1
-            ) {
-                // Update selection group world matrix
-                selectionGroupRef.current.updateWorldMatrix(true, false);
-
-                objectToProxyMap.current.forEach((proxy, original) => {
-                    proxy.updateWorldMatrix(true, false);
-                    const worldMatrix = proxy.matrixWorld.clone();
-                    original.position.setFromMatrixPosition(worldMatrix);
-                    const rotation = new THREE.Euler();
-                    rotation.setFromRotationMatrix(worldMatrix);
-                    original.rotation.copy(rotation);
-                    const scale = new THREE.Vector3();
-                    scale.setFromMatrixScale(worldMatrix);
-                    original.scale.copy(scale);
-                });
-            }
-        };
-
-        const controls = transformRef.current;
-        controls.addEventListener("objectChange", onObjectChange);
-        return () => controls.removeEventListener("objectChange", onObjectChange);
-    }, [refPiece]);
-
-    const {ref: selectedItemProps, setRef} = useSelectedItemProvider();
-
-    const [originalScale] = useState({x: 1, y: 1, z: 1});
-    const [scaleDimensions, setScaleDimensions] = useState(originalScale);
-
-    // Save the current transform state
-    const saveTransformState = () => {
-        if (refPiece.length > 0) {
-            // For selected pieces, save state of each one
-            const states = refPiece.map(piece => ({
-                id: piece.id || Math.random().toString(36).substr(2, 9),
-                position: piece.position.clone(),
-                rotation: piece.rotation.clone(),
-                scale: piece.scale.clone()
-            }));
-            setUndoStack(prev => [...prev, states]);
-        } else {
-            // Global state of the furniture container
-            let obj;
-            if (selectedCasco === 'casco1') {
-                obj = casco1Ref.current;
-            } else if (selectedCasco === 'casco2') {
-                obj = casco2Ref.current;
-            } else {
-                obj = parentGroupRef.current;
-            }
-
-            if (!obj || !selectedItemProps) return;
-
-            const state = {
-                position: obj.position.clone(),
-                rotation: obj.rotation.clone(),
-                scale: obj.scale.clone(),
-                dimensions: {
-                    width: selectedItemProps.width || 1,
-                    height: selectedItemProps.height || 1,
-                    depth: selectedItemProps.depth || 1
-                }
-            };
-            setUndoStack(prev => [...prev, state]);
-        }
+    // Actualizar refItem al hacer clic en un casco
+    const handleCascoClick = (selectedObject) => {
+        setRefItem(selectedObject);
     };
 
-    // Save initial state
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (casco1Ref.current || casco2Ref.current) {
-                saveTransformState();
-            }
-        }, 500);
-        return () => clearTimeout(timer);
-    }, []);
-
-    // Handle scale changes via TransformControls
-    useEffect(() => {
-        if (transformRef.current) {
+        if (
+            transformRef.current &&
+            refItem &&
+            refItem.groupRef
+        ) {
             const controls = transformRef.current;
-            const targetRef = selectedCasco === 'casco1' ? casco1Ref.current :
-                (selectedCasco === 'casco2' ? casco2Ref.current : null);
 
             const onObjectChange = () => {
-                if (targetRef && transformMode === "scale" && selectedItemProps) {
-                    const newScale = targetRef.scale;
-                    const width = selectedItemProps.width || 1;
-                    const height = selectedItemProps.height || 1;
-                    const depth = selectedItemProps.depth || 1;
+                if (transformMode === "scale") {
+                    const newScale = refItem.groupRef.scale;
+                    const width = refItem.groupRef.userData.width || 2;
+                    const height = refItem.groupRef.userData.height || 2;
+                    const depth = refItem.groupRef.userData.depth || 2;
 
-                    const newWidth = Math.min(5, Math.max(1, width * (newScale.x / originalScale.x)));
-                    const newHeight = Math.min(6, Math.max(1, height * (newScale.y / originalScale.y)));
-                    const newDepth = Math.min(4, Math.max(1, depth * (newScale.z / originalScale.z)));
+                    const newWidth = Math.min(5, Math.max(1, width * newScale.x));
+                    const newHeight = Math.min(6, Math.max(1, height * newScale.y));
+                    const newDepth = Math.min(4, Math.max(1, depth * newScale.z));
 
                     setScaleDimensions({x: newWidth, y: newHeight, z: newDepth});
-                    setRef({
-                        ...selectedItemProps,
+                    refItem.groupRef.userData = {
+                        ...refItem.groupRef.userData,
                         width: newWidth,
                         height: newHeight,
                         depth: newDepth
-                    });
-                    // Restore original scale to prevent accumulation
-                    targetRef.scale.set(originalScale.x, originalScale.y, originalScale.z);
+                    };
+                    refItem.groupRef.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
+                    setVersion((v) => v + 1);
+                } else if (transformMode === "translate" ) {
+                    console.log("MOVIENDO INTERSECCION")
                 }
             };
 
             controls.addEventListener("objectChange", onObjectChange);
             return () => controls.removeEventListener("objectChange", onObjectChange);
         }
-    }, [transformMode, selectedItemProps, setRef, selectedCasco]);
+    }, [transformMode, refItem, version, setVersion]);
 
-    // Handle keyboard events
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === "Escape") {
-                setTransformEnabled(false);
-            } else if (e.key.toLowerCase() === "e") {
-                setTransformMode("rotate");
-                setTransformEnabled(true);
-            } else if (e.key.toLowerCase() === "r") {
-                setTransformMode("scale");
-                setTransformEnabled(true);
-            } else if (e.key.toLowerCase() === "w") {
-                setTransformMode("translate");
-                setTransformEnabled(true);
-            } else if (e.key.toLowerCase() === "z" && (e.ctrlKey || e.metaKey)) {
-                // Perform undo
-                setUndoStack(prev => {
-                    if (prev.length < 2) return prev;
-                    const newStack = [...prev];
-                    newStack.pop();
-                    const last = newStack[newStack.length - 1];
 
-                    if (refPiece.length > 0) {
-                        // Update each piece according to saved state
-                        last.forEach(state => {
-                            const piece = refPiece.find(p => p.id === state.id);
-                            if (piece) {
-                                piece.position.copy(state.position);
-                                piece.rotation.copy(state.rotation);
-                                piece.scale.copy(state.scale);
-                            }
-                        });
-                    } else {
-                        // Update selected Casco
-                        let targetRef;
-                        if (selectedCasco === 'casco1') {
-                            targetRef = casco1Ref.current;
-                        } else if (selectedCasco === 'casco2') {
-                            targetRef = casco2Ref.current;
-                        } else {
-                            targetRef = parentGroupRef.current;
-                        }
+    const hoverTimeout = useRef(null);
+    const lastClientOffset = useRef(null);
 
-                        if (targetRef) {
-                            targetRef.position.copy(last.position);
-                            targetRef.rotation.copy(last.rotation);
-                            setRef({
-                                ...selectedItemProps,
-                                width: last.dimensions.width,
-                                height: last.dimensions.height,
-                                depth: last.dimensions.depth
-                            });
-                            setScaleDimensions({
-                                x: last.dimensions.width,
-                                y: last.dimensions.height,
-                                z: last.dimensions.depth
-                            });
-                        }
+    function revertPreviewIntersections() {
+        setCascoInstances(prev => {
+            const updated = {};
+            for (const key in prev) {
+                const casco = prev[key];
+                const inters = casco.intersecciones ?? [];
+                // Generamos un nuevo array para forzar re-render
+                const newInters = inters.map(i => {
+                    if (i.previsualization) {
+                        // Creamos un nuevo objeto con el mismo createdAt
+                        return new InterseccionMueble(
+                            { x: i.position.x, y: i.position.y },
+                            i.orientation,
+                            false,            // previsualization -> false
+                            i.createdAt       // conservamos la fecha original
+                        );
                     }
-                    return newStack;
+                    return i;
                 });
+                updated[key] = {
+                    ...casco,
+                    intersecciones: newInters,
+                };
             }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [refPiece, selectedItemProps, setRef, selectedCasco]);
+            setVersion(v => v + 1);
+            return updated;
+        });
 
-    const {ref} = useSelectedItemProvider();
+        // Sincronizamos userData del mueble seleccionado
+        if (refItem?.groupRef) {
+            const ud = refItem.groupRef.userData;
+            ud.intersecciones = (ud.intersecciones ?? []).map(i => {
+                if (i.previsualization) {
+                    i.previsualization = false;
+                    return i;
+                }
+                return i;
+            });
+        }
+    }
 
-    // Handle drag and drop of intersections
+    function clearPreviewIntersections() {
+        setCascoInstances(prev => {
+            const updated = {};
+            for (const key in prev) {
+                const casco = prev[key];
+                const inters = casco.intersecciones ?? [];
+                updated[key] = {
+                    ...casco,
+                    intersecciones: inters.filter(i => !i.previsualization),
+                };
+            }
+            return updated;
+        });
+
+        if (refItem?.groupRef) {
+            const ud = refItem.groupRef.userData;
+            // <-- mismo fallback aquí
+            ud.intersecciones = (ud.intersecciones ?? []).filter(i => !i.previsualization);
+        }
+
+        setVersion(v => v + 1);
+    }
+
+    function findNeighbors(items, keyFn, target) {
+        const sorted = [...items].sort((a, b) => keyFn(a) - keyFn(b));
+        let prev = null, next = null;
+        for (const item of sorted) {
+            const v = keyFn(item);
+            if (v < target) prev = item;
+            else if (v > target && next === null) next = item;
+        }
+        return [prev, next];
+    }
+
+    function getHorizontalRange(horizontal, verticals) {
+        const x0 = horizontal.position.x;         // centro de tu horizontal
+
+        // encuentra el vertical inmediatamente a la izquierda y
+        // el vertical inmediatamente a la derecha de x0
+        const [leftV, rightV] = findNeighbors(
+            verticals,
+            v => v.position.x,
+            x0
+        );
+
+        // si no hay vertical a la izquierda, se asume el borde 0
+        const leftX  = leftV  ? leftV.position.x : 0;
+        // si no hay vertical a la derecha, se asume el borde 1
+        const rightX = rightV ? rightV.position.x : 1;
+
+        // si quieres descontar el grosor de la tabla:
+        // const half = horizontal.userData.espesor / 2 / dimensiones.width;
+        // return [leftX + half, rightX - half];
+
+        return [leftX, rightX];
+    }
+
+    function getVerticalRange(vertical, horizontals) {
+        const y0 = vertical.position.y;
+
+        let downY  = 0;
+        let upY = 1;
+
+        horizontals.forEach(h => {
+            const hy = h.position.y;
+            if (hy < y0) downY  = Math.max(downY,  hy);
+            if (hy >= y0) upY = Math.min(upY, hy);
+        });
+
+        return [upY, downY];
+    }
+
+    const idleTimeRef = useRef(0);
+    const lastTimestampRef = useRef(null);
+    const previewCreatedRef = useRef(false);
+
     const [{isOver}, drop] = useDrop(() => ({
         accept: "INTERSECTION",
-        drop: (item, monitor) => {
-            const clientOffset = monitor.getClientOffset();
-            const gl = glRef.current;
-            const camera = cameraRef.current;
+        hover(item, monitor) {
+            if (!refItem?.groupRef) return;
 
-            if (!clientOffset || !gl || !camera || !ref?.groupRef) return;
-
-            const {x, y} = clientOffset;
-            const bounds = gl.domElement.getBoundingClientRect();
-            const mouse = new THREE.Vector2(
-                ((x - bounds.left) / bounds.width) * 2 - 1,
-                -((y - bounds.top) / bounds.height) * 2 + 1
-            );
-
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(mouse, camera);
-
-            const intersects = raycaster.intersectObject(ref.groupRef, true);
-
-            if (intersects.length > 0) {
-                const point = intersects[0].point;
-                const worldPosition = new THREE.Vector3(point.x, point.y, point.z);
-
-                ref.groupRef.updateMatrixWorld(true);
-                const localPosition = ref.groupRef.worldToLocal(worldPosition.clone());
-
-                const cascoWidth = ref?.width || 2;
-                const cascoHeight = ref?.height || 2;
-                const cascoDepth = ref?.depth || 2;
-                const espesor = ref?.espesor || 0.1;
-
-                let adjustedWidth = cascoWidth;
-                let adjustedHeight = cascoHeight;
-                let adjustedPosition = [localPosition.x, localPosition.y, localPosition.z];
-
-                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                    const relevantVerticals = droppedVerticalCubes.filter((cube) => {
-                        const cubeMinY = cube.relativePosition[1] * cascoHeight - (cube.relativeHeight * cascoHeight) / 2;
-                        const cubeMaxY = cube.relativePosition[1] * cascoHeight + (cube.relativeHeight * cascoHeight) / 2;
-                        return localPosition.y >= cubeMinY && localPosition.y <= cubeMaxY;
-                    });
-
-                    const verticalSections = relevantVerticals
-                        .map((cube) => cube.relativePosition[0] * cascoWidth)
-                        .sort((a, b) => a - b);
-
-                    const boundaries = [
-                        (-cascoWidth) / 2,
-                        ...verticalSections,
-                        (cascoWidth) / 2,
-                    ];
-
-                    // Determinar los límites
-                    let leftBoundary = boundaries
-                        .filter((pos) => pos < localPosition.x)
-                        .sort((a, b) => b - a)[0] || -cascoWidth / 2;
-                    let rightBoundary = boundaries
-                        .filter((pos) => pos > localPosition.x)
-                        .sort((a, b) => a - b)[0] || cascoWidth / 2;
-
-                    // Calcular el ancho y la posición sin ajustes adicionales
-                    adjustedWidth = (rightBoundary - leftBoundary); // Simplemente la distancia entre los límites
-                    adjustedPosition[0] = (leftBoundary + rightBoundary) / 2; // Punto medio entre los límites
-
-                    console.log("Horizontal Pos Y", localPosition.y, "Adjusted Position Y", adjustedPosition[1]);
-
-                    // Verificar si ya existe una sección en esta posición
-                    const existingSection = droppedHorizontalCubes.find((cube) => {
-                        const cubeX = cube.relativePosition[0] * cascoWidth;
-                        const cubeY = cube.relativePosition[1] * cascoHeight;
-                        const cubeWidth = cube.relativeWidth * cascoWidth;
-
-                        const cubeMinX = cubeX - cubeWidth / 2;
-                        const cubeMaxX = cubeX + cubeWidth / 2;
-
-                        const newMinX = adjustedPosition[0] - adjustedWidth / 2;
-                        const newMaxX = adjustedPosition[0] + adjustedWidth / 2;
-
-                        const sameY = Math.abs(cubeY - localPosition.y) < 0.1;
-                        const overlapsX = !(newMaxX <= cubeMinX || newMinX >= cubeMaxX);
-
-                        return sameY && overlapsX;
-                    });
-
-                    if (existingSection) {
-                        console.warn("Ya existe una sección horizontal en esta posición Y");
-                        return;
-                    }
-                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                    const relevantHorizontals = droppedHorizontalCubes.filter((cube) => {
-                        const cubeX = cube.relativePosition[0] * cascoWidth;
-                        const cubeWidth = cube.relativeWidth * cascoWidth;
-                        const cubeMinX = cubeX - cubeWidth / 2;
-                        const cubeMaxX = cubeX + cubeWidth / 2;
-                        return localPosition.x >= cubeMinX && localPosition.x <= cubeMaxX;
-                    });
-
-                    const horizontalSections = relevantHorizontals
-                        .map((cube) => cube.relativePosition[1] * cascoHeight)
-                        .sort((a, b) => a - b);
-
-                    const boundaries = [
-                        0,
-                        ...horizontalSections,
-                        cascoHeight,
-                    ];
-
-                    let bottomBoundary = boundaries
-                        .filter((pos) => pos < localPosition.y)
-                        .sort((a, b) => b - a)[0] || 0;
-                    let topBoundary = boundaries
-                        .filter((pos) => pos > localPosition.y)
-                        .sort((a, b) => a - b)[0] || cascoHeight;
-
-                    adjustedHeight = (topBoundary - bottomBoundary);
-                    adjustedPosition[1] = (bottomBoundary + topBoundary) / 2;
-
-                    const existingSection = droppedVerticalCubes.find((cube) => {
-                        const cubeX = cube.relativePosition[0] * cascoWidth;
-                        const cubeY = cube.relativePosition[1] * cascoHeight;
-                        const cubeHeight = cube.relativeHeight * cascoHeight;
-
-                        const cubeMinY = cubeY - cubeHeight / 2;
-                        const cubeMaxY = cubeY + cubeHeight / 2;
-
-                        const newMinY = adjustedPosition[1] - adjustedHeight / 2;
-                        const newMaxY = adjustedPosition[1] + adjustedHeight / 2;
-
-                        const sameX = Math.abs(cubeX - localPosition.x) < 0.1;
-                        const overlapsY = !(newMaxY <= cubeMinY || newMinY >= cubeMaxY);
-
-                        return sameX && overlapsY;
-                    });
-
-                    if (existingSection) {
-                        console.warn("Ya existe una sección vertical en esta posición X");
-                        return;
-                    }
+            if (!monitor.isOver({ shallow: true })) {
+                if (hoverTimeout.current) {
+                    clearTimeout(hoverTimeout.current);
+                    hoverTimeout.current = null;
+                    clearPreviewIntersections();
+                    previewCreatedRef.current = false;
+                    idleTimeRef.current = 0;
+                    lastTimestampRef.current = null;
                 }
+                lastClientOffset.current = null;
+                return;
+            }
 
-                const newCube = {
-                    id: Date.now(),
-                    relativePosition: [
-                        adjustedPosition[0] / cascoWidth,
-                        adjustedPosition[1] / cascoHeight,
-                        adjustedPosition[2] / cascoDepth
-                    ],
-                    relativeWidth: (item.type === INTERSECTION_TYPES.HORIZONTAL ? adjustedWidth : espesor) / cascoWidth,
-                    relativeHeight: (item.type === INTERSECTION_TYPES.VERTICAL ? adjustedHeight : espesor) / cascoHeight,
-                    relativeDepth: (cascoDepth - (ref?.traseroDentro ? ref?.retranqueoTrasero || 0 : 0)) / cascoDepth,
-                    color: item.color || "#8B4513",
-                };
+            const clientOffset = monitor.getClientOffset();
+            if (!clientOffset) return;
 
-                if (item.type === INTERSECTION_TYPES.HORIZONTAL) {
-                    setDroppedHorizontalCubes((prev) => [...prev, newCube]);
-                } else if (item.type === INTERSECTION_TYPES.VERTICAL) {
-                    setDroppedVerticalCubes((prev) => [...prev, newCube]);
+            const prev = lastClientOffset.current;
+            if (
+                !prev ||
+                prev.x !== clientOffset.x ||
+                prev.y !== clientOffset.y
+            ) {
+                clearPreviewIntersections();
+                previewCreatedRef.current = false;
+                idleTimeRef.current = 0;
+                lastTimestampRef.current = null;
+                lastClientOffset.current = clientOffset;
+            }
+            else{
+                const now = performance.now();
+                if (lastTimestampRef.current == null) {
+                    lastTimestampRef.current = now;
+                }
+                const deltaTime = (now - lastTimestampRef.current) / 1000;
+                idleTimeRef.current += deltaTime;
+                lastTimestampRef.current = now;
+
+                if (idleTimeRef.current >= .01 && !previewCreatedRef.current) {
+                    previewCreatedRef.current = true;
+                    createIntersect(item,monitor,true)
                 }
             }
+
+            if (hoverTimeout.current) {
+                clearTimeout(hoverTimeout.current);
+                clearPreviewIntersections();
+                previewCreatedRef.current = false;
+                idleTimeRef.current = 0;
+                lastTimestampRef.current = null;
+            }
+
+
+        },
+        drop: (item, monitor) => {
+
+            if (hoverTimeout.current) {
+                   clearTimeout(hoverTimeout.current);
+                   hoverTimeout.current = null;
+            }
+            if (!previewCreatedRef.current) {
+                createIntersect(item, monitor);
+            } else {
+                revertPreviewIntersections();
+            }
+            previewCreatedRef.current = false;
+            idleTimeRef.current = 0;
+            lastTimestampRef.current = null;
+
+
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
         }),
-    }), [ref, droppedHorizontalCubes, droppedVerticalCubes]);
+    }), [refItem, cascoInstances]);
 
-    // Handle Casco selection on click
-    const handleCascoClick = (cascoId, event) => {
-        // Stop event propagation
-        event.stopPropagation();
-        setSelectedCasco(cascoId);
-    };
+
+    function createIntersect(item, monitor, previsualization = false) {
+        // 1) Coordenadas del ratón + raycast UV
+        const offset = monitor.getClientOffset();
+        const gl     = glRef.current;
+        const camera = cameraRef.current;
+        const ref    = refItem?.groupRef;
+        if (!offset || !gl || !camera || !ref) return;
+
+        const bounds = gl.domElement.getBoundingClientRect();
+        const mouse  = new THREE.Vector2(
+            ((offset.x - bounds.left) / bounds.width) * 2 - 1,
+            -((offset.y - bounds.top)  / bounds.height)* 2 + 1
+        );
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera(mouse, camera);
+        const hit = ray.intersectObject(ref, true)[0];
+        if (!hit?.uv) return;
+        const rawX = hit.uv.x;
+        const rawY = hit.uv.y;
+
+        // 2) Ordenar cronológicamente las previas
+        const prev = cascoInstances[ref.name]?.intersecciones || [];
+        const sorted = prev
+            .map((i, idx) => ({ i, idx }))
+            .sort((a, b) => {
+                const tA = a.i.createdAt.getTime(),
+                    tB = b.i.createdAt.getTime();
+                return tA !== tB ? tA - tB : a.idx - b.idx;
+            })
+            .map(o => o.i);
+
+        const isHoriz = item.type === INTERSECTION_TYPES.HORIZONTAL;
+        const orient = isHoriz
+            ? Orientacion.Horizontal
+            : Orientacion.Vertical;
+
+        const verticals   = sorted.filter(i => i.orientation === Orientacion.Vertical);
+        const horizontals = sorted.filter(i => i.orientation === Orientacion.Horizontal);
+
+        const validHorizontals = horizontals.filter(h => {
+            const [lX, rX] = getHorizontalRange(h, verticals);
+            return rawX >= lX && rawX <= rX;
+        });
+
+        const validVerticals = verticals.filter(v => {
+            const [uY, dY] = getVerticalRange(v, horizontals);
+            return rawY >= dY && rawY <= uY;
+        });
+
+        let piezasAdyacientes, piezasLimitantes;
+        if (orient === Orientacion.Horizontal) {
+            piezasAdyacientes = findNeighbors(verticals, v => v.position.x, rawX);
+            piezasLimitantes   = findNeighbors(validHorizontals, h => h.position.y, rawY);
+        } else {
+            piezasAdyacientes = findNeighbors(horizontals, h => h.position.y, rawY);
+            piezasLimitantes   = findNeighbors(validVerticals, v => v.position.x, rawX);
+        }
+
+        let posX = rawX;
+        let posY = rawY;
+
+//        console.log('antes',posX, posY);
+
+        if(piezasLimitantes[0] != null && piezasLimitantes[1] != null){
+            if(orient === Orientacion.Horizontal) {
+                posY = (piezasLimitantes[0].position.y+piezasLimitantes[1].position.y) / 2;
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posX = (piezasAdyacientes[0].position.x+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posX = piezasAdyacientes[1].position.x/2;
+                }
+                else{
+                    posX = 0.5;
+                }
+            }else {
+                posX = (piezasLimitantes[0].position.x+piezasLimitantes[1].position.x) / 2
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posY = (piezasAdyacientes[0].position.y+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posY = piezasAdyacientes[1].position.y/2;
+                }
+                else{
+                    posY = 0.5;
+                }
+            }
+        }
+        else if (piezasLimitantes[0] != null && piezasLimitantes[1] === null){
+            if(orient === Orientacion.Horizontal) {
+                posY = (piezasLimitantes[0].position.y+1)/2;
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posX = (piezasAdyacientes[0].position.x+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posX = piezasAdyacientes[1].position.x/2;
+                }
+                else{
+                    posX = 0.5;
+                }
+            }
+            else {
+                posX = (piezasLimitantes[0].position.x+1) / 2
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posY = (piezasAdyacientes[0].position.y+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posY = piezasAdyacientes[1].position.y/2;
+                }
+                else{
+                    posY = 0.5;
+                }
+            }
+        }
+        else if(piezasLimitantes[1] != null && piezasLimitantes[0] === null){
+            if(orient === Orientacion.Horizontal) {
+                posY = piezasLimitantes[1].position.y/2;
+                console.log(posY)
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posX = (piezasAdyacientes[0].position.x+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posX = piezasAdyacientes[1].position.x/2;
+                }
+                else{
+                    posX = 0.5;
+                }
+
+
+            }
+            else {
+                posX = piezasLimitantes[1].position.x / 2
+
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posY = (piezasAdyacientes[0].position.y+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posY = piezasAdyacientes[1].position.y/2;
+                }
+                else{
+                    posY = 0.5;
+                }
+            }
+        }
+        else {
+            if(orient === Orientacion.Horizontal) {
+                posY = 0.5;
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posX = (piezasAdyacientes[0].position.x+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posX = piezasAdyacientes[1].position.x/2;
+                }
+                else{
+                    posX = 0.5;
+                }
+            }
+            else {
+                posX = 0.5;
+                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
+                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
+                }
+                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
+                    posY = (piezasAdyacientes[0].position.y+1)/2;
+                }
+                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
+                    posY = piezasAdyacientes[1].position.y/2;
+                }
+                else{
+                    posY = 0.5;
+                }
+            }
+        }
+
+       // console.log('despues', posX, posY);
+        console.log("Adyacientes",piezasAdyacientes)
+        console.log("Limitantes",piezasLimitantes)
+
+        const nueva = new InterseccionMueble(
+            { x: posX, y: posY },
+            orient,
+            previsualization,
+            undefined,               // createdAt (se genera dentro)
+            piezasAdyacientes,
+            piezasLimitantes
+        );
+
+        // 7) Actualizar estado y userData
+        setCascoInstances(prev => ({
+            ...prev,
+            [ref.name]: {
+                ...prev[ref.name],
+                intersecciones: [...(prev[ref.name].intersecciones||[]), nueva]
+            }
+        }));
+        ref.userData.intersecciones = [
+            ...(ref.userData.intersecciones||[]),
+            nueva
+        ];
+        setVersion(v => v + 1);
+    }
+
 
     const interfaceComponents = {
         "Casco": (
             <CascoInterface
+                key={refItem?.groupRef?.uuid || "default"}
                 show={transformEnabled}
                 setShow={setTransformEnabled}
                 mode={transformMode}
@@ -513,6 +633,33 @@ export const Experience = () => {
         ),
         "Casco Secciones": (
             <CascoInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
+            />
+        ),
+        "Aparador": (
+            <AparadorInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
+            />
+        ),
+        "Armario": (
+            <ArmarioInterface
+                show={transformEnabled}
+                setShow={setTransformEnabled}
+                mode={transformMode}
+                setMode={setTransformMode}
+                scaleDimensions={scaleDimensions}
+            />
+        ),
+        "Bodeguero": (
+            <ArmarioInterface
                 show={transformEnabled}
                 setShow={setTransformEnabled}
                 mode={transformMode}
@@ -524,85 +671,230 @@ export const Experience = () => {
 
     const itemComponents = {
         "Casco": (
-            <group ref={parentGroupRef}>
-                <CascoWithContext
-                    ref={casco1Ref}
-                    rotation={[0, Math.PI, 0]}
-                    patas={[<Pata height={1}/>]}
-                    puertas={[<Puerta/>]}
-                    seccionesHorizontales={droppedHorizontalCubes}
-                    seccionesVerticales={droppedVerticalCubes}
-                    onClick={(e) => handleCascoClick('casco1', e)}
-                />
-                <Casco
-                    ref={casco2Ref}
-                    position={[5, 0, 0]}
-                    rotation={[0, Math.PI, 0]}
-                    patas={[<Pata height={1}/>]}
-                    puertas={[<Puerta/>]}
-                    seccionesHorizontales={droppedHorizontalCubes}
-                    seccionesVerticales={droppedVerticalCubes}
-                    onClick={(e) => handleCascoClick('casco2', e)}
-                />
-            </group>
+            <>
+                {Object.values(cascoInstances)
+                    .filter((casco) => ["casco1", "casco2", "casco3"].includes(casco.id))
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Casco
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                intersecciones={casco.intersecciones}
+                            />
+                        </group>
+                    ))}
+            </>
         ),
-        "Casco Secciones": (
-            <group ref={parentGroupRef}>
-                <CascoSeccionesAutomaticasWithContext
-                    ref={casco1Ref}
-                    rotation={[0, Math.PI, 0]}
-                    patas={[<Pata height={1}/>]}
-                    puertas={[<Puerta/>]}
-                />
-            </group>
+        "Aparador": (
+            <>
+                {Object.values(cascoInstances)
+                    .filter((casco) => casco.id === "casco4")
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Aparador
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                indicePuerta={-1}
+                                indicePata={0}
+                            />
+                        </group>
+                    ))}
+            </>
         ),
+        "Armario": (
+            <>
+                {Object.values(cascoInstances)
+                    .filter((casco) => casco.id === "casco5")
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Armario
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                intersecciones={casco.intersecciones}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                indicePuerta={-1}
+                                indicePata={0}
+                            />
+                        </group>
+                    ))}
+            </>
+        ),
+        "Bodeguero": (
+            <>
+                {Object.values(cascoInstances)
+                    .filter((casco) => casco.id === "casco6")
+                    .map((casco) => (
+                        <group key={casco.id}>
+                            <Bodeguero
+                                key={casco.id}
+                                id={casco.id}
+                                position={casco.position}
+                                rotation={casco.rotation}
+                                {...casco.userData}
+                                intersecciones={casco.intersecciones}
+                                patas={casco.patas}
+                                puertas={casco.puertas}
+                                onClick={handleCascoClick}
+                                version={version}
+                                indicePuerta={0}
+                                indicePata={0}
+                            />
+                        </group>
+                    ))}
+            </>
+        ),
+
     };
 
-    // Get the currently active transform object
-    const getActiveTransformObject = () => {
-        if (refPiece.length > 1) {
-            return selectionGroupRef.current;
-        } else if (refPiece.length === 1) {
-            return refPiece[0];
-        } else {
-            const targetRef = selectedCasco === 'casco1' ? casco1Ref.current :
-                (selectedCasco === 'casco2' ? casco2Ref.current : null);
-            return targetRef || parentGroupRef.current;
-        }
-    };
+// justo encima de `export const Experience = () => { … }`
+    function IntersectionOverlayController({ setOverlayData }) {
+        const { refPiece } = useSelectedPieceProvider();
+        const { camera, size } = useThree(); // sólo los lee, no los mete como deps
+
+        useEffect(() => {
+            if (refPiece?.userData.isInterseccion) {
+                // 1. calcula posición 3D → NDC → píxeles
+                const worldPos = new THREE.Vector3();
+                refPiece.getWorldPosition(worldPos);
+                const ndc = worldPos.clone().project(camera);
+                const x = (ndc.x * 0.5 + 0.5) * size.width;
+                const y = (-ndc.y * 0.5 + 0.5) * size.height;
+
+                // 2. datos de overlay
+                const orientation = refPiece.userData.orientation || 'horizontal';
+                const placement = orientation === 'vertical' ? 'right' : 'top';
+                const newData = {
+                    isVisible: true,
+                    overlayPositions: {
+                        primary: { x, y, placement },
+                        secondary: { x: x + 10, y: y + 10, placement }
+                    },
+                    intersectionData: {
+                        id: refPiece.uuid,
+                        originalIndex: refPiece.userData.originalIndex ?? 0,
+                        position: {
+                            x: refPiece.userData.positionX ?? worldPos.x,
+                            y: refPiece.userData.positionY ?? worldPos.y
+                        },
+                        orientation,
+                        createdAt: refPiece.userData.createdAt ?? new Date(),
+                        dimensions: {
+                            width:  refPiece.userData.widthExtra  ?? 0,
+                            height: refPiece.userData.heightExtra ?? 0,
+                            depth:  refPiece.userData.depthExtra  ?? 0
+                        }
+                    }
+                };
+
+                // 3. sólo setea si realmente cambia algo
+                setOverlayData(prev => {
+                    const pp = prev.overlayPositions?.primary;
+                    if (
+                        prev.isVisible
+                        && prev.intersectionData?.id === newData.intersectionData.id
+                        && pp && Math.abs(pp.x - x) < 1 && Math.abs(pp.y - y) < 1
+                        && pp.placement === placement
+                    ) {
+                        return prev; // nada que actualizar
+                    }
+                    return newData;
+                });
+            } else {
+                // si no hay pieza o ya no es intersección, ocultamos sólo si estaba visible
+                setOverlayData(prev => {
+                    if (!prev.isVisible) return prev;
+                    return { ...prev, isVisible: false };
+                });
+            }
+        }, [refPiece]); // 🔥 sólo refPiece aquí
+
+        return null;
+    }
+
+    const [overlayData, setOverlayData] = useState({
+        isVisible: false,
+        overlayPositions: null,
+        intersectionData: null
+    });
 
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [4, 4, -12], fov: 35}}>
+            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
+                    onPointerMissed={(event) => {
+                        if(event.button === 2) return;
+                setRefPiece(null);
+                setRefCajon(null);
+                setRefItem(null);
+            }}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
-                <Stage intensity={5} environment={null} shadows="contact" adjustCamera={false}>
-                    <Environment files={"/images/poly_haven_studio_4k.hdr"}/>
-                    {itemComponents[selectedItem]}
-                </Stage>
-                {transformEnabled && (
-                    <TransformControls
-                        ref={transformRef}
-                        mode={transformMode}
-                        onMouseUp={saveTransformState}
+                <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={1}>
+                    <directionalLight
+                        castShadow
+                        position={[5, 5, 5]}
+                        intensity={4}
                     />
+                    {itemComponents[selectedItem]}
+
+                </Stage>
+                {transformEnabled && refItem && (
+                    <TransformControls ref={transformRef} object={refPiece ? refPiece : refItem.groupRef}
+                                       mode={transformMode}/>
                 )}
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
+
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+
+                <IntersectionOverlayController setOverlayData={setOverlayData} />
             </Canvas>
             {interfaceComponents[selectedItem]}
+
+            <IntersectionOverlay
+                isVisible={overlayData.isVisible}
+                overlayPositions={overlayData.overlayPositions}
+                intersectionData={overlayData.intersectionData}
+            />
+
+
+            {refPiece && (
+                <ChildItemConfigurationInterface
+                    title="Tabla Configurator"
+                    show={true}
+                    setShow={true}
+                    mode={transformMode}
+                    setMode={setTransformMode}
+                >
+                    <TablaConfigContent/>
+                </ChildItemConfigurationInterface>
+            )}
+
+            {refCajon && (
+                <ChildItemConfigurationInterface title="Cajon Configurator">
+                    <CajonConfigContent/>
+                </ChildItemConfigurationInterface>
+            )}
+
+
             <RoomConfigPanel/>
-            {/* UI indicator para mostrar cuál Casco está seleccionado */}
-            <div style={{
-                position: 'absolute',
-                bottom: '10px',
-                left: '10px',
-                background: 'rgba(0,0,0,0.5)',
-                color: 'white',
-                padding: '5px 10px',
-                borderRadius: '4px'
-            }}>
-                Seleccionado: {selectedCasco === 'casco1' ? 'Primer Casco' : 'Segundo Casco'}
-            </div>
         </>
     );
 };
