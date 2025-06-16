@@ -305,14 +305,6 @@ const Tabla: React.FC<TablaProps> = ({
         return geometry;
     };
 
-    // Dentro de Tabla:
-    React.useEffect(() => {
-        const posArr = positionExtra as [number, number, number];
-        if (ref.current && posArr) {
-            ref.current.position.set(posArr[0], posArr[1], posArr[2]);
-        }
-    }, [positionExtra]);
-
     return (
         <>
 
