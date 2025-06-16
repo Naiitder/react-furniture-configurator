@@ -16,6 +16,7 @@ type TablaProps = {
     insideRef: React.Ref<any>;
     ref?: React.Ref<any>;
     position: [number, number, number];
+    positionExtra?: [number, number, number];
     rotation?: [number, number, number];
     width: number;
     widthExtra?: number;
@@ -42,6 +43,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          insideRef,
                                          ref = useRef<any>(null),
                                          position,
+    positionExtra,
                                          rotation = [0, 0, 0],
                                          espesorBase,
                                          width,
@@ -64,12 +66,14 @@ const Tabla: React.FC<TablaProps> = ({
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
     const initialData = {
+        positionExtra: position,
         widthExtra,
         heightExtra,
         depthExtra,
         espesor: espesorBase,
         isInterseccion: isInterseccion,
     };
+
 
     useEffect(() => {
         if (ref.current && Object.keys(ref.current.userData).length === 0) {
@@ -80,6 +84,7 @@ const Tabla: React.FC<TablaProps> = ({
     useEffect(() => {
         if (ref.current) {
             ref.current.userData = {
+                positionExtra: position,
                 widthExtra,
                 heightExtra,
                 depthExtra,
@@ -87,9 +92,10 @@ const Tabla: React.FC<TablaProps> = ({
                 isInterseccion: isInterseccion,
             };
         }
-    }, [widthExtra, heightExtra, depthExtra, espesorBase]);
+    }, [positionExtra, widthExtra, heightExtra, depthExtra, espesorBase]);
 
     const [extra, setExtra] = useState({
+        positionExtra: position,
         widthExtra: 0,
         heightExtra: 0,
         depthExtra: 0,
@@ -100,10 +106,12 @@ const Tabla: React.FC<TablaProps> = ({
     useEffect(() => {
         if (refPiece && refPiece === ref.current && refPiece.userData) {
             setExtra({
+                positionExtra: refPiece.userData.positionExtra || position,
                 widthExtra: refPiece.userData.widthExtra || 0,
                 heightExtra: refPiece.userData.heightExtra || 0,
                 depthExtra: refPiece.userData.depthExtra || 0,
-                espesor: refPiece.userData.espesor || espesorBase
+                espesor: refPiece.userData.espesor || espesorBase,
+                isinterseccion: refPiece.userData.isInterseccion || isInterseccion,
             });
         }
     }, [refPiece, version]);
@@ -112,6 +120,8 @@ const Tabla: React.FC<TablaProps> = ({
     height = height + extra.heightExtra;
     depth = depth + extra.depthExtra;
     espesorBase = extra.espesor;
+
+    position = extra.positionExtra;
 
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
     // Solo para frontal

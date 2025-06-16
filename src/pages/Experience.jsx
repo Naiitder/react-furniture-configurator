@@ -26,6 +26,7 @@ import Bodeguero from "../components/Armario/Bodeguero.js";
 import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import IntersectionOverlay from "../components/InterseccionOverlay.js";
+import InterseccionConfigContent from "../components/Casco/InterseccionInterface.jsx";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -47,7 +48,6 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
             if (refItem) {
                 const intersects = raycaster.intersectObject(refItem.groupRef, true);
                 if (intersects.length > 0) {
-                    console.log(intersects[0]);
                 }
             }
         };
@@ -853,6 +853,7 @@ export const Experience = () => {
         intersectionData: null
     });
 
+
     return (
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
@@ -890,8 +891,8 @@ export const Experience = () => {
                 intersectionData={overlayData.intersectionData}
             />
 
+            {refPiece && !refPiece.userData.isInterseccion && (
 
-            {refPiece && (
                 <ChildItemConfigurationInterface
                     title="Tabla Configurator"
                     show={true}
@@ -902,6 +903,20 @@ export const Experience = () => {
                     <TablaConfigContent/>
                 </ChildItemConfigurationInterface>
             )}
+
+            {refPiece && refPiece.userData.isInterseccion && (
+
+                <ChildItemConfigurationInterface
+                    title="Interseccion Configurator"
+                    show={true}
+                    setShow={true}
+                    mode={transformMode}
+                    setMode={setTransformMode}
+                >
+                    <InterseccionConfigContent/>
+                </ChildItemConfigurationInterface>
+            )}
+
 
             {refCajon && (
                 <ChildItemConfigurationInterface title="Cajon Configurator">
