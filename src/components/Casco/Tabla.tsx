@@ -7,6 +7,7 @@ import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 import {useSelectedCajonProvider} from "../../contexts/SelectedCajonProvider"
 import {Edges} from "@react-three/drei";
+import {Orientacion, Posicion} from "../Interseccion";
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
@@ -36,6 +37,8 @@ type TablaProps = {
     bordeEjeZ?: boolean;
     orientacionBordeZ?: "vertical" | "front";
     isInterseccion?: boolean;
+    piezasAdyacientesData?: { position: Posicion; orientation: Orientacion; createdAt: number }[];
+    piezasLimitantesData?: { position: Posicion; orientation: Orientacion; createdAt: number }[];
 }
 
 const Tabla: React.FC<TablaProps> = ({
@@ -61,17 +64,22 @@ const Tabla: React.FC<TablaProps> = ({
                                          disableAdjustedWidth = false,
                                          stopPropagation = true,
                                          isInterseccion = false,
+    piezasLimitantesData,
+    piezasAdyacientesData,
+
                                      }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
     const initialData = {
-        positionExtra: position,
+        positionExtra:  position,
         widthExtra,
         heightExtra,
         depthExtra,
         espesor: espesorBase,
         isInterseccion: isInterseccion,
+        piezasAdyacientes: piezasAdyacientesData || [],
+        piezasLimitantes: piezasLimitantesData || [],
     };
 
 
@@ -84,23 +92,51 @@ const Tabla: React.FC<TablaProps> = ({
     useEffect(() => {
         if (ref.current) {
             ref.current.userData = {
-                positionExtra: position,
+                positionExtra:  position,
                 widthExtra,
                 heightExtra,
                 depthExtra,
                 espesor: espesorBase,
                 isInterseccion: isInterseccion,
+
             };
         }
-    }, [positionExtra, widthExtra, heightExtra, depthExtra, espesorBase]);
+    }, [positionExtra, widthExtra, heightExtra, depthExtra, espesorBase,  piezasAdyacientesData, piezasLimitantesData]);
+
+    useEffect(() => {
+        if (!ref.current) return;
+
+        const data = ref.current.userData || {};
+        const isSame =
+            JSON.stringify(data.positionExtra) === JSON.stringify(position) &&
+            data.widthExtra === widthExtra &&
+            data.heightExtra === heightExtra &&
+            data.depthExtra === depthExtra &&
+            data.espesor === espesorBase;
+
+        if (!isSame) {
+            ref.current.userData = {
+                ...data,
+                positionExtra: position,
+                widthExtra,
+                heightExtra,
+                depthExtra,
+                espesor: espesorBase,
+                piezasAdyacientes: piezasAdyacientesData || [],
+                piezasLimitantes: piezasLimitantesData || [],
+            };
+        }
+    }, [position, widthExtra, heightExtra, depthExtra, espesorBase, piezasAdyacientesData, piezasLimitantesData]);
 
     const [extra, setExtra] = useState({
-        positionExtra: position,
+        positionExtra:  position,
         widthExtra: 0,
         heightExtra: 0,
         depthExtra: 0,
         espesor: espesorBase,
         isinterseccion: isInterseccion,
+        piezasAdyacientes: piezasAdyacientesData || [],
+        piezasLimitantes: piezasLimitantesData || [],
     });
 
     useEffect(() => {
@@ -112,6 +148,8 @@ const Tabla: React.FC<TablaProps> = ({
                 depthExtra: refPiece.userData.depthExtra || 0,
                 espesor: refPiece.userData.espesor || espesorBase,
                 isinterseccion: refPiece.userData.isInterseccion || isInterseccion,
+                piezasAdyacientes: piezasAdyacientesData || [],
+                piezasLimitantes: piezasLimitantesData || [],
             });
         }
     }, [refPiece, version]);
@@ -266,6 +304,14 @@ const Tabla: React.FC<TablaProps> = ({
 
         return geometry;
     };
+
+    // Dentro de Tabla:
+    React.useEffect(() => {
+        const posArr = positionExtra as [number, number, number];
+        if (ref.current && posArr) {
+            ref.current.position.set(posArr[0], posArr[1], posArr[2]);
+        }
+    }, [positionExtra]);
 
     return (
         <>

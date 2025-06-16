@@ -809,8 +809,8 @@ export const Experience = () => {
                         id: refPiece.uuid,
                         originalIndex: refPiece.userData.originalIndex ?? 0,
                         position: {
-                            x: refPiece.userData.positionX ?? worldPos.x,
-                            y: refPiece.userData.positionY ?? worldPos.y
+                            x: refPiece.userData.positionX ?? refPiece.position.x,
+                            y: refPiece.userData.positionY ?? refPiece.position.y
                         },
                         orientation,
                         createdAt: refPiece.userData.createdAt ?? new Date(),

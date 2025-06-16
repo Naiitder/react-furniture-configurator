@@ -21,7 +21,7 @@ export default class InterseccionMueble {
         this.orientation = orientation;
         this.previsualization = previsualization ?? false;
         this.createdAt = createdAt ?? new Date();
-        this.piezasAdyacientes = piezasAdyacientes ?? null;
-        this.piezasLimitantes = piezasLimitantes ?? null;
+        this.piezasAdyacientes = piezasAdyacientes ?? [];
+        this.piezasLimitantes = piezasLimitantes ?? [];
     }
 }
