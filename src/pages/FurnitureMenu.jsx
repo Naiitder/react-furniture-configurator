@@ -26,7 +26,7 @@ const furnitureItems = {
 };
 
 export const FurnitureMenu = () => {
-    const {selectedCategory, setSelectedCategory} = useState("sofas");
+    const [selectedCategory, setSelectedCategory] = useState("sofas");
     const categoryRefs = useRef({});
     const observer = useRef(null);
 
