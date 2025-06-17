@@ -320,7 +320,7 @@ export const Experience = () => {
                 if (hoverTimeout.current) {
                     clearTimeout(hoverTimeout.current);
                     hoverTimeout.current = null;
-                    clearPreviewIntersections();
+                    clearPreviewIntersections();ƒ
                     previewCreatedRef.current = false;
                     idleTimeRef.current = 0;
                     lastTimestampRef.current = null;
@@ -743,9 +743,9 @@ export const Experience = () => {
         const { camera, size } = useThree();
         const lastUpdateTime = useRef(0);
         const lastPosition = useRef({ x: 0, y: 0 });
-        // const stableDataRef = useRef(null); // <-- ELIMINAMOS ESTA REF
 
         useFrame((state) => {
+
             const now = state.clock.elapsedTime;
             const shouldBeVisible = refPiece != null && refPiece.userData.isInterseccion;
 
@@ -790,12 +790,12 @@ export const Experience = () => {
                     primary: {
                         x: Math.round(x),
                         y: Math.round(y),
-                        placement: refPiece.userData.orientation === 'vertical' ? 'right' : 'top'
+                        placement: refPiece.userData.orientation === 'vertical' ? 'left' : 'top'
                     },
                     secondary: {
-                        x: Math.round(x + 10),
-                        y: Math.round(y + 10),
-                        placement: refPiece.userData.orientation === 'vertical' ? 'right' : 'top'
+                        x: Math.round(x),
+                        y: Math.round(y),
+                        placement: refPiece.userData.orientation === 'vertical' ? 'right' : 'bottom'
                     }
                 },
                 intersectionData: {
@@ -811,7 +811,8 @@ export const Experience = () => {
                         width: refPiece.userData.widthExtra ?? 0,
                         height: refPiece.userData.heightExtra ?? 0,
                         depth: refPiece.userData.depthExtra ?? 0
-                    }
+                    },
+                    shootRaycasts: refPiece.userData.shootRaycasts
                 }
             };
 
