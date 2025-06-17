@@ -34,7 +34,9 @@ type TablaProps = {
     bordeEjeY?: boolean;
     bordeEjeZ?: boolean;
     orientacionBordeZ?: "vertical" | "front";
+
     isInterseccion?: boolean;
+    orientation?: "vertical" | "horizontal";
 }
 
 const Tabla: React.FC<TablaProps> = ({
@@ -59,6 +61,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          disableAdjustedWidth = false,
                                          stopPropagation = true,
                                          isInterseccion = false,
+                                         orientation
                                      }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
@@ -69,6 +72,7 @@ const Tabla: React.FC<TablaProps> = ({
         depthExtra,
         espesor: espesorBase,
         isInterseccion: isInterseccion,
+        orientation: orientation,
     };
 
     useEffect(() => {
@@ -91,6 +95,7 @@ const Tabla: React.FC<TablaProps> = ({
                 depthExtra,
                 espesor: espesorBase,
                 isInterseccion: isInterseccion,
+                orientation: orientation,
             };
         }
     }, [widthExtra, heightExtra, depthExtra, espesorBase]);
@@ -101,6 +106,7 @@ const Tabla: React.FC<TablaProps> = ({
         depthExtra: 0,
         espesor: espesorBase,
         isinterseccion: isInterseccion,
+        orientation: orientation,
     });
 
     useEffect(() => {
@@ -109,7 +115,9 @@ const Tabla: React.FC<TablaProps> = ({
                 widthExtra: refPiece.userData.widthExtra || 0,
                 heightExtra: refPiece.userData.heightExtra || 0,
                 depthExtra: refPiece.userData.depthExtra || 0,
-                espesor: refPiece.userData.espesor || espesorBase
+                espesor: refPiece.userData.espesor || espesorBase,
+                isinterseccion: refPiece.userData.isinterseccion || isInterseccion,
+                orientation: refPiece.userData.orientation || orientation,
             });
         }
     }, [refPiece, version]);
@@ -257,10 +265,10 @@ const Tabla: React.FC<TablaProps> = ({
         // 5. Mostrar todos los resultados en la consola para depurar
         console.log(`--- Raycast Results for: ${ref.current.uuid} ---`);
         console.log({
-            arriba: upHits.map(hit => hit.object.uuid)[0],
-            abajo: downHits.map(hit => hit.object.uuid)[0],
-            derecha: rightHits.map(hit => hit.object.uuid)[0],
-            izquierda: leftHits.map(hit => hit.object.uuid)[0]
+            arriba: upHits.map(hit => hit.object)[0],
+            abajo: downHits.map(hit => hit.object)[0],
+            derecha: rightHits.map(hit => hit.object)[0],
+            izquierda: leftHits.map(hit => hit.object)[0]
         });
         console.log("-----------------------------------------");
     };

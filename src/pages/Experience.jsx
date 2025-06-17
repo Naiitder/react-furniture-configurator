@@ -179,7 +179,7 @@ export const Experience = () => {
                     };
                     refItem.groupRef.scale.set(1, 1, 1); // Resetear escala para evitar acumulaciones
                     setVersion((v) => v + 1);
-                } else if (transformMode === "translate" ) {
+                } else if (transformMode === "translate") {
                     console.log("MOVIENDO INTERSECCION")
                 }
             };
@@ -204,7 +204,7 @@ export const Experience = () => {
                     if (i.previsualization) {
                         // Creamos un nuevo objeto con el mismo createdAt
                         return new InterseccionMueble(
-                            { x: i.position.x, y: i.position.y },
+                            {x: i.position.x, y: i.position.y},
                             i.orientation,
                             false,            // previsualization -> false
                             i.createdAt       // conservamos la fecha original
@@ -280,7 +280,7 @@ export const Experience = () => {
         );
 
         // si no hay vertical a la izquierda, se asume el borde 0
-        const leftX  = leftV  ? leftV.position.x : 0;
+        const leftX = leftV ? leftV.position.x : 0;
         // si no hay vertical a la derecha, se asume el borde 1
         const rightX = rightV ? rightV.position.x : 1;
 
@@ -294,12 +294,12 @@ export const Experience = () => {
     function getVerticalRange(vertical, horizontals) {
         const y0 = vertical.position.y;
 
-        let downY  = 0;
+        let downY = 0;
         let upY = 1;
 
         horizontals.forEach(h => {
             const hy = h.position.y;
-            if (hy < y0) downY  = Math.max(downY,  hy);
+            if (hy < y0) downY = Math.max(downY, hy);
             if (hy >= y0) upY = Math.min(upY, hy);
         });
 
@@ -315,7 +315,7 @@ export const Experience = () => {
         hover(item, monitor) {
             if (!refItem?.groupRef) return;
 
-            if (!monitor.isOver({ shallow: true })) {
+            if (!monitor.isOver({shallow: true})) {
                 if (hoverTimeout.current) {
                     clearTimeout(hoverTimeout.current);
                     hoverTimeout.current = null;
@@ -342,8 +342,7 @@ export const Experience = () => {
                 idleTimeRef.current = 0;
                 lastTimestampRef.current = null;
                 lastClientOffset.current = clientOffset;
-            }
-            else{
+            } else {
                 const now = performance.now();
                 if (lastTimestampRef.current == null) {
                     lastTimestampRef.current = now;
@@ -354,7 +353,7 @@ export const Experience = () => {
 
                 if (idleTimeRef.current >= .01 && !previewCreatedRef.current) {
                     previewCreatedRef.current = true;
-                    createIntersect(item,monitor,true)
+                    createIntersect(item, monitor, true)
                 }
             }
 
@@ -371,8 +370,8 @@ export const Experience = () => {
         drop: (item, monitor) => {
 
             if (hoverTimeout.current) {
-                   clearTimeout(hoverTimeout.current);
-                   hoverTimeout.current = null;
+                clearTimeout(hoverTimeout.current);
+                hoverTimeout.current = null;
             }
             if (!previewCreatedRef.current) {
                 createIntersect(item, monitor);
@@ -394,15 +393,15 @@ export const Experience = () => {
     function createIntersect(item, monitor, previsualization = false) {
         // 1) Coordenadas del ratón + raycast UV
         const offset = monitor.getClientOffset();
-        const gl     = glRef.current;
+        const gl = glRef.current;
         const camera = cameraRef.current;
-        const ref    = refItem?.groupRef;
+        const ref = refItem?.groupRef;
         if (!offset || !gl || !camera || !ref) return;
 
         const bounds = gl.domElement.getBoundingClientRect();
-        const mouse  = new THREE.Vector2(
+        const mouse = new THREE.Vector2(
             ((offset.x - bounds.left) / bounds.width) * 2 - 1,
-            -((offset.y - bounds.top)  / bounds.height)* 2 + 1
+            -((offset.y - bounds.top) / bounds.height) * 2 + 1
         );
         const ray = new THREE.Raycaster();
         ray.setFromCamera(mouse, camera);
@@ -414,7 +413,7 @@ export const Experience = () => {
         // 2) Ordenar cronológicamente las previas
         const prev = cascoInstances[ref.name]?.intersecciones || [];
         const sorted = prev
-            .map((i, idx) => ({ i, idx }))
+            .map((i, idx) => ({i, idx}))
             .sort((a, b) => {
                 const tA = a.i.createdAt.getTime(),
                     tB = b.i.createdAt.getTime();
@@ -427,7 +426,7 @@ export const Experience = () => {
             ? Orientacion.Horizontal
             : Orientacion.Vertical;
 
-        const verticals   = sorted.filter(i => i.orientation === Orientacion.Vertical);
+        const verticals = sorted.filter(i => i.orientation === Orientacion.Vertical);
         const horizontals = sorted.filter(i => i.orientation === Orientacion.Horizontal);
 
         const validHorizontals = horizontals.filter(h => {
@@ -443,10 +442,10 @@ export const Experience = () => {
         let piezasAdyacientes, piezasLimitantes;
         if (orient === Orientacion.Horizontal) {
             piezasAdyacientes = findNeighbors(verticals, v => v.position.x, rawX);
-            piezasLimitantes   = findNeighbors(validHorizontals, h => h.position.y, rawY);
+            piezasLimitantes = findNeighbors(validHorizontals, h => h.position.y, rawY);
         } else {
             piezasAdyacientes = findNeighbors(horizontals, h => h.position.y, rawY);
-            piezasLimitantes   = findNeighbors(validVerticals, v => v.position.x, rawX);
+            piezasLimitantes = findNeighbors(validVerticals, v => v.position.x, rawX);
         }
 
         let posX = rawX;
@@ -454,149 +453,119 @@ export const Experience = () => {
 
 //        console.log('antes',posX, posY);
 
-        if(piezasLimitantes[0] != null && piezasLimitantes[1] != null){
-            if(orient === Orientacion.Horizontal) {
-                posY = (piezasLimitantes[0].position.y+piezasLimitantes[1].position.y) / 2;
+        if (piezasLimitantes[0] != null && piezasLimitantes[1] != null) {
+            if (orient === Orientacion.Horizontal) {
+                posY = (piezasLimitantes[0].position.y + piezasLimitantes[1].position.y) / 2;
 
-                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
-                }
-                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
-                    posX = (piezasAdyacientes[0].position.x+1)/2;
-                }
-                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
-                    posX = piezasAdyacientes[1].position.x/2;
-                }
-                else{
+                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
+                    posX = (piezasAdyacientes[0].position.x + piezasAdyacientes[1].position.x) / 2;
+                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
+                    posX = (piezasAdyacientes[0].position.x + 1) / 2;
+                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
+                    posX = piezasAdyacientes[1].position.x / 2;
+                } else {
                     posX = 0.5;
                 }
-            }else {
-                posX = (piezasLimitantes[0].position.x+piezasLimitantes[1].position.x) / 2
+            } else {
+                posX = (piezasLimitantes[0].position.x + piezasLimitantes[1].position.x) / 2
 
-                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
-                }
-                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
-                    posY = (piezasAdyacientes[0].position.y+1)/2;
-                }
-                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
-                    posY = piezasAdyacientes[1].position.y/2;
-                }
-                else{
+                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
+                    posY = (piezasAdyacientes[0].position.y + piezasAdyacientes[1].position.y) / 2;
+                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
+                    posY = (piezasAdyacientes[0].position.y + 1) / 2;
+                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
+                    posY = piezasAdyacientes[1].position.y / 2;
+                } else {
                     posY = 0.5;
                 }
             }
-        }
-        else if (piezasLimitantes[0] != null && piezasLimitantes[1] === null){
-            if(orient === Orientacion.Horizontal) {
-                posY = (piezasLimitantes[0].position.y+1)/2;
+        } else if (piezasLimitantes[0] != null && piezasLimitantes[1] === null) {
+            if (orient === Orientacion.Horizontal) {
+                posY = (piezasLimitantes[0].position.y + 1) / 2;
 
-                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
-                }
-                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
-                    posX = (piezasAdyacientes[0].position.x+1)/2;
-                }
-                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
-                    posX = piezasAdyacientes[1].position.x/2;
-                }
-                else{
+                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
+                    posX = (piezasAdyacientes[0].position.x + piezasAdyacientes[1].position.x) / 2;
+                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
+                    posX = (piezasAdyacientes[0].position.x + 1) / 2;
+                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
+                    posX = piezasAdyacientes[1].position.x / 2;
+                } else {
                     posX = 0.5;
                 }
-            }
-            else {
-                posX = (piezasLimitantes[0].position.x+1) / 2
+            } else {
+                posX = (piezasLimitantes[0].position.x + 1) / 2
 
-                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
-                }
-                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
-                    posY = (piezasAdyacientes[0].position.y+1)/2;
-                }
-                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
-                    posY = piezasAdyacientes[1].position.y/2;
-                }
-                else{
+                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
+                    posY = (piezasAdyacientes[0].position.y + piezasAdyacientes[1].position.y) / 2;
+                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
+                    posY = (piezasAdyacientes[0].position.y + 1) / 2;
+                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
+                    posY = piezasAdyacientes[1].position.y / 2;
+                } else {
                     posY = 0.5;
                 }
             }
-        }
-        else if(piezasLimitantes[1] != null && piezasLimitantes[0] === null){
-            if(orient === Orientacion.Horizontal) {
-                posY = piezasLimitantes[1].position.y/2;
+        } else if (piezasLimitantes[1] != null && piezasLimitantes[0] === null) {
+            if (orient === Orientacion.Horizontal) {
+                posY = piezasLimitantes[1].position.y / 2;
                 console.log(posY)
 
-                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
-                }
-                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
-                    posX = (piezasAdyacientes[0].position.x+1)/2;
-                }
-                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
-                    posX = piezasAdyacientes[1].position.x/2;
-                }
-                else{
+                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
+                    posX = (piezasAdyacientes[0].position.x + piezasAdyacientes[1].position.x) / 2;
+                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
+                    posX = (piezasAdyacientes[0].position.x + 1) / 2;
+                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
+                    posX = piezasAdyacientes[1].position.x / 2;
+                } else {
                     posX = 0.5;
                 }
 
 
-            }
-            else {
+            } else {
                 posX = piezasLimitantes[1].position.x / 2
 
-                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
-                }
-                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
-                    posY = (piezasAdyacientes[0].position.y+1)/2;
-                }
-                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
-                    posY = piezasAdyacientes[1].position.y/2;
-                }
-                else{
+                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
+                    posY = (piezasAdyacientes[0].position.y + piezasAdyacientes[1].position.y) / 2;
+                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
+                    posY = (piezasAdyacientes[0].position.y + 1) / 2;
+                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
+                    posY = piezasAdyacientes[1].position.y / 2;
+                } else {
                     posY = 0.5;
                 }
             }
-        }
-        else {
-            if(orient === Orientacion.Horizontal) {
+        } else {
+            if (orient === Orientacion.Horizontal) {
                 posY = 0.5;
-                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posX = (piezasAdyacientes[0].position.x+piezasAdyacientes[1].position.x) / 2;
-                }
-                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
-                    posX = (piezasAdyacientes[0].position.x+1)/2;
-                }
-                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
-                    posX = piezasAdyacientes[1].position.x/2;
-                }
-                else{
+                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
+                    posX = (piezasAdyacientes[0].position.x + piezasAdyacientes[1].position.x) / 2;
+                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
+                    posX = (piezasAdyacientes[0].position.x + 1) / 2;
+                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
+                    posX = piezasAdyacientes[1].position.x / 2;
+                } else {
                     posX = 0.5;
                 }
-            }
-            else {
+            } else {
                 posX = 0.5;
-                if(piezasAdyacientes[0] != null && piezasAdyacientes[1] != null){
-                    posY = (piezasAdyacientes[0].position.y+piezasAdyacientes[1].position.y) / 2;
-                }
-                else if(piezasAdyacientes[0] != null && piezasAdyacientes[1] === null){
-                    posY = (piezasAdyacientes[0].position.y+1)/2;
-                }
-                else if(piezasAdyacientes[1] != null && piezasAdyacientes[0] === null){
-                    posY = piezasAdyacientes[1].position.y/2;
-                }
-                else{
+                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
+                    posY = (piezasAdyacientes[0].position.y + piezasAdyacientes[1].position.y) / 2;
+                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
+                    posY = (piezasAdyacientes[0].position.y + 1) / 2;
+                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
+                    posY = piezasAdyacientes[1].position.y / 2;
+                } else {
                     posY = 0.5;
                 }
             }
         }
 
-       // console.log('despues', posX, posY);
-        console.log("Adyacientes",piezasAdyacientes)
-        console.log("Limitantes",piezasLimitantes)
+        // console.log('despues', posX, posY);
+        console.log("Adyacientes", piezasAdyacientes)
+        console.log("Limitantes", piezasLimitantes)
 
         const nueva = new InterseccionMueble(
-            { x: posX, y: posY },
+            {x: posX, y: posY},
             orient,
             previsualization,
             undefined,               // createdAt (se genera dentro)
@@ -609,11 +578,11 @@ export const Experience = () => {
             ...prev,
             [ref.name]: {
                 ...prev[ref.name],
-                intersecciones: [...(prev[ref.name].intersecciones||[]), nueva]
+                intersecciones: [...(prev[ref.name].intersecciones || []), nueva]
             }
         }));
         ref.userData.intersecciones = [
-            ...(ref.userData.intersecciones||[]),
+            ...(ref.userData.intersecciones || []),
             nueva
         ];
         setVersion(v => v + 1);
@@ -767,65 +736,64 @@ export const Experience = () => {
     };
 
 // justo encima de `export const Experience = () => { … }`
-    function IntersectionOverlayController({ setOverlayData }) {
-        const { refPiece } = useSelectedPieceProvider();
-        const { camera, size } = useThree(); // sólo los lee, no los mete como deps
+    function IntersectionOverlayController({setOverlayData}) {
+        const {refPiece} = useSelectedPieceProvider();
+        const {camera, size} = useThree(); // sólo los lee, no los mete como deps
 
         useEffect(() => {
-            if (refPiece?.userData.isInterseccion) {
-                // 1. calcula posición 3D → NDC → píxeles
-                const worldPos = new THREE.Vector3();
-                refPiece.getWorldPosition(worldPos);
-                const ndc = worldPos.clone().project(camera);
-                const x = (ndc.x * 0.5 + 0.5) * size.width;
-                const y = (-ndc.y * 0.5 + 0.5) * size.height;
-
-                // 2. datos de overlay
-                const orientation = refPiece.userData.orientation || 'horizontal';
-                const placement = orientation === 'vertical' ? 'right' : 'top';
-                const newData = {
-                    isVisible: true,
-                    overlayPositions: {
-                        primary: { x, y, placement },
-                        secondary: { x: x + 10, y: y + 10, placement }
-                    },
-                    intersectionData: {
-                        id: refPiece.uuid,
-                        originalIndex: refPiece.userData.originalIndex ?? 0,
-                        position: {
-                            x: refPiece.userData.positionX ?? worldPos.x,
-                            y: refPiece.userData.positionY ?? worldPos.y
-                        },
-                        orientation,
-                        createdAt: refPiece.userData.createdAt ?? new Date(),
-                        dimensions: {
-                            width:  refPiece.userData.widthExtra  ?? 0,
-                            height: refPiece.userData.heightExtra ?? 0,
-                            depth:  refPiece.userData.depthExtra  ?? 0
-                        }
-                    }
-                };
-
-                // 3. sólo setea si realmente cambia algo
-                setOverlayData(prev => {
-                    const pp = prev.overlayPositions?.primary;
-                    if (
-                        prev.isVisible
-                        && prev.intersectionData?.id === newData.intersectionData.id
-                        && pp && Math.abs(pp.x - x) < 1 && Math.abs(pp.y - y) < 1
-                        && pp.placement === placement
-                    ) {
-                        return prev; // nada que actualizar
-                    }
-                    return newData;
-                });
-            } else {
-                // si no hay pieza o ya no es intersección, ocultamos sólo si estaba visible
+            if (!refPiece?.userData.isInterseccion) {
                 setOverlayData(prev => {
                     if (!prev.isVisible) return prev;
-                    return { ...prev, isVisible: false };
+                    return {...prev, isVisible: false};
                 });
+                return;
             }
+            // 1. calcula posición 3D → NDC → píxeles
+            const worldPos = new THREE.Vector3();
+            refPiece.getWorldPosition(worldPos);
+            const ndc = worldPos.clone().project(camera);
+            const x = (ndc.x * 0.5 + 0.5) * size.width;
+            const y = (-ndc.y * 0.5 + 0.5) * size.height;
+
+            // 2. datos de overlay
+            const orientation = refPiece.userData.orientation || 'horizontal';
+            const placement = orientation === 'vertical' ? 'right' : 'top';
+            const newData = {
+                isVisible: true,
+                overlayPositions: {
+                    primary: {x, y, placement},
+                    secondary: {x: x + 10, y: y + 10, placement}
+                },
+                intersectionData: {
+                    id: refPiece.uuid,
+                    originalIndex: refPiece.userData.originalIndex ?? 0,
+                    position: {
+                        x: refPiece.userData.positionX ?? worldPos.x,
+                        y: refPiece.userData.positionY ?? worldPos.y
+                    },
+                    orientation,
+                    createdAt: refPiece.userData.createdAt ?? new Date(),
+                    dimensions: {
+                        width: refPiece.userData.widthExtra ?? 0,
+                        height: refPiece.userData.heightExtra ?? 0,
+                        depth: refPiece.userData.depthExtra ?? 0
+                    }
+                }
+            };
+
+            // 3. sólo setea si realmente cambia algo
+            setOverlayData(prev => {
+                const pp = prev.overlayPositions?.primary;
+                if (
+                    prev.isVisible
+                    && prev.intersectionData?.id === newData.intersectionData.id
+                    && pp && Math.abs(pp.x - x) < 1 && Math.abs(pp.y - y) < 1
+                    && pp.placement === placement
+                ) {
+                    return prev; // nada que actualizar
+                }
+                return newData;
+            });
         }, [refPiece]); // 🔥 sólo refPiece aquí
 
         return null;
@@ -841,11 +809,11 @@ export const Experience = () => {
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
                     onPointerMissed={(event) => {
-                        if(event.button === 2) return;
-                setRefPiece(null);
-                setRefCajon(null);
-                setRefItem(null);
-            }}>
+                        if (event.button === 2) return;
+                        setRefPiece(null);
+                        setRefCajon(null);
+                        setRefItem(null);
+                    }}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
                 <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={1}>
@@ -862,9 +830,9 @@ export const Experience = () => {
                                        mode={transformMode}/>
                 )}
 
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
 
-                <IntersectionOverlayController setOverlayData={setOverlayData} />
+                <IntersectionOverlayController setOverlayData={setOverlayData}/>
             </Canvas>
             {interfaceComponents[selectedItem]}
 
