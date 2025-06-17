@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
+// --- INTERFACES ---
 interface IntersectionOverlayProps {
     isVisible: boolean;
     overlayPositions?: {
@@ -15,22 +16,73 @@ interface IntersectionOverlayProps {
         createdAt: Date;
         dimensions?: { width: number; height: number; depth: number };
     };
-    // Nueva prop para habilitar/deshabilitar las tablas
     showTables?: boolean;
-    // Datos de la tabla que se va a renderizar
     tableData?: {
         headers: string[];
         rows: string[][];
     };
 }
 
-const IntersectionOverlay: React.FC<IntersectionOverlayProps> = ({
-                                                                     isVisible,
-                                                                     overlayPositions,
-                                                                     intersectionData,
-                                                                     showTables = false,
-                                                                     tableData
-                                                                 }) => {
+// --- ESTILOS ESTÁTICOS ---
+const STATIC_STYLES = {
+    table: {
+        width: '100%',
+        borderCollapse: 'collapse' as const,
+        fontSize: '11px',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: '4px',
+        overflow: 'hidden'
+    },
+    header: {
+        backgroundColor: 'rgba(0, 100, 200, 0.8)',
+        color: 'white',
+        padding: '4px 6px',
+        textAlign: 'left' as const,
+        fontSize: '10px',
+        fontWeight: 'bold' as const
+    },
+    cell: {
+        padding: '3px 6px',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+        fontSize: '10px',
+        color: '#333'
+    },
+    tableContainer: {
+        maxWidth: '250px',
+        minWidth: '200px'
+    },
+    tableTitle: {
+        marginBottom: '4px',
+        fontSize: '12px',
+        fontWeight: 'bold' as const,
+        color: 'white',
+        textAlign: 'center' as const
+    }
+};
+
+// --- FUNCIÓN HELPER ---
+// Hecha más segura para manejar valores undefined
+const getTransformStyle = (placement?: 'top' | 'bottom' | 'left' | 'right'): string => {
+    switch (placement) {
+        case 'top': return 'translate(-50%, -100%)';
+        case 'bottom': return 'translate(-50%, 0%)';
+        case 'left': return 'translate(-100%, -50%)';
+        case 'right': return 'translate(0%, -50%)';
+        default: return 'translate(-50%, -50%)';
+    }
+};
+
+
+// --- COMPONENTE CORREGIDO ---
+const IntersectionOverlay: React.FC<IntersectionOverlayProps> = React.memo(({
+                                                                                isVisible,
+                                                                                overlayPositions,
+                                                                                intersectionData,
+                                                                                showTables = false,
+                                                                                tableData
+                                                                            }) => {
+    // --- HOOKS ---
+    // Todos los hooks se declaran incondicionalmente al principio del componente.
     const [isDragging, setIsDragging] = useState(false);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
@@ -42,187 +94,92 @@ const IntersectionOverlay: React.FC<IntersectionOverlayProps> = ({
         }
     }, [isDragging]);
 
-    if (!isVisible || !overlayPositions || !intersectionData) {
-        return null;
-    }
-
-    // Función para obtener el estilo de transformación según la posición
-    const getTransformStyle = (placement: 'top' | 'bottom' | 'left' | 'right') => {
-        switch (placement) {
-            case 'top':
-                return 'translate(-50%, -100%)'; // Centrado horizontalmente, arriba del punto
-            case 'bottom':
-                return 'translate(-50%, 0%)'; // Centrado horizontalmente, debajo del punto
-            case 'left':
-                return 'translate(-100%, -50%)'; // A la izquierda del punto, centrado verticalmente
-            case 'right':
-                return 'translate(0%, -50%)'; // A la derecha del punto, centrado verticalmente
-            default:
-                return 'translate(-50%, -50%)';
-        }
-    };
-
-    // Datos de ejemplo para la tabla si no se proporcionan
-    const defaultTableData = {
-        headers: ['Propiedad', 'Valor', 'Unidad'],
-        rows: [
-            ['Ancho', intersectionData?.dimensions?.width?.toFixed(2) || 'N/A', 'cm'],
-            ['Alto', intersectionData?.dimensions?.height?.toFixed(2) || 'N/A', 'cm'],
-            ['Profundidad', intersectionData?.dimensions?.depth?.toFixed(2) || 'N/A', 'cm'],
-            ['Orientación', intersectionData?.orientation || 'N/A', '-'],
-            ['ID', intersectionData?.id || 'N/A', '-'],
-            ['Creado', intersectionData?.createdAt ? new Date(intersectionData.createdAt).toLocaleTimeString() : 'N/A', '-']
-        ]
-    };
-
-    const currentTableData = tableData || defaultTableData;
-
-    // Función para renderizar una tabla HTML
-    const renderTable = (placement: 'top' | 'bottom' | 'left' | 'right', isPrimary: boolean) => {
-        const tableStyle: React.CSSProperties = {
-            width: '100%',
-            borderCollapse: 'collapse',
-            fontSize: '11px',
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderRadius: '4px',
-            overflow: 'hidden'
+    const currentTableData = useMemo(() => {
+        if (tableData) return tableData;
+        return {
+            headers: ['Propiedad', 'Valor', 'Unidad'],
+            rows: [
+                ['Ancho', intersectionData?.dimensions?.width?.toFixed(2) || 'N/A', 'cm'],
+                ['Alto', intersectionData?.dimensions?.height?.toFixed(2) || 'N/A', 'cm'],
+                ['Profundidad', intersectionData?.dimensions?.depth?.toFixed(2) || 'N/A', 'cm'],
+                ['Orientación', intersectionData?.orientation || 'N/A', '-'],
+                ['ID', intersectionData?.id || 'N/A', '-'],
+                ['Creado', intersectionData?.createdAt ? new Date(intersectionData.createdAt).toLocaleTimeString() : 'N/A', '-']
+            ]
         };
+    }, [tableData, intersectionData]);
 
-        const headerStyle: React.CSSProperties = {
-            backgroundColor: 'rgba(0, 100, 200, 0.8)',
-            color: 'white',
-            padding: '4px 6px',
-            textAlign: 'left',
-            fontSize: '10px',
-            fontWeight: 'bold'
-        };
-
-        const cellStyle: React.CSSProperties = {
-            padding: '3px 6px',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
-            fontSize: '10px',
-            color: '#333'
-        };
-
+    const TableComponent = useMemo(() => {
+        if (!showTables) return null;
         return (
-            <table style={tableStyle}>
+            <table style={STATIC_STYLES.table}>
                 <thead>
-                    <tr>
-                        {currentTableData.headers.map((header, index) => (
-                            <th key={index} style={headerStyle}>
-                                {header}
-                            </th>
-                        ))}
-                    </tr>
+                <tr>
+                    {currentTableData.headers.map((header, index) => (
+                        <th key={index} style={STATIC_STYLES.header}>{header}</th>
+                    ))}
+                </tr>
                 </thead>
                 <tbody>
-                    {currentTableData.rows.map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                            {row.map((cell, cellIndex) => (
-                                <td key={cellIndex} style={cellStyle}>
-                                    {cell}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
+                {currentTableData.rows.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                            <td key={cellIndex} style={STATIC_STYLES.cell}>{cell}</td>
+                        ))}
+                    </tr>
+                ))}
                 </tbody>
             </table>
         );
-    };
+    }, [showTables, currentTableData]);
 
-    // Función para obtener el contenido del overlay según la configuración
-    const getOverlayContent = (placement: 'top' | 'bottom' | 'left' | 'right', isPrimary: boolean) => {
+    const overlayContent = useMemo(() => {
         if (showTables) {
+            const placement = overlayPositions?.primary.placement;
+            const titleText = intersectionData?.orientation === 'vertical'
+                ? (placement === 'left' ? 'Lado Izquierdo' : 'Lado Derecho')
+                : (placement === 'top' ? 'Lado Superior' : 'Lado Inferior');
             return (
-                <div style={{ maxWidth: '250px', minWidth: '200px' }}>
-                    <div style={{ 
-                        marginBottom: '4px', 
-                        fontSize: '12px', 
-                        fontWeight: 'bold',
-                        color: 'white',
-                        textAlign: 'center'
-                    }}>
-                        {intersectionData?.orientation === 'vertical' ? 
-                            (placement === 'left' ? 'Lado Izquierdo' : 'Lado Derecho') :
-                            (placement === 'top' ? 'Lado Superior' : 'Lado Inferior')
-                        }
-                    </div>
-                    {renderTable(placement, isPrimary)}
+                <div style={STATIC_STYLES.tableContainer}>
+                    <div style={STATIC_STYLES.tableTitle}>{titleText}</div>
+                    {TableComponent}
                 </div>
             );
         }
-
-        // Contenido original si no se muestran tablas
         const baseInfo = (
             <>
-                <div>
-                    <strong>{intersectionData?.orientation === 'vertical' ? 'Vertical' : 'Horizontal'}</strong>
-                </div>
-                <div>
-                    Pos: ({intersectionData?.position.x.toFixed(2)}, {intersectionData?.position.y.toFixed(2)})
-                </div>
+                <div><strong>{intersectionData?.orientation === 'vertical' ? 'Vertical' : 'Horizontal'}</strong></div>
+                <div>Pos: ({intersectionData?.position.x.toFixed(2)}, {intersectionData?.position.y.toFixed(2)})</div>
             </>
         );
-
-        // Agregar información específica según posición
+        const placement = overlayPositions?.primary.placement;
         if (intersectionData?.orientation === 'vertical') {
-            if (placement === 'left') {
-                return (
-                    <>
-                        {baseInfo}
-                        <div>← Izquierda</div>
-                    </>
-                );
-            } else {
-                return (
-                    <>
-                        {baseInfo}
-                        <div>Derecha →</div>
-                    </>
-                );
-            }
+            return <>{baseInfo}<div>{placement === 'left' ? '← Izquierda' : 'Derecha →'}</div></>;
         } else {
-            if (placement === 'top') {
-                return (
-                    <>
-                        {baseInfo}
-                        <div>↑ Arriba</div>
-                    </>
-                );
-            } else {
-                return (
-                    <>
-                        {baseInfo}
-                        <div>Abajo ↓</div>
-                    </>
-                );
-            }
+            return <>{baseInfo}<div>{placement === 'top' ? '↑ Arriba' : 'Abajo ↓'}</div></>;
         }
-    };
+    }, [showTables, overlayPositions?.primary.placement, intersectionData, TableComponent]);
 
-    const baseStyle: React.CSSProperties = {
-        position: 'absolute',
+    const baseStyle = useMemo(() => ({
+        position: 'absolute' as const,
         backgroundColor: showTables ? 'rgba(0, 0, 0, 0.9)' : 'rgba(0, 0, 0, 0.8)',
         color: 'white',
         padding: showTables ? '8px' : '6px 10px',
         borderRadius: '6px',
         fontSize: '11px',
-        pointerEvents: showTables ? 'auto' : 'none', // Habilitar interacción con tablas
+        pointerEvents: showTables ? 'auto' as const : 'none' as const,
         zIndex: 1000,
-        whiteSpace: showTables ? 'normal' : 'nowrap',
+        whiteSpace: showTables ? 'normal' as const : 'nowrap' as const,
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
         backdropFilter: 'blur(4px)',
         maxHeight: showTables ? '300px' : 'auto',
-        overflowY: showTables ? 'auto' : 'visible',
-        // Añadir cursor para indicar que se puede interactuar
+        overflowY: showTables ? 'auto' as const : 'visible' as const,
         cursor: showTables ? 'move' : 'default'
-    };
+    }), [showTables]);
 
-    // Funciones para manejar el arrastre de las tablas
-    const handleMouseDown = (e: React.MouseEvent, elementId: string) => {
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
         if (!showTables) return;
-        
         setIsDragging(true);
         const rect = (e.target as HTMLElement).closest('.overlay-container')?.getBoundingClientRect();
         if (rect) {
@@ -231,39 +188,47 @@ const IntersectionOverlay: React.FC<IntersectionOverlayProps> = ({
                 y: e.clientY - rect.top
             });
         }
-    };
+    }, [showTables]);
 
-    const handleMouseMove = (e: React.MouseEvent) => {
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
         if (isDragging && showTables) {
-            // Aquí podrías implementar lógica adicional para el arrastre
-            // Por ahora, dejamos que CSS transform maneje la posición
+            // Lógica de arrastre puede ir aquí si se necesita
         }
-    };
+    }, [isDragging, showTables]);
 
-    const handleMouseUp = () => {
+    const handleMouseUp = useCallback(() => {
         setIsDragging(false);
-    };
+    }, []);
 
+    // **LA CORRECCIÓN ESTÁ AQUÍ**
+    // 1. Este hook se mueve ANTES del retorno condicional.
+    // 2. Usa encadenamiento opcional (?.) y el operador nullish coalescing (??) para seguridad.
+    const overlayStyle = useMemo(() => ({
+        ...baseStyle,
+        left: overlayPositions?.primary.x ?? 0,
+        top: overlayPositions?.primary.y ?? 0,
+        transform: getTransformStyle(overlayPositions?.primary.placement),
+    }), [baseStyle, overlayPositions]);
+
+    // El retorno condicional ahora es seguro, porque todos los hooks se han ejecutado.
+    if (!isVisible || !overlayPositions || !intersectionData) {
+        return null;
+    }
+
+    // --- RENDER ---
     return (
-        <>
-            {/* Overlay principal */}
-            <div
-                className="overlay-container"
-                style={{
-                    ...baseStyle,
-                    left: overlayPositions.primary.x,
-                    top: overlayPositions.primary.y,
-                    transform: getTransformStyle(overlayPositions.primary.placement),
-                }}
-                onMouseDown={(e) => handleMouseDown(e, 'primary')}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-            >
-                {getOverlayContent(overlayPositions.primary.placement, true)}
-            </div>
-
-        </>
+        <div
+            className="overlay-container"
+            style={overlayStyle}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+        >
+            {overlayContent}
+        </div>
     );
-};
+});
+
+IntersectionOverlay.displayName = 'IntersectionOverlay';
 
 export default IntersectionOverlay;

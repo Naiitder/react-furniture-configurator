@@ -1,5 +1,5 @@
-import React, {useEffect, useRef, useState} from "react";
-import {Canvas, useThree} from "@react-three/fiber";
+import React, {useEffect, useMemo, useRef, useState} from "react";
+import {Canvas, useFrame, useThree} from "@react-three/fiber";
 import {OrbitControls, Stage, TransformControls,} from "@react-three/drei";
 import {useLocation} from "react-router-dom";
 import Casco from "../components/Casco/Casco.js";
@@ -60,6 +60,7 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
 };
 
 export const Experience = () => {
+    const orbitRef = useRef();
     const transformRef = useRef();
     const glRef = useRef();
     const cameraRef = useRef();
@@ -735,34 +736,67 @@ export const Experience = () => {
 
     };
 
-// justo encima de `export const Experience = () => { … }`
-    function IntersectionOverlayController({setOverlayData}) {
-        const {refPiece} = useSelectedPieceProvider();
-        const {camera, size} = useThree(); // sólo los lee, no los mete como deps
+// Reemplaza esta función completa en Experience.jsx
 
-        useEffect(() => {
-            if (!refPiece?.userData.isInterseccion) {
-                setOverlayData(prev => {
-                    if (!prev.isVisible) return prev;
-                    return {...prev, isVisible: false};
-                });
+    function IntersectionOverlayController({ overlayData, setOverlayData }) {
+        const { refPiece } = useSelectedPieceProvider();
+        const { camera, size } = useThree();
+        const lastUpdateTime = useRef(0);
+        const lastPosition = useRef({ x: 0, y: 0 });
+        // const stableDataRef = useRef(null); // <-- ELIMINAMOS ESTA REF
+
+        useFrame((state) => {
+            const now = state.clock.elapsedTime;
+            const shouldBeVisible = refPiece != null && refPiece.userData.isInterseccion;
+
+            if (!shouldBeVisible) {
+                // AHORA LEEMOS EL ESTADO REAL PASADO POR PROPS
+                if (overlayData.isVisible) {
+                    // Llamamos al setter para ocultarlo.
+                    // Es buena práctica usar la forma funcional por si hay actualizaciones en batch.
+                    setOverlayData(prevData => ({ ...prevData, isVisible: false }));
+                }
                 return;
             }
-            // 1. calcula posición 3D → NDC → píxeles
+
+            // La lógica de throttling (limitación) ahora es más sencilla.
+            // Si el overlay no está visible, no limitamos para que aparezca al instante.
+            if (overlayData.isVisible && (now - lastUpdateTime.current < 0.05)) {
+                return;
+            }
+
             const worldPos = new THREE.Vector3();
             refPiece.getWorldPosition(worldPos);
             const ndc = worldPos.clone().project(camera);
             const x = (ndc.x * 0.5 + 0.5) * size.width;
             const y = (-ndc.y * 0.5 + 0.5) * size.height;
 
-            // 2. datos de overlay
-            const orientation = refPiece.userData.orientation || 'horizontal';
-            const placement = orientation === 'vertical' ? 'right' : 'top';
+            const threshold = 3;
+            if (
+                overlayData.isVisible &&
+                Math.abs(x - lastPosition.current.x) < threshold &&
+                Math.abs(y - lastPosition.current.y) < threshold
+            ) {
+                return;
+            }
+
+            lastPosition.current = { x, y };
+            lastUpdateTime.current = now;
+
+            // La creación de 'newData' sigue siendo la misma.
             const newData = {
                 isVisible: true,
                 overlayPositions: {
-                    primary: {x, y, placement},
-                    secondary: {x: x + 10, y: y + 10, placement}
+                    primary: {
+                        x: Math.round(x),
+                        y: Math.round(y),
+                        placement: refPiece.userData.orientation === 'vertical' ? 'right' : 'top'
+                    },
+                    secondary: {
+                        x: Math.round(x + 10),
+                        y: Math.round(y + 10),
+                        placement: refPiece.userData.orientation === 'vertical' ? 'right' : 'top'
+                    }
                 },
                 intersectionData: {
                     id: refPiece.uuid,
@@ -771,7 +805,7 @@ export const Experience = () => {
                         x: refPiece.userData.positionX ?? worldPos.x,
                         y: refPiece.userData.positionY ?? worldPos.y
                     },
-                    orientation,
+                    orientation: refPiece.userData.orientation || 'horizontal',
                     createdAt: refPiece.userData.createdAt ?? new Date(),
                     dimensions: {
                         width: refPiece.userData.widthExtra ?? 0,
@@ -781,20 +815,8 @@ export const Experience = () => {
                 }
             };
 
-            // 3. sólo setea si realmente cambia algo
-            setOverlayData(prev => {
-                const pp = prev.overlayPositions?.primary;
-                if (
-                    prev.isVisible
-                    && prev.intersectionData?.id === newData.intersectionData.id
-                    && pp && Math.abs(pp.x - x) < 1 && Math.abs(pp.y - y) < 1
-                    && pp.placement === placement
-                ) {
-                    return prev; // nada que actualizar
-                }
-                return newData;
-            });
-        }, [refPiece]); // 🔥 sólo refPiece aquí
+            setOverlayData(newData);
+        });
 
         return null;
     }
@@ -816,7 +838,7 @@ export const Experience = () => {
                     }}>
                 <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
                 <Room positionY={3.5}/>
-                <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={1}>
+                <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={0}>
                     <directionalLight
                         castShadow
                         position={[5, 5, 5]}
@@ -827,12 +849,18 @@ export const Experience = () => {
                 </Stage>
                 {transformEnabled && refItem && (
                     <TransformControls ref={transformRef} object={refPiece ? refPiece : refItem.groupRef}
-                                       mode={transformMode}/>
+                                       mode={transformMode} onMouseDown={() => orbitRef.current.enabled = false}
+                                       onMouseUp={() => orbitRef.current.enabled = true}/>
                 )}
 
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
+                <OrbitControls
+                    ref={orbitRef}
+                    makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
 
-                <IntersectionOverlayController setOverlayData={setOverlayData}/>
+                <IntersectionOverlayController
+                    overlayData={overlayData}  // <--- Pasamos el estado actual
+                    setOverlayData={setOverlayData}
+                />
             </Canvas>
             {interfaceComponents[selectedItem]}
 
