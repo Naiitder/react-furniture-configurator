@@ -50,8 +50,24 @@ const InterseccionConfigContent = () => {
         });
     };
 
-    console.log(config)
-    if(refItem != null )console.log(refItem)
+    let seccionLimitanteHorizontalSuperior = 0;
+    let seccionLimitanteHorizontalInferior = 0;
+
+    if(config.seccionesLimitantes){
+        if (refItem?.groupRef?.children?.[0]?.children && config.seccionesLimitantes[0]) {
+            const objeto3D = refItem.groupRef.children[0].children.find(
+                (child) => child.uuid === config.seccionesLimitantes[0].uuid
+            );
+            seccionLimitanteHorizontalSuperior = objeto3D.position.y;
+        }
+        if (refItem?.groupRef?.children?.[0]?.children && config.seccionesLimitantes[1]) {
+            const objeto3D = refItem.groupRef.children[0].children.find(
+                (child) => child.uuid === config.seccionesLimitantes[1].uuid
+            );
+            seccionLimitanteHorizontalInferior = objeto3D.position.y;
+        }
+    }
+
     return (
         <div style={{
             padding: "16px",
@@ -76,9 +92,9 @@ const InterseccionConfigContent = () => {
                 </Form.Item>
                 <Form.Item label="Position Y: ">
                     <Slider
-                        step={0.12345}
-                        min={-.4}
-                        max={.4}
+                        step={0.01}
+                        min={seccionLimitanteHorizontalSuperior !== 0 ? seccionLimitanteHorizontalSuperior : -.4}
+                        max={seccionLimitanteHorizontalInferior !== 0 ? seccionLimitanteHorizontalInferior : .4}
                         value={config.positionExtra[1]}
                         onChange={(v) => {
                             const newPos = [...config.positionExtra];
