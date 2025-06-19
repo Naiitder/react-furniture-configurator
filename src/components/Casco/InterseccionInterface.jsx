@@ -1,9 +1,11 @@
 import { Form, Slider, Select } from "antd";
 import {useEffect, useState} from "react";
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider.jsx";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
 
 const InterseccionConfigContent = () => {
     const { refPiece, setRefPiece, version, setVersion} = useSelectedPieceProvider();
+    const {refItem } = useSelectedItemProvider();
 
     const [config, setConfig] = useState({
         positionExtra: [0,0,0],
@@ -49,6 +51,7 @@ const InterseccionConfigContent = () => {
     };
 
     console.log(config)
+    if(refItem != null )console.log(refItem)
     return (
         <div style={{
             padding: "16px",

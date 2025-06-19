@@ -187,6 +187,7 @@ export const renderIntersecciones = ({
                             espesor / 2 +
                             (traseroDentro ? retranqueoTrasero / 2 : 0),
                         ]}
+                        interseccion={inter}
                         width={widthSeg}
                         height={espesor}
                         depth={depth - retranqueoTrasero - espesor}
@@ -217,6 +218,7 @@ export const renderIntersecciones = ({
                         material={materiales.Vidrio}
                         espesorBase={espesor}
                         isInterseccion={true}
+                        interseccion={inter}
                         seccionesAdyacientes={inter.piezasAdyacientes}
                         seccionesLimitantes={inter.piezasLimitantes}
                     />
@@ -251,6 +253,7 @@ export const renderIntersecciones = ({
                         material={materiales.Artico}
                         espesorBase={espesor}
                         isInterseccion={true}
+                        interseccion={inter}
                         seccionesAdyacientes={inter.piezasAdyacientes}
                         seccionesLimitantes={inter.piezasLimitantes}
                     />
@@ -275,6 +278,7 @@ export const renderIntersecciones = ({
                         material={materiales.Vidrio}
                         espesorBase={espesor}
                         isInterseccion={true}
+                        interseccion={inter}
                         seccionesAdyacientes={inter.piezasAdyacientes}
                         seccionesLimitantes={inter.piezasLimitantes}
                     />

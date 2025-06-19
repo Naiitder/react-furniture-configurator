@@ -37,6 +37,7 @@ type TablaProps = {
     bordeEjeZ?: boolean;
     orientacionBordeZ?: "vertical" | "front";
     isInterseccion?: boolean;
+    interseccion?: InterseccionMueble;
     seccionesAdyacientes?: InterseccionMueble[],
     seccionesLimitantes?: InterseccionMueble[],
 }
@@ -64,6 +65,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          disableAdjustedWidth = false,
                                          stopPropagation = true,
                                          isInterseccion = false,
+    interseccion,
     seccionesAdyacientes = [null,null],
     seccionesLimitantes = [null,null],
                                      }) => {
@@ -85,6 +87,12 @@ const Tabla: React.FC<TablaProps> = ({
     useEffect(() => {
         if (ref.current && Object.keys(ref.current.userData).length === 0) {
             ref.current.userData = {...initialData};
+        }
+    }, []);
+
+    useEffect(() => {
+        if (ref.current && interseccion) {
+            interseccion.uuid = ref.current.uuid;
         }
     }, []);
 
