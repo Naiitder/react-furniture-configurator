@@ -67,7 +67,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          disableAdjustedWidth = false,
                                          stopPropagation = true,
                                          isInterseccion = false,
-                                         orientation
+                                         orientation,
     interseccion,
     seccionesAdyacientes = [null,null],
     seccionesLimitantes = [null,null],
