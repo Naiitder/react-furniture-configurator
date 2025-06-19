@@ -242,8 +242,6 @@ const Tabla: React.FC<TablaProps> = ({
                 isinterseccion: refPiece.userData.isinterseccion || isInterseccion,
                 orientation: refPiece.userData.orientation || orientation,
                 shootRaycasts,
-                espesor: refPiece.userData.espesor || espesorBase,
-                isinterseccion: refPiece.userData.isInterseccion || isInterseccion,
                 seccionesAdyacientes: seccionesAdyacientes,
                 seccionesLimitantes: seccionesLimitantes,
             });

@@ -132,27 +132,12 @@ const Bodeguero = (props: BodegueroProps) => {
         );
     };
 
-
-    // Ajustar la puerta para la mitad inferior
-    const doorHeight = height / 4;
-    const doorPositionY = -height / 2 + (doorHeight / 2) + (patas && indicePata !== -1 ? alturaPatas : 0); // Base de la mitad inferior, ajustada por extraAltura
-    const adjustedPuertas = puertas.map((puerta) =>
-        React.cloneElement(puerta as React.ReactElement, {
-            width: width - espesor * 4,
-            height: height / 2,
-            depth: espesor,
-            position: [0, doorPositionY, 0],
-            extraAltura: patas && indicePata !== -1 ? alturaPatas : 0,
-            pivot: "right",
-        })
-    );
-
     return (
         <Casco
             {...props}
             materialPrincipal={materialPrincipal || materiales.Artico}
             renderExtraParts={renderExtraParts}
-            puertas={adjustedPuertas}
+            puertas={puertas}
             materiales={materiales}
         />
     );

@@ -14,7 +14,6 @@ const PuertaBodeguero: React.FC<PuertaProps & { extraAltura?: number }> = ({
                                                                                depth,
                                                                                color = "#654321",
                                                                                pivot = "right",
-                                                                               extraAltura = 0,
                                                                            }) => {
     const [doorRotation, setDoorRotation] = React.useState(0);
     const [targetRotation, setTargetRotation] = React.useState(0);

@@ -19,7 +19,11 @@ export const useCascoInstances = () => {
                 userData: {width: 2, height: 2, depth: 2, espesor: 0.3},
                 patas: [<Pata height={1}/>],
                 puertas: [
-                    <Puerta/>
+                    <Puerta
+                        width={1}
+                        height={1}
+                        depth={0.1}
+                    />
                 ],
                 intersecciones: [],
             },
@@ -31,7 +35,11 @@ export const useCascoInstances = () => {
                 userData: {width: 2, height: 2, depth: 3, espesor: 0.1},
                 patas: [<Pata height={1}/>],
                 puertas: [
-                    <Puerta/>
+                    <Puerta
+                        width={1}
+                        height={1}
+                        depth={0.1}
+                    />
                 ],
                 intersecciones: [],
             },
@@ -43,7 +51,11 @@ export const useCascoInstances = () => {
                 userData: {width: 2, height: 2, depth: 2, espesor: 0.1},
                 patas: [<Pata height={1}/>],
                 puertas: [
-                    <Puerta/>
+                    <Puerta
+                        width={1}
+                        height={1}
+                        depth={0.1}
+                    />
                 ],
                 intersecciones: [],
             },
@@ -54,7 +66,11 @@ export const useCascoInstances = () => {
                 rotation: [0, 0, 0],
                 userData: {width: 1.54, height: .93, depth: .6, espesor: 0.05},
                 patas: [<PataAparador height={.1}/>],
-                puertas: [<Puerta/>],
+                puertas: [<Puerta
+                    width={1}
+                    height={1}
+                    depth={0.1}
+                />],
             },
             casco5: {
                 id: 'casco5',
@@ -68,7 +84,13 @@ export const useCascoInstances = () => {
                     new InterseccionMueble({x: 0.5, y: 0.87}, Orientacion.Vertical),
                 ],
                 patas: [<PataAparador height={.1}/>],
-                puertas: [<Puerta/>],
+                puertas: [
+                    <Puerta
+                        width={1}
+                        height={1}
+                        depth={0.1}
+                    />
+                ],
             },
             casco6: {
                 id: 'casco6',
@@ -77,7 +99,13 @@ export const useCascoInstances = () => {
                 rotation: [0, 0, 0],
                 userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
                 patas: [<PataAparador height={.1}/>],
-                puertas: [<PuertaBodeguero/>],
+                puertas: [
+                    <PuertaBodeguero
+                        width={0.89}
+                        height={0.5}
+                        depth={0.1}
+                    />
+                ],
                 intersecciones: [
                     new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal),
                     new InterseccionMueble({x: 0.5, y: .25}, Orientacion.Horizontal),
