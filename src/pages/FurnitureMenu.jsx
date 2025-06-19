@@ -72,6 +72,12 @@ export const FurnitureMenu = () => {
         });
     };
 
+    const menuItems = furnitureCategories.map(c => ({
+        key:  c.key,
+        icon: <AppstoreOutlined />,
+        label: c.name,
+    }));
+
     return (
         <Layout style={{minHeight: "100vh"}}>
             <Header style={{
@@ -105,17 +111,9 @@ export const FurnitureMenu = () => {
                             setSelectedCategory(e.key);
                             scrollToCategory(e.key);
                         }}
-                        style={{height: "100%", borderRight: 0}}
-                    >
-                        {furnitureCategories.map((category) => (
-                            <Menu.Item
-                                key={category.key}
-                                icon={<AppstoreOutlined/>}
-                            >
-                                {category.name}
-                            </Menu.Item>
-                        ))}
-                    </Menu>
+                        items={menuItems}
+                        style={{ height:"100%", borderRight:0 }}
+                    />
                 </Sider>
 
                 <Layout style={{
