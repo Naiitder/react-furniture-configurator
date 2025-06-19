@@ -190,7 +190,7 @@ const CascoFuncional = (
     const dimensiones = calcularDimensiones(localConfig);
     const posiciones = calcularPosiciones({...localConfig, patas});
 
-    // Renderizar intersecciones
+    // sizar intersecciones
     const renderInterseccionesInternas = () => {
         if (!actualIntersecciones.length) return null;
         return renderIntersecciones({
