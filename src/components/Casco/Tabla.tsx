@@ -7,6 +7,7 @@ import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider"
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 import {useSelectedCajonProvider} from "../../contexts/SelectedCajonProvider"
 import {Edges} from "@react-three/drei";
+import InterseccionMueble from "../Interseccion";
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
@@ -16,6 +17,7 @@ type TablaProps = {
     insideRef: React.Ref<any>;
     ref?: React.Ref<any>;
     position: [number, number, number];
+    positionExtra?: [number, number, number];
     rotation?: [number, number, number];
     width: number;
     widthExtra?: number;
@@ -35,6 +37,8 @@ type TablaProps = {
     bordeEjeZ?: boolean;
     orientacionBordeZ?: "vertical" | "front";
     isInterseccion?: boolean;
+    seccionesAdyacientes?: InterseccionMueble[],
+    seccionesLimitantes?: InterseccionMueble[],
 }
 
 const Tabla: React.FC<TablaProps> = ({
@@ -42,6 +46,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          insideRef,
                                          ref = useRef<any>(null),
                                          position,
+    positionExtra,
                                          rotation = [0, 0, 0],
                                          espesorBase,
                                          width,
@@ -59,17 +64,23 @@ const Tabla: React.FC<TablaProps> = ({
                                          disableAdjustedWidth = false,
                                          stopPropagation = true,
                                          isInterseccion = false,
+    seccionesAdyacientes = [null,null],
+    seccionesLimitantes = [null,null],
                                      }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
     const initialData = {
+        positionExtra: position,
         widthExtra,
         heightExtra,
         depthExtra,
         espesor: espesorBase,
         isInterseccion: isInterseccion,
+        seccionesAdyacientes: seccionesAdyacientes,
+        seccionesLimitantes: seccionesLimitantes,
     };
+
 
     useEffect(() => {
         if (ref.current && Object.keys(ref.current.userData).length === 0) {
@@ -80,30 +91,40 @@ const Tabla: React.FC<TablaProps> = ({
     useEffect(() => {
         if (ref.current) {
             ref.current.userData = {
+                positionExtra: position,
                 widthExtra,
                 heightExtra,
                 depthExtra,
                 espesor: espesorBase,
                 isInterseccion: isInterseccion,
+                seccionesAdyacientes: seccionesAdyacientes,
+                seccionesLimitantes: seccionesLimitantes,
             };
         }
-    }, [widthExtra, heightExtra, depthExtra, espesorBase]);
+    }, [positionExtra, widthExtra, heightExtra, depthExtra, espesorBase, seccionesAdyacientes, seccionesLimitantes]);
 
     const [extra, setExtra] = useState({
+        positionExtra: position,
         widthExtra: 0,
         heightExtra: 0,
         depthExtra: 0,
         espesor: espesorBase,
         isinterseccion: isInterseccion,
+        seccionesAdyacientes: seccionesAdyacientes,
+        seccionesLimitantes: seccionesLimitantes,
     });
 
     useEffect(() => {
         if (refPiece && refPiece === ref.current && refPiece.userData) {
             setExtra({
+                positionExtra: refPiece.userData.positionExtra || position,
                 widthExtra: refPiece.userData.widthExtra || 0,
                 heightExtra: refPiece.userData.heightExtra || 0,
                 depthExtra: refPiece.userData.depthExtra || 0,
-                espesor: refPiece.userData.espesor || espesorBase
+                espesor: refPiece.userData.espesor || espesorBase,
+                isinterseccion: refPiece.userData.isInterseccion || isInterseccion,
+                seccionesAdyacientes: seccionesAdyacientes,
+                seccionesLimitantes: seccionesLimitantes,
             });
         }
     }, [refPiece, version]);
@@ -112,6 +133,8 @@ const Tabla: React.FC<TablaProps> = ({
     height = height + extra.heightExtra;
     depth = depth + extra.depthExtra;
     espesorBase = extra.espesor;
+
+    if(isInterseccion) position = extra.positionExtra;
 
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
     // Solo para frontal

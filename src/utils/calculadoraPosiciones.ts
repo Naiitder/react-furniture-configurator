@@ -27,6 +27,7 @@ export const calcularPosiciones = ({
     const mitadProfundidad = depth / 2;
     const extraAltura = patas && indicePata !== -1 ? alturaPatas : 0;
 
+
     const alturaLaterales =
         (height -
             (sueloDentro ? 0 : espesor) -

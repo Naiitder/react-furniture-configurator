@@ -26,6 +26,7 @@ import Bodeguero from "../components/Armario/Bodeguero.js";
 import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import IntersectionOverlay from "../components/InterseccionOverlay.js";
+import InterseccionConfigContent from "../components/Casco/InterseccionInterface.jsx";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -47,7 +48,6 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
             if (refItem) {
                 const intersects = raycaster.intersectObject(refItem.groupRef, true);
                 if (intersects.length > 0) {
-                    console.log(intersects[0]);
                 }
             }
         };
@@ -445,7 +445,6 @@ export const Experience = () => {
 
         const validHorizontals = horizontals.filter(h => {
             const [minX, maxX] = getHorizontalRange(h, verticals);
-            console.log('minX: ', minX, 'maxX: ', maxX);
             return rawX >= minX && rawX <= maxX;
         });
 
@@ -454,8 +453,6 @@ export const Experience = () => {
             return rawY <= topY && rawY >= bottomY;
         });
 
-        console.log('vh',validHorizontals)
-        console.log('vv',validVerticals)
         let piezasAdyacientes, piezasLimitantes;
         if (orient === Orientacion.Horizontal) {
             piezasAdyacientes = findNeighbors(verticals, v => v.position.x, rawX);
@@ -468,7 +465,6 @@ export const Experience = () => {
         let posX = rawX;
         let posY = rawY;
 
-//        console.log('antes',posX, posY);
 
         if(piezasLimitantes[0] != null && piezasLimitantes[1] != null){
             if(orient === Orientacion.Horizontal) {
@@ -606,10 +602,6 @@ export const Experience = () => {
                 }
             }
         }
-
-       // console.log('despues', posX, posY);
-        console.log("Adyacientes",piezasAdyacientes)
-        console.log("Limitantes",piezasLimitantes)
 
         const nueva = new InterseccionMueble(
             { x: posX, y: posY },
@@ -809,8 +801,8 @@ export const Experience = () => {
                         id: refPiece.uuid,
                         originalIndex: refPiece.userData.originalIndex ?? 0,
                         position: {
-                            x: refPiece.userData.positionX ?? worldPos.x,
-                            y: refPiece.userData.positionY ?? worldPos.y
+                            x: refPiece.userData.positionX ?? refPiece.position.x,
+                            y: refPiece.userData.positionY ?? refPiece.position.y
                         },
                         orientation,
                         createdAt: refPiece.userData.createdAt ?? new Date(),
@@ -853,6 +845,7 @@ export const Experience = () => {
         intersectionData: null
     });
 
+
     return (
         <>
             <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
@@ -890,8 +883,8 @@ export const Experience = () => {
                 intersectionData={overlayData.intersectionData}
             />
 
+            {refPiece && !refPiece.userData.isInterseccion && (
 
-            {refPiece && (
                 <ChildItemConfigurationInterface
                     title="Tabla Configurator"
                     show={true}
@@ -902,6 +895,20 @@ export const Experience = () => {
                     <TablaConfigContent/>
                 </ChildItemConfigurationInterface>
             )}
+
+            {refPiece && refPiece.userData.isInterseccion && (
+
+                <ChildItemConfigurationInterface
+                    title="Interseccion Configurator"
+                    show={true}
+                    setShow={true}
+                    mode={transformMode}
+                    setMode={setTransformMode}
+                >
+                    <InterseccionConfigContent/>
+                </ChildItemConfigurationInterface>
+            )}
+
 
             {refCajon && (
                 <ChildItemConfigurationInterface title="Cajon Configurator">
