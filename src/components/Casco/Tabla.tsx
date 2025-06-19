@@ -68,10 +68,10 @@ const Tabla: React.FC<TablaProps> = ({
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
 
     const shootRaycasts = (): {
-        arriba?: THREE.Object3D;
-        abajo?: THREE.Object3D;
-        derecha?: THREE.Object3D;
-        izquierda?: THREE.Object3D;
+        arriba?: THREE.Object3D[];
+        abajo?: THREE.Object3D[];
+        derecha?: THREE.Object3D[];
+        izquierda?: THREE.Object3D[];
     } | undefined => {
         if (!ref.current || !parentRef.current) return;
         if (ref.current.userData?.isInterseccion === false) return;
@@ -89,64 +89,85 @@ const Tabla: React.FC<TablaProps> = ({
         ref.current.getWorldPosition(worldPosition);
 
         const epsilon = 0.001;
+        const hits = {
+            arriba: [] as THREE.Object3D[],
+            abajo: [] as THREE.Object3D[],
+            derecha: [] as THREE.Object3D[],
+            izquierda: [] as THREE.Object3D[],
+        };
 
+        const raycastHits = (origin: THREE.Vector3, direction: THREE.Vector3): THREE.Object3D[] => {
+            const ray = new THREE.Raycaster(origin, direction);
+            const intersects = ray.intersectObjects(objectsToIntersect);
+            const unique = new Map<string, THREE.Object3D>();
+            for (const hit of intersects) {
+                if (!unique.has(hit.object.uuid)) {
+                    unique.set(hit.object.uuid, hit.object);
+                }
+            }
+            return Array.from(unique.values());
+        };
+
+        // --- RAYCASTS CENTRALES ---
         const originUp = new THREE.Vector3(worldPosition.x, worldPosition.y + adjustedHeight / 2 + epsilon, worldPosition.z);
         const originDown = new THREE.Vector3(worldPosition.x, worldPosition.y - adjustedHeight / 2 - epsilon, worldPosition.z);
         const originRight = new THREE.Vector3(worldPosition.x + adjustedWidth / 2 + epsilon, worldPosition.y, worldPosition.z);
         const originLeft = new THREE.Vector3(worldPosition.x - adjustedWidth / 2 - epsilon, worldPosition.y, worldPosition.z);
 
-        const upRay = new THREE.Raycaster(originUp, new THREE.Vector3(0, 1, 0));
-        const downRay = new THREE.Raycaster(originDown, new THREE.Vector3(0, -1, 0));
-        const rightRay = new THREE.Raycaster(originRight, new THREE.Vector3(1, 0, 0));
-        const leftRay = new THREE.Raycaster(originLeft, new THREE.Vector3(-1, 0, 0));
+        hits.arriba.push(...raycastHits(originUp, new THREE.Vector3(0, 1, 0)));
+        hits.abajo.push(...raycastHits(originDown, new THREE.Vector3(0, -1, 0)));
+        hits.derecha.push(...raycastHits(originRight, new THREE.Vector3(1, 0, 0)));
+        hits.izquierda.push(...raycastHits(originLeft, new THREE.Vector3(-1, 0, 0)));
 
-        const upHits = upRay.intersectObjects(objectsToIntersect);
-        const downHits = downRay.intersectObjects(objectsToIntersect);
-        const rightHits = rightRay.intersectObjects(objectsToIntersect);
-        const leftHits = leftRay.intersectObjects(objectsToIntersect);
+        // --- HITBOXES (para objetos no alineados al centro) ---
+        const bbox = new THREE.Box3().setFromObject(ref.current);
+        const isHorizontal = adjustedWidth > adjustedHeight;
 
-        // Deduplicate hits by object uuid
-        const uniqueUpHits = upHits.reduce((acc, hit) => {
-            if (!acc.some(h => h.object.uuid === hit.object.uuid)) {
-                acc.push(hit);
-            }
-            return acc;
-        }, []);
-        const uniqueDownHits = downHits.reduce((acc, hit) => {
-            if (!acc.some(h => h.object.uuid === hit.object.uuid)) {
-                acc.push(hit);
-            }
-            return acc;
-        }, []);
-        const uniqueRightHits = rightHits.reduce((acc, hit) => {
-            if (!acc.some(h => h.object.uuid === hit.object.uuid)) {
-                acc.push(hit);
-            }
-            return acc;
-        }, []);
-        const uniqueLeftHits = leftHits.reduce((acc, hit) => {
-            if (!acc.some(h => h.object.uuid === hit.object.uuid)) {
-                acc.push(hit);
-            }
-            return acc;
-        }, []);
+        const createHitbox = (direction: 'arriba' | 'abajo' | 'izquierda' | 'derecha'): THREE.Box3 => {
+            const box = bbox.clone();
+            const margin = 0.01;
+            const expandX = isHorizontal && (direction === 'arriba' || direction === 'abajo') ? adjustedWidth / 2 : margin;
+            const expandY = !isHorizontal && (direction === 'izquierda' || direction === 'derecha') ? adjustedHeight / 2 : margin;
 
-        const result = {
-            arriba: uniqueUpHits[0]?.object,
-            abajo: uniqueDownHits[0]?.object,
-            derecha: uniqueRightHits[0]?.object,
-            izquierda: uniqueLeftHits[0]?.object
+            const offset = new THREE.Vector3();
+            if (direction === 'arriba') offset.y += adjustedHeight / 2 + margin;
+            if (direction === 'abajo') offset.y -= adjustedHeight / 2 + margin;
+            if (direction === 'derecha') offset.x += adjustedWidth / 2 + margin;
+            if (direction === 'izquierda') offset.x -= adjustedWidth / 2 + margin;
+
+            box.min.add(offset).sub(new THREE.Vector3(expandX, expandY, 0));
+            box.max.add(offset).add(new THREE.Vector3(expandX, expandY, 0));
+            return box;
         };
 
-        console.log(`--- Raycast Results for: ${ref.current.uuid} ---`);
-        console.log(result);
-        console.log("ALL HITS TO ABOVE:", uniqueUpHits);
-        console.log("ALL HITS TO BELOW:", uniqueDownHits);
-        console.log("ALL HITS TO RIGHT:", uniqueRightHits);
-        console.log("ALL HITS TO LEFT:", uniqueLeftHits);
-        console.log("-----------------------------------------");
+        for (const direction of ['arriba', 'abajo', 'derecha', 'izquierda'] as const) {
+            const hitbox = createHitbox(direction);
+            const filtered = objectsToIntersect.filter(obj => {
+                if (obj.uuid === ref.current.uuid) return false;
+                const objBox = new THREE.Box3().setFromObject(obj);
+                return hitbox.intersectsBox(objBox);
+            });
+            for (const obj of filtered) {
+                if (!hits[direction].some(o => o.uuid === obj.uuid)) {
+                    hits[direction].push(obj);
+                }
+            }
+        }
 
-        return result;
+        // --- ELIMINAR DUPLICADOS ENTRE DIRECCIONES SEGÚN PRIORIDAD ---
+        const prioridad: (keyof typeof hits)[] = ['arriba', 'abajo', 'izquierda', 'derecha'];
+        const seenUuids = new Set<string>();
+        for (const dir of prioridad) {
+            hits[dir] = hits[dir].filter(obj => {
+                if (seenUuids.has(obj.uuid)) return false;
+                seenUuids.add(obj.uuid);
+                return true;
+            });
+        }
+
+        console.log(`--- Raycast/Box Results for: ${ref.current.uuid} ---`);
+        console.log(hits);
+        return hits;
     };
 
     const initialData = {

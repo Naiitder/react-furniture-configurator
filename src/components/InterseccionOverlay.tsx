@@ -16,7 +16,7 @@ interface IntersectionOverlayProps {
         orientation: string;
         createdAt: Date;
         dimensions?: { width: number; height: number; depth: number };
-        shootRaycasts: () => { arriba: Mesh; abajo: Mesh; izquierda: Mesh; derecha: Mesh }
+        shootRaycasts: () => { arriba: Mesh[]; abajo: Mesh[]; izquierda: Mesh[]; derecha: Mesh[] }
     };
 }
 
@@ -76,7 +76,10 @@ const SingleOverlay: React.FC<SingleOverlayProps> = ({position, intersectionData
     ]);
 
     const [raycastResults, setRaycastResults] = useState<{
-        arriba: Mesh; abajo: Mesh; izquierda: Mesh; derecha: Mesh
+        arriba: Mesh[];
+        abajo: Mesh[];
+        izquierda: Mesh[];
+        derecha: Mesh[];
     } | null>(null);
 
     // Trigger raycasts only on mount or when cacheKey changes
@@ -111,15 +114,20 @@ const SingleOverlay: React.FC<SingleOverlayProps> = ({position, intersectionData
             right: 'derecha',
         };
         const rayDirection = placementMap[position.placement];
-        const neighborMesh: Mesh | null = raycastResults[rayDirection];
 
-        if (!neighborMesh) {
+        const neighborMeshes: Mesh[] = raycastResults[rayDirection] ?? [];
+
+        if (neighborMeshes.length === 0) {
             return 'Vacío';
         }
 
-        const neighborName = neighborMesh.userData?.name || neighborMesh.name;
-        const neighborId = neighborMesh.userData?.id || neighborMesh.uuid;
-        return neighborName ? `${neighborName}` : neighborId ? `ID: ${neighborId.substring(0, 8)}` : 'Vacío';
+        const labels = neighborMeshes.map(mesh => {
+            const name = mesh.userData?.name || mesh.name;
+            const id = mesh.userData?.id || mesh.uuid;
+            return name || `ID: ${id?.substring(0, 8)}`;
+        });
+
+        return labels.join(', ');
     }, [raycastResults, intersectionData.id, position.placement]);
 
     // Overlay content
