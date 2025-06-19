@@ -186,12 +186,15 @@ export const renderIntersecciones = ({
                             espesor / 2 +
                             (traseroDentro ? retranqueoTrasero / 2 : 0),
                         ]}
+                        interseccion={inter}
                         width={widthSeg}
                         height={espesor}
                         depth={depth - retranqueoTrasero - espesor}
                         material={materiales.Artico}
                         espesorBase={espesor}
                         isInterseccion={true}
+                        seccionesAdyacientes={inter.piezasAdyacientes}
+                        seccionesLimitantes={inter.piezasLimitantes}
                         orientation={"horizontal"}
                     />
                 );
@@ -216,6 +219,9 @@ export const renderIntersecciones = ({
                         espesorBase={espesor}
                         isInterseccion={true}
                         orientation={"horizontal"}
+                        interseccion={inter}
+                        seccionesAdyacientes={inter.piezasAdyacientes}
+                        seccionesLimitantes={inter.piezasLimitantes}
                     />
                 );
             }
@@ -249,6 +255,9 @@ export const renderIntersecciones = ({
                         espesorBase={espesor}
                         isInterseccion={true}
                         orientation={"vertical"}
+                        interseccion={inter}
+                        seccionesAdyacientes={inter.piezasAdyacientes}
+                        seccionesLimitantes={inter.piezasLimitantes}
                     />
                 );
             }
@@ -272,6 +281,9 @@ export const renderIntersecciones = ({
                         espesorBase={espesor}
                         isInterseccion={true}
                         orientation={"vertical"}
+                        interseccion={inter}
+                        seccionesAdyacientes={inter.piezasAdyacientes}
+                        seccionesLimitantes={inter.piezasLimitantes}
                     />
                 );
             }

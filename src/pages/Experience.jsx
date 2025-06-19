@@ -27,6 +27,7 @@ import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import IntersectionOverlay from "../components/InterseccionOverlay.js";
 import ErrorBoundary from "antd/lib/alert/ErrorBoundary.js";
+import InterseccionConfigContent from "../components/Casco/InterseccionInterface.jsx";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -48,7 +49,6 @@ const RaycastClickLogger = ({glRef, cameraRef}) => {
             if (refItem) {
                 const intersects = raycaster.intersectObject(refItem.groupRef, true);
                 if (intersects.length > 0) {
-                    console.log(intersects[0]);
                 }
             }
         };
@@ -141,12 +141,13 @@ export const Experience = () => {
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
                 intersecciones: [
-                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal),
                     new InterseccionMueble({x: 0.5, y: .25}, Orientacion.Horizontal),
                     new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
 
                     new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical),
                     new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical),
+
                 ],
             }
         });
@@ -275,41 +276,49 @@ export const Experience = () => {
     }
 
     function getHorizontalRange(horizontal, verticals) {
-        const x0 = horizontal.position.x;         // centro de tu horizontal
+        const x0 = horizontal.position.x;
 
-        // encuentra el vertical inmediatamente a la izquierda y
-        // el vertical inmediatamente a la derecha de x0
         const [leftV, rightV] = findNeighbors(
             verticals,
             v => v.position.x,
             x0
         );
 
-        // si no hay vertical a la izquierda, se asume el borde 0
+        // Si no hay vertical a la izquierda, usar borde izquierdo
         const leftX = leftV ? leftV.position.x : 0;
-        // si no hay vertical a la derecha, se asume el borde 1
+
+        // Si no hay vertical a la derecha, usar borde derecho
         const rightX = rightV ? rightV.position.x : 1;
 
-        // si quieres descontar el grosor de la tabla:
-        // const half = horizontal.userData.espesor / 2 / dimensiones.width;
-        // return [leftX + half, rightX - half];
+        // Asegura el orden: mayor -> menor (derecha -> izquierda)
+        const max = Math.max(leftX, rightX);
+        const min = Math.min(leftX, rightX);
 
-        return [leftX, rightX];
+        return [min, max];
     }
 
     function getVerticalRange(vertical, horizontals) {
         const y0 = vertical.position.y;
 
-        let downY = 0;
-        let upY = 1;
+        // Inicializamos con null para saber si hay límites reales
+        let topY = null;
+        let bottomY = null;
 
         horizontals.forEach(h => {
             const hy = h.position.y;
-            if (hy < y0) downY = Math.max(downY, hy);
-            if (hy >= y0) upY = Math.min(upY, hy);
+            if (hy < y0) {
+                if (bottomY === null || hy > bottomY) bottomY = hy;
+            }
+            if (hy > y0) {
+                if (topY === null || hy < topY) topY = hy;
+            }
         });
 
-        return [upY, downY];
+        // Si no se encontró límite, asumimos borde del casco
+        if (bottomY === null) bottomY = 0;
+        if (topY === null) topY = 1;
+
+        return [topY, bottomY]; // De mayor a menor
     }
 
     const idleTimeRef = useRef(0);
@@ -436,13 +445,13 @@ export const Experience = () => {
         const horizontals = sorted.filter(i => i.orientation === Orientacion.Horizontal);
 
         const validHorizontals = horizontals.filter(h => {
-            const [lX, rX] = getHorizontalRange(h, verticals);
-            return rawX >= lX && rawX <= rX;
+            const [minX, maxX] = getHorizontalRange(h, verticals);
+            return rawX >= minX && rawX <= maxX;
         });
 
         const validVerticals = verticals.filter(v => {
-            const [uY, dY] = getVerticalRange(v, horizontals);
-            return rawY >= dY && rawY <= uY;
+            const [topY, bottomY] = getVerticalRange(v, horizontals);
+            return rawY <= topY && rawY >= bottomY;
         });
 
         let piezasAdyacientes, piezasLimitantes;
@@ -457,7 +466,6 @@ export const Experience = () => {
         let posX = rawX;
         let posY = rawY;
 
-//        console.log('antes',posX, posY);
 
         if (piezasLimitantes[0] != null && piezasLimitantes[1] != null) {
             if (orient === Orientacion.Horizontal) {
@@ -565,10 +573,6 @@ export const Experience = () => {
                 }
             }
         }
-
-        // console.log('despues', posX, posY);
-        console.log("Adyacientes", piezasAdyacientes)
-        console.log("Limitantes", piezasLimitantes)
 
         const nueva = new InterseccionMueble(
             {x: posX, y: posY},
@@ -879,8 +883,7 @@ export const Experience = () => {
                 intersectionData={overlayData.intersectionData}
             />
 
-
-            {refPiece && (
+            {refPiece && !refPiece.userData.isInterseccion && (
                 <ChildItemConfigurationInterface
                     title="Tabla Configurator"
                     show={true}
@@ -891,6 +894,20 @@ export const Experience = () => {
                     <TablaConfigContent/>
                 </ChildItemConfigurationInterface>
             )}
+
+            {refPiece && refPiece.userData.isInterseccion && (
+
+                <ChildItemConfigurationInterface
+                    title="Interseccion Configurator"
+                    show={true}
+                    setShow={true}
+                    mode={transformMode}
+                    setMode={setTransformMode}
+                >
+                    <InterseccionConfigContent/>
+                </ChildItemConfigurationInterface>
+            )}
+
 
             {refCajon && (
                 <ChildItemConfigurationInterface title="Cajon Configurator">
