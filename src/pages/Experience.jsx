@@ -425,10 +425,14 @@ export const Experience = () => {
         const rawX = hit.uv.x;
         const rawY = hit.uv.y;
 
-        // 2) Ordenar cronológicamente las previas
+        // 2) Determinar orientación
+        const isHoriz = item.type === INTERSECTION_TYPES.HORIZONTAL;
+        const orient = isHoriz ? Orientacion.Horizontal : Orientacion.Vertical;
+
+        // 3) Obtener intersecciones previas
         const prev = cascoInstances[ref.name]?.intersecciones || [];
         const sorted = prev
-            .map((i, idx) => ({i, idx}))
+            .map((i, idx) => ({ i, idx }))
             .sort((a, b) => {
                 const tA = a.i.createdAt.getTime(),
                     tB = b.i.createdAt.getTime();
@@ -436,154 +440,195 @@ export const Experience = () => {
             })
             .map(o => o.i);
 
-        const isHoriz = item.type === INTERSECTION_TYPES.HORIZONTAL;
-        const orient = isHoriz
-            ? Orientacion.Horizontal
-            : Orientacion.Vertical;
+        // 4) Crear una intersección temporal para obtener el objeto 3D
+        const tempInterseccion = new InterseccionMueble(
+            { x: rawX, y: rawY },
+            orient,
+            previsualization
+        );
 
-        const verticals = sorted.filter(i => i.orientation === Orientacion.Vertical);
-        const horizontals = sorted.filter(i => i.orientation === Orientacion.Horizontal);
-
-        const validHorizontals = horizontals.filter(h => {
-            const [minX, maxX] = getHorizontalRange(h, verticals);
-            return rawX >= minX && rawX <= maxX;
+        // 5) Encontrar el objeto 3D correspondiente a la nueva intersección
+        let tablaMesh = null;
+        ref.traverse(child => {
+            if (child.isMesh && child.userData.isInterseccion && child.userData.uuid === tempInterseccion.uuid) {
+                tablaMesh = child;
+            }
         });
 
-        const validVerticals = verticals.filter(v => {
-            const [topY, bottomY] = getVerticalRange(v, horizontals);
-            return rawY <= topY && rawY >= bottomY;
-        });
+        // 6) Usar shootRaycasts para detectar piezas adyacentes y limitantes
+        let piezasAdyacentes = [null, null];
 
-        let piezasAdyacientes, piezasLimitantes;
-        if (orient === Orientacion.Horizontal) {
-            piezasAdyacientes = findNeighbors(verticals, v => v.position.x, rawX);
-            piezasLimitantes = findNeighbors(validHorizontals, h => h.position.y, rawY);
-        } else {
-            piezasAdyacientes = findNeighbors(horizontals, h => h.position.y, rawY);
-            piezasLimitantes = findNeighbors(validVerticals, v => v.position.x, rawX);
-        }
-
+        let piezasLimitantes = [null, null];
         let posX = rawX;
         let posY = rawY;
 
+        if (tablaMesh && tablaMesh.userData.shootRaycasts) {
+            const raycastResults = tablaMesh.userData.shootRaycasts();
+            if (raycastResults) {
+                // Mapear resultados a InterseccionMueble basados en UUIDs
+                const mapToInterseccion = (objects) =>
+                    objects
+                        .map(obj => {
+                            const inter = sorted.find(i => i.uuid === obj.userData.uuid);
+                            return inter || null;
+                        })
+                        .filter(i => i !== null);
 
-        if (piezasLimitantes[0] != null && piezasLimitantes[1] != null) {
-            if (orient === Orientacion.Horizontal) {
-                posY = (piezasLimitantes[0].position.y + piezasLimitantes[1].position.y) / 2;
-
-                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
-                    posX = (piezasAdyacientes[0].position.x + piezasAdyacientes[1].position.x) / 2;
-                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
-                    posX = (piezasAdyacientes[0].position.x + 1) / 2;
-                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
-                    posX = piezasAdyacientes[1].position.x / 2;
+                if (orient === Orientacion.Horizontal) {
+                    // Piezas adyacentes: izquierda y derecha
+                    piezasAdyacentes = [
+                        raycastResults.izquierda?.length > 0 ? mapToInterseccion(raycastResults.izquierda)[0] : null,
+                        raycastResults.derecha?.length > 0 ? mapToInterseccion(raycastResults.derecha)[0] : null
+                    ];
+                    // Piezas limitantes: arriba y abajo
+                    piezasLimitantes = [
+                        raycastResults.arriba?.length > 0 ? mapToInterseccion(raycastResults.arriba)[0] : null,
+                        raycastResults.abajo?.length > 0 ? mapToInterseccion(raycastResults.abajo)[0] : null
+                    ];
                 } else {
-                    posX = 0.5;
-                }
-            } else {
-                posX = (piezasLimitantes[0].position.x + piezasLimitantes[1].position.x) / 2
-
-                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
-                    posY = (piezasAdyacientes[0].position.y + piezasAdyacientes[1].position.y) / 2;
-                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
-                    posY = (piezasAdyacientes[0].position.y + 1) / 2;
-                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
-                    posY = piezasAdyacientes[1].position.y / 2;
-                } else {
-                    posY = 0.5;
-                }
-            }
-        } else if (piezasLimitantes[0] != null && piezasLimitantes[1] === null) {
-            if (orient === Orientacion.Horizontal) {
-                posY = (piezasLimitantes[0].position.y + 1) / 2;
-
-                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
-                    posX = (piezasAdyacientes[0].position.x + piezasAdyacientes[1].position.x) / 2;
-                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
-                    posX = (piezasAdyacientes[0].position.x + 1) / 2;
-                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
-                    posX = piezasAdyacientes[1].position.x / 2;
-                } else {
-                    posX = 0.5;
-                }
-            } else {
-                posX = (piezasLimitantes[0].position.x + 1) / 2
-
-                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
-                    posY = (piezasAdyacientes[0].position.y + piezasAdyacientes[1].position.y) / 2;
-                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
-                    posY = (piezasAdyacientes[0].position.y + 1) / 2;
-                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
-                    posY = piezasAdyacientes[1].position.y / 2;
-                } else {
-                    posY = 0.5;
-                }
-            }
-        } else if (piezasLimitantes[1] != null && piezasLimitantes[0] === null) {
-            if (orient === Orientacion.Horizontal) {
-                posY = piezasLimitantes[1].position.y / 2;
-                console.log(posY)
-
-                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
-                    posX = (piezasAdyacientes[0].position.x + piezasAdyacientes[1].position.x) / 2;
-                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
-                    posX = (piezasAdyacientes[0].position.x + 1) / 2;
-                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
-                    posX = piezasAdyacientes[1].position.x / 2;
-                } else {
-                    posX = 0.5;
+                    // Piezas adyacentes: arriba y abajo
+                    piezasAdyacentes = [
+                        raycastResults.arriba?.length > 0 ? mapToInterseccion(raycastResults.arriba)[0] : null,
+                        raycastResults.abajo?.length > 0 ? mapToInterseccion(raycastResults.abajo)[0] : null
+                    ];
+                    // Piezas limitantes: izquierda y derecha
+                    piezasLimitantes = [
+                        raycastResults.izquierda?.length > 0 ? mapToInterseccion(raycastResults.izquierda)[0] : null,
+                        raycastResults.derecha?.length > 0 ? mapToInterseccion(raycastResults.derecha)[0] : null
+                    ];
                 }
 
+                // 7) Ajustar posiciones basadas en los resultados de raycast
+                if (orient === Orientacion.Horizontal) {
+                    if (piezasLimitantes[0] && piezasLimitantes[1]) {
+                        posY = (piezasLimitantes[0].position.y + piezasLimitantes[1].position.y) / 2;
+                    } else if (piezasLimitantes[0]) {
+                        posY = (piezasLimitantes[0].position.y + 1) / 2;
+                    } else if (piezasLimitantes[1]) {
+                        posY = piezasLimitantes[1].position.y / 2;
+                    } else {
+                        posY = 0.5;
+                    }
 
-            } else {
-                posX = piezasLimitantes[1].position.x / 2
-
-                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
-                    posY = (piezasAdyacientes[0].position.y + piezasAdyacientes[1].position.y) / 2;
-                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
-                    posY = (piezasAdyacientes[0].position.y + 1) / 2;
-                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
-                    posY = piezasAdyacientes[1].position.y / 2;
+                    if (piezasAdyacentes[0] && piezasAdyacentes[1]) {
+                        posX = (piezasAdyacentes[0].position.x + piezasAdyacentes[1].position.x) / 2;
+                    } else if (piezasAdyacentes[0]) {
+                        posX = (piezasAdyacentes[0].position.x + 1) / 2;
+                    } else if (piezasAdyacentes[1]) {
+                        posX = piezasAdyacentes[1].position.x / 2;
+                    } else {
+                        posX = 0.5;
+                    }
                 } else {
-                    posY = 0.5;
+                    if (piezasLimitantes[0] && piezasLimitantes[1]) {
+                        posX = (piezasLimitantes[0].position.x + piezasLimitantes[1].position.x) / 2;
+                    } else if (piezasLimitantes[0]) {
+                        posX = (piezasLimitantes[0].position.x + 1) / 2;
+                    } else if (piezasLimitantes[1]) {
+                        posX = piezasLimitantes[1].position.x / 2;
+                    } else {
+                        posX = 0.5;
+                    }
+
+                    if (piezasAdyacentes[0] && piezasAdyacentes[1]) {
+                        posY = (piezasAdyacentes[0].position.y + piezasAdyacentes[1].position.y) / 2;
+                    } else if (piezasAdyacentes[0]) {
+                        posY = (piezasAdyacentes[0].position.y + 1) / 2;
+                    } else if (piezasAdyacentes[1]) {
+                        posY = piezasAdyacentes[1].position.y / 2;
+                    } else {
+                        posY = 0.5;
+                    }
                 }
             }
         } else {
+            // Fallback: usar la lógica original si no hay tablaMesh o shootRaycasts
+            const verticals = sorted.filter(i => i.orientation === Orientacion.Vertical);
+            const horizontals = sorted.filter(i => i.orientation === Orientacion.Horizontal);
+
+            const validHorizontals = horizontals.filter(h => {
+                const [minX, maxX] = getHorizontalRange(h, verticals);
+                return rawX >= minX && rawX <= maxX;
+            });
+
+            const validVerticals = verticals.filter(v => {
+                const [topY, bottomY] = getVerticalRange(v, horizontals);
+                return rawY <= topY && rawY >= bottomY;
+            });
+
+
             if (orient === Orientacion.Horizontal) {
-                posY = 0.5;
-                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
-                    posX = (piezasAdyacientes[0].position.x + piezasAdyacientes[1].position.x) / 2;
-                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
-                    posX = (piezasAdyacientes[0].position.x + 1) / 2;
-                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
-                    posX = piezasAdyacientes[1].position.x / 2;
+                piezasAdyacentes = findNeighbors(verticals, v => v.position.x, rawX);
+                piezasLimitantes = findNeighbors(validHorizontals, h => h.position.y, rawY);
+            } else {
+                piezasAdyacentes = findNeighbors(horizontals, h => h.position.y, rawY);
+                piezasLimitantes = findNeighbors(validVerticals, v => v.position.x, rawX);
+            }
+
+            if (piezasLimitantes[0] && piezasLimitantes[1]) {
+                if (orient === Orientacion.Horizontal) {
+                    posY = (piezasLimitantes[0].position.y + piezasLimitantes[1].position.y) / 2;
+                } else {
+                    posX = (piezasLimitantes[0].position.x + piezasLimitantes[1].position.x) / 2;
+                }
+            } else if (piezasLimitantes[0]) {
+                if (orient === Orientacion.Horizontal) {
+                    posY = (piezasLimitantes[0].position.y + 1) / 2;
+                } else {
+                    posX = (piezasLimitantes[0].position.x + 1) / 2;
+                }
+            } else if (piezasLimitantes[1]) {
+                if (orient === Orientacion.Horizontal) {
+                    posY = piezasLimitantes[1].position.y / 2;
+                } else {
+                    posX = piezasLimitantes[1].position.x / 2;
+                }
+            } else {
+                if (orient === Orientacion.Horizontal) {
+                    posY = 0.5;
                 } else {
                     posX = 0.5;
                 }
+            }
+
+            if (piezasAdyacentes[0] && piezasAdyacentes[1]) {
+                if (orient === Orientacion.Horizontal) {
+                    posX = (piezasAdyacentes[0].position.x + piezasAdyacentes[1].position.x) / 2;
+                } else {
+                    posY = (piezasAdyacentes[0].position.y + piezasAdyacentes[1].position.y) / 2;
+                }
+            } else if (piezasAdyacentes[0]) {
+                if (orient === Orientacion.Horizontal) {
+                    posX = (piezasAdyacentes[0].position.x + 1) / 2;
+                } else {
+                    posY = (piezasAdyacentes[0].position.y + 1) / 2;
+                }
+            } else if (piezasAdyacentes[1]) {
+                if (orient === Orientacion.Horizontal) {
+                    posX = piezasAdyacentes[1].position.x / 2;
+                } else {
+                    posY = piezasAdyacentes[1].position.y / 2;
+                }
             } else {
-                posX = 0.5;
-                if (piezasAdyacientes[0] != null && piezasAdyacientes[1] != null) {
-                    posY = (piezasAdyacientes[0].position.y + piezasAdyacientes[1].position.y) / 2;
-                } else if (piezasAdyacientes[0] != null && piezasAdyacientes[1] === null) {
-                    posY = (piezasAdyacientes[0].position.y + 1) / 2;
-                } else if (piezasAdyacientes[1] != null && piezasAdyacientes[0] === null) {
-                    posY = piezasAdyacientes[1].position.y / 2;
+                if (orient === Orientacion.Horizontal) {
+                    posX = 0.5;
                 } else {
                     posY = 0.5;
                 }
             }
         }
 
+        // 8) Crear la nueva intersección
         const nueva = new InterseccionMueble(
-            {x: posX, y: posY},
+            { x: posX, y: posY },
             orient,
             previsualization,
-            undefined,               // createdAt (se genera dentro)
-            piezasAdyacientes,
+            undefined,
+            piezasAdyacentes,
             piezasLimitantes
         );
 
-        // 7) Actualizar estado y userData
+        // 9) Actualizar estado y userData
         setCascoInstances(prev => ({
             ...prev,
             [ref.name]: {
@@ -597,7 +642,6 @@ export const Experience = () => {
         ];
         setVersion(v => v + 1);
     }
-
 
     const interfaceComponents = {
         "Casco": (

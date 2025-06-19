@@ -111,6 +111,7 @@ const CascoFuncional = (
         indicePata,
         indicePuerta,
         intersecciones,
+        extraAltura : 0
     };
 
     // Estado local para la configuración

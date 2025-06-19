@@ -49,7 +49,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          insideRef,
                                          ref = useRef<any>(null),
                                          position,
-    positionExtra,
+                                         positionExtra,
                                          rotation = [0, 0, 0],
                                          espesorBase,
                                          width,
@@ -67,10 +67,10 @@ const Tabla: React.FC<TablaProps> = ({
                                          disableAdjustedWidth = false,
                                          stopPropagation = true,
                                          isInterseccion = false,
-                                         orientation
-    interseccion,
-    seccionesAdyacientes = [null,null],
-    seccionesLimitantes = [null,null],
+                                         orientation,
+                                         interseccion,
+                                         seccionesAdyacientes = [null, null],
+                                         seccionesLimitantes = [null, null],
                                      }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
@@ -135,8 +135,19 @@ const Tabla: React.FC<TablaProps> = ({
         const createHitbox = (direction: 'arriba' | 'abajo' | 'izquierda' | 'derecha'): THREE.Box3 => {
             const box = bbox.clone();
             const margin = 0.01;
-            const expandX = isHorizontal && (direction === 'arriba' || direction === 'abajo') ? adjustedWidth / 2 : margin;
-            const expandY = !isHorizontal && (direction === 'izquierda' || direction === 'derecha') ? adjustedHeight / 2 : margin;
+
+            // La lógica correcta es:
+            // - Si es horizontal Y buscamos arriba/abajo: expandir horizontalmente
+            // - Si es vertical Y buscamos izquierda/derecha: expandir verticalmente
+            // - En otros casos: usar margen mínimo
+            let expandX = margin;
+            let expandY = margin;
+
+            if (isHorizontal && (direction === 'arriba' || direction === 'abajo')) {
+                expandX = adjustedWidth / 2;
+            } else if (!isHorizontal && (direction === 'izquierda' || direction === 'derecha')) {
+                expandY = adjustedHeight / 2;
+            }
 
             const offset = new THREE.Vector3();
             if (direction === 'arriba') offset.y += adjustedHeight / 2 + margin;
@@ -242,8 +253,6 @@ const Tabla: React.FC<TablaProps> = ({
                 isinterseccion: refPiece.userData.isinterseccion || isInterseccion,
                 orientation: refPiece.userData.orientation || orientation,
                 shootRaycasts,
-                espesor: refPiece.userData.espesor || espesorBase,
-                isinterseccion: refPiece.userData.isInterseccion || isInterseccion,
                 seccionesAdyacientes: seccionesAdyacientes,
                 seccionesLimitantes: seccionesLimitantes,
             });
@@ -255,7 +264,7 @@ const Tabla: React.FC<TablaProps> = ({
     depth = depth + extra.depthExtra;
     espesorBase = extra.espesor;
 
-    if(isInterseccion) position = extra.positionExtra;
+    if (isInterseccion) position = extra.positionExtra;
 
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
     // Solo para frontal

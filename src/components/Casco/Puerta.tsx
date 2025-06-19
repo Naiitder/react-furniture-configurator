@@ -12,7 +12,6 @@ export type PuertaProps = {
     width: number;
     height: number;
     depth: number;
-    color?: string;
     pivot?: "left" | "right";
 };
 
@@ -22,7 +21,6 @@ const Puerta: React.FC<PuertaProps> = ({
                                            width,
                                            height,
                                            depth,
-                                           color = "#654321",
                                            pivot = "right"
                                        }) => {
     const [doorRotation, setDoorRotation] = React.useState(0);
@@ -59,10 +57,16 @@ const Puerta: React.FC<PuertaProps> = ({
 
     // Ajustar la posición inicial de la caja según el pivote
     const boxPosition: [number, number, number] = [
-        width / 2 * (pivot === "right" ? -1 : 1),
+        width / 2 * (pivot === "right" ? -1 : 1), // 🤪😝
         0,
         0
     ];
+
+    console.log("DATOS PUERTAS: ", {
+        position,
+        insidePosition: [doorX, 0, doorZ],
+        boxPosition,
+    });
 
     return (
         <group position={position} onClick={handleClick}>
