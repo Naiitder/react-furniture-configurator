@@ -445,7 +445,6 @@ export const Experience = () => {
 
         const validHorizontals = horizontals.filter(h => {
             const [minX, maxX] = getHorizontalRange(h, verticals);
-            console.log('minX: ', minX, 'maxX: ', maxX);
             return rawX >= minX && rawX <= maxX;
         });
 
@@ -454,8 +453,6 @@ export const Experience = () => {
             return rawY <= topY && rawY >= bottomY;
         });
 
-        console.log('vh',validHorizontals)
-        console.log('vv',validVerticals)
         let piezasAdyacientes, piezasLimitantes;
         if (orient === Orientacion.Horizontal) {
             piezasAdyacientes = findNeighbors(verticals, v => v.position.x, rawX);
@@ -468,7 +465,6 @@ export const Experience = () => {
         let posX = rawX;
         let posY = rawY;
 
-//        console.log('antes',posX, posY);
 
         if(piezasLimitantes[0] != null && piezasLimitantes[1] != null){
             if(orient === Orientacion.Horizontal) {
@@ -606,10 +602,6 @@ export const Experience = () => {
                 }
             }
         }
-
-       // console.log('despues', posX, posY);
-        console.log("Adyacientes",piezasAdyacientes)
-        console.log("Limitantes",piezasLimitantes)
 
         const nueva = new InterseccionMueble(
             { x: posX, y: posY },
@@ -809,8 +801,8 @@ export const Experience = () => {
                         id: refPiece.uuid,
                         originalIndex: refPiece.userData.originalIndex ?? 0,
                         position: {
-                            x: refPiece.userData.positionX ?? worldPos.x,
-                            y: refPiece.userData.positionY ?? worldPos.y
+                            x: refPiece.userData.positionX ?? refPiece.position.x,
+                            y: refPiece.userData.positionY ?? refPiece.position.y
                         },
                         orientation,
                         createdAt: refPiece.userData.createdAt ?? new Date(),

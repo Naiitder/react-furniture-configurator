@@ -10,7 +10,9 @@ const InterseccionConfigContent = () => {
         widthExtra: 0,
         heightExtra: 0,
         depthExtra: 0,
-        espesor: 0.1
+        espesor: 0.1,
+        seccionesAdyacientes: [],
+        seccionesLimitantes: [],
     });
 
     useEffect(() => {
@@ -59,8 +61,8 @@ const InterseccionConfigContent = () => {
                 <Form.Item label="Position X: ">
                     <Slider
                         step={0.12345}
-                        min={0}
-                        max={2}
+                        min={-.4}
+                        max={.4}
                         value={config.positionExtra[0]}
                         onChange={(v) => {
                             const newPos = [...config.positionExtra];
@@ -72,8 +74,8 @@ const InterseccionConfigContent = () => {
                 <Form.Item label="Position Y: ">
                     <Slider
                         step={0.12345}
-                        min={0}
-                        max={2}
+                        min={-.4}
+                        max={.4}
                         value={config.positionExtra[1]}
                         onChange={(v) => {
                             const newPos = [...config.positionExtra];
