@@ -312,7 +312,7 @@ const Tabla: React.FC<TablaProps> = ({
                         }
                     }}
                 >
-                    <Edges threshold={15} color={"black"} linewidth={0.5}/>
+                    <Edges threshold={15} color={"black"} linewidth={1}/>
 
                 </mesh>
             )}

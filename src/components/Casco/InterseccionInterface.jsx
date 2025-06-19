@@ -59,12 +59,15 @@ const InterseccionConfigContent = () => {
                 (child) => child.uuid === config.seccionesLimitantes[0].uuid
             );
             seccionLimitanteHorizontalSuperior = objeto3D.position.y;
+            seccionLimitanteHorizontalSuperior = seccionLimitanteHorizontalSuperior+(seccionLimitanteHorizontalSuperior*5/100);
         }
         if (refItem?.groupRef?.children?.[0]?.children && config.seccionesLimitantes[1]) {
             const objeto3D = refItem.groupRef.children[0].children.find(
                 (child) => child.uuid === config.seccionesLimitantes[1].uuid
             );
             seccionLimitanteHorizontalInferior = objeto3D.position.y;
+            seccionLimitanteHorizontalInferior = seccionLimitanteHorizontalInferior-(seccionLimitanteHorizontalInferior*5/100);
+
         }
     }
 
