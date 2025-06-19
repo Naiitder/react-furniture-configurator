@@ -141,8 +141,12 @@ export const Experience = () => {
                 patas: [<PataAparador height={.1}/>],
                 puertas: [<PuertaBodeguero/>],
                 intersecciones: [
-// Se recorta por el horizontal de y: 0.35
+                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: .25}, Orientacion.Horizontal),
+                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
 
+                    new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical),
+                    new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical),
                 ],
             }
         });
