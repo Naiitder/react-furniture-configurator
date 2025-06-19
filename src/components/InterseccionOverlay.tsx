@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Mesh } from 'three';
-import { useState, useEffect, useMemo } from 'react';
+import {Mesh} from 'three';
+import {useState, useEffect, useMemo} from 'react';
 
 // --- INTERFACES ---
 interface IntersectionOverlayProps {
@@ -64,13 +64,17 @@ const getTransformStyle = (placement: 'top' | 'bottom' | 'left' | 'right', gap: 
 };
 
 // --- SUB-COMPONENT ---
-const SingleOverlay: React.FC<SingleOverlayProps> = ({ position, intersectionData, baseStyle }) => {
+const SingleOverlay: React.FC<SingleOverlayProps> = ({position, intersectionData, baseStyle}) => {
     // Cache raycast results with a unique key based on intersectionData
-    const cacheKey = useMemo(() => `${intersectionData.id}-${intersectionData.position.x}-${intersectionData.position.y}`, [
+    const cacheKey = useMemo(() => {
+        const key = `${intersectionData.id}-${intersectionData.position.x}-${intersectionData.position.y}`;
+        return key;
+    }, [
         intersectionData.id,
         intersectionData.position.x,
         intersectionData.position.y,
     ]);
+
     const [raycastResults, setRaycastResults] = useState<{
         arriba: Mesh; abajo: Mesh; izquierda: Mesh; derecha: Mesh
     } | null>(null);
@@ -81,17 +85,18 @@ const SingleOverlay: React.FC<SingleOverlayProps> = ({ position, intersectionDat
             console.error('[SingleOverlay] shootRaycasts is not a function');
             return;
         }
-        if (!raycastResults) {
-            console.log(`[SingleOverlay ${position.placement}] Running shootRaycasts for position:`, intersectionData.position, 'Cache Key:', cacheKey);
-            const results = intersectionData.shootRaycasts();
-            console.log(`[SingleOverlay ${position.placement}] Raw results:`, results);
-            if (results && typeof results === 'object') {
-                setRaycastResults(results);
-            } else {
-                console.warn('[SingleOverlay] Invalid raycast results:', results);
-            }
+
+        // ALWAYS clear results when cacheKey changes
+        setRaycastResults(null);
+
+        const results = intersectionData.shootRaycasts();
+
+        if (results && typeof results === 'object') {
+            setRaycastResults(results);
+        } else {
+            console.warn('[SingleOverlay] Invalid raycast results:', results);
         }
-    }, [intersectionData.shootRaycasts, raycastResults, cacheKey]);
+    }, [cacheKey, intersectionData.shootRaycasts, position.placement]);
 
     // Compute neighbor information
     const neighborInfo = useMemo(() => {
@@ -123,6 +128,7 @@ const SingleOverlay: React.FC<SingleOverlayProps> = ({ position, intersectionDat
             <div><strong>{intersectionData.orientation === 'vertical' ? 'Vertical' : 'Horizontal'}</strong></div>
             <div>Pos: ({intersectionData.position.x.toFixed(2)}, {intersectionData.position.y.toFixed(2)})</div>
             <div>Vecino: {neighborInfo}</div>
+            <div>{position.placement === 'top' ? '↑' : position.placement === 'left' ? '←' : position.placement === 'bottom' ? '↓' : '→'}</div>
         </>
     ), [intersectionData.orientation, intersectionData.position, neighborInfo]);
 
@@ -142,7 +148,7 @@ const SingleOverlay: React.FC<SingleOverlayProps> = ({ position, intersectionDat
 
 // --- MAIN COMPONENT ---
 const IntersectionOverlay: React.FC<IntersectionOverlayProps> = React.memo(
-    ({ isVisible, overlayPositions, intersectionData }) => {
+    ({isVisible, overlayPositions, intersectionData}) => {
         const baseStyle = useMemo(() => STATIC_STYLES.overlay, []);
 
         if (!isVisible || !overlayPositions || !intersectionData) {
@@ -152,13 +158,13 @@ const IntersectionOverlay: React.FC<IntersectionOverlayProps> = React.memo(
         return (
             <>
                 <SingleOverlay
-                    key="primary"
+                    key={`primary-${intersectionData.id}`}
                     position={overlayPositions.primary}
                     intersectionData={intersectionData}
                     baseStyle={baseStyle}
                 />
                 <SingleOverlay
-                    key="secondary"
+                    key={`secondary-${intersectionData.id}`}
                     position={overlayPositions.secondary}
                     intersectionData={intersectionData}
                     baseStyle={baseStyle}

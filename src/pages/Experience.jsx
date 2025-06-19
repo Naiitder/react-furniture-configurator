@@ -26,6 +26,7 @@ import Bodeguero from "../components/Armario/Bodeguero.js";
 import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import IntersectionOverlay from "../components/InterseccionOverlay.js";
+import ErrorBoundary from "antd/lib/alert/ErrorBoundary.js";
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -320,7 +321,7 @@ export const Experience = () => {
                 if (hoverTimeout.current) {
                     clearTimeout(hoverTimeout.current);
                     hoverTimeout.current = null;
-                    clearPreviewIntersections();ƒ
+                    clearPreviewIntersections();
                     previewCreatedRef.current = false;
                     idleTimeRef.current = 0;
                     lastTimestampRef.current = null;
@@ -736,32 +737,34 @@ export const Experience = () => {
 
     };
 
-// Reemplaza esta función completa en Experience.jsx
 
-    function IntersectionOverlayController({ overlayData, setOverlayData }) {
-        const { refPiece } = useSelectedPieceProvider();
-        const { camera, size } = useThree();
+    function IntersectionOverlayController({overlayData, setOverlayData}) {
+        const {refPiece} = useSelectedPieceProvider();
+        const {camera, size} = useThree();
         const lastUpdateTime = useRef(0);
-        const lastPosition = useRef({ x: 0, y: 0 });
+        const lastPosition = useRef({x: 0, y: 0});
+        const lastPieceId = useRef(null);
 
         useFrame((state) => {
-
             const now = state.clock.elapsedTime;
+            const currentPieceId = refPiece?.uuid || null;
             const shouldBeVisible = refPiece != null && refPiece.userData.isInterseccion;
 
+            const pieceChanged = currentPieceId !== lastPieceId.current;
+
+            if (pieceChanged) {
+                lastPieceId.current = currentPieceId;
+                lastUpdateTime.current = 0; // Reset throttling
+            }
+
             if (!shouldBeVisible) {
-                // AHORA LEEMOS EL ESTADO REAL PASADO POR PROPS
                 if (overlayData.isVisible) {
-                    // Llamamos al setter para ocultarlo.
-                    // Es buena práctica usar la forma funcional por si hay actualizaciones en batch.
-                    setOverlayData(prevData => ({ ...prevData, isVisible: false }));
+                    setOverlayData(prevData => ({...prevData, isVisible: false}));
                 }
                 return;
             }
 
-            // La lógica de throttling (limitación) ahora es más sencilla.
-            // Si el overlay no está visible, no limitamos para que aparezca al instante.
-            if (overlayData.isVisible && (now - lastUpdateTime.current < 0.05)) {
+            if (overlayData.isVisible && !pieceChanged && (now - lastUpdateTime.current < 0.05)) {
                 return;
             }
 
@@ -774,28 +777,31 @@ export const Experience = () => {
             const threshold = 3;
             if (
                 overlayData.isVisible &&
+                !pieceChanged &&
                 Math.abs(x - lastPosition.current.x) < threshold &&
                 Math.abs(y - lastPosition.current.y) < threshold
             ) {
                 return;
             }
 
-            lastPosition.current = { x, y };
+            lastPosition.current = {x, y};
             lastUpdateTime.current = now;
 
-            // La creación de 'newData' sigue siendo la misma.
+            const orientation = refPiece.userData.orientation;
+            const isVertical = orientation === "vertical";
+
             const newData = {
                 isVisible: true,
                 overlayPositions: {
                     primary: {
-                        x: Math.round(x),
-                        y: Math.round(y),
-                        placement: refPiece.userData.orientation === 'vertical' ? 'left' : 'top'
+                        x: Math.round(x - (!isVertical ? 0 : 24)),
+                        y: Math.round(y - (isVertical ? 0 : 24)),
+                        placement: isVertical ? 'left' : 'top'
                     },
                     secondary: {
-                        x: Math.round(x),
-                        y: Math.round(y),
-                        placement: refPiece.userData.orientation === 'vertical' ? 'right' : 'bottom'
+                        x: Math.round(x + (!isVertical ? 0 : 24)),
+                        y: Math.round(y + (isVertical ? 0 : 24)),
+                        placement: isVertical ? 'right' : 'bottom'
                     }
                 },
                 intersectionData: {
@@ -805,7 +811,7 @@ export const Experience = () => {
                         x: refPiece.userData.positionX ?? worldPos.x,
                         y: refPiece.userData.positionY ?? worldPos.y
                     },
-                    orientation: refPiece.userData.orientation || 'horizontal',
+                    orientation: orientation || 'horizontal',
                     createdAt: refPiece.userData.createdAt ?? new Date(),
                     dimensions: {
                         width: refPiece.userData.widthExtra ?? 0,
@@ -830,39 +836,37 @@ export const Experience = () => {
 
     return (
         <>
-            <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
-                    onPointerMissed={(event) => {
-                        if (event.button === 2) return;
-                        setRefPiece(null);
-                        setRefCajon(null);
-                        setRefItem(null);
-                    }}>
-                <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
-                <Room positionY={3.5}/>
-                <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={0}>
-                    <directionalLight
-                        castShadow
-                        position={[5, 5, 5]}
-                        intensity={4}
+            <ErrorBoundary>
+                <Canvas ref={drop} shadows dpr={[1, 2]} camera={{position: [0, 2, 5], fov: 35}}
+                        onPointerMissed={(event) => {
+                            if (event.button === 2) return;
+                            setRefPiece(null);
+                            setRefCajon(null);
+                            setRefItem(null);
+                        }}>
+                    <RaycastClickLogger glRef={glRef} cameraRef={cameraRef}/>
+                    <Room positionY={3.5}/>
+                    <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={0}>
+
+                        {itemComponents[selectedItem]}
+
+                    </Stage>
+                    {transformEnabled && refItem && (
+                        <TransformControls ref={transformRef} object={refPiece ? refPiece : refItem.groupRef}
+                                           mode={transformMode} onMouseDown={() => orbitRef.current.enabled = false}
+                                           onMouseUp={() => orbitRef.current.enabled = true}/>
+                    )}
+
+                    <OrbitControls
+                        ref={orbitRef}
+                        makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
+
+                    <IntersectionOverlayController
+                        overlayData={overlayData}
+                        setOverlayData={setOverlayData}
                     />
-                    {itemComponents[selectedItem]}
-
-                </Stage>
-                {transformEnabled && refItem && (
-                    <TransformControls ref={transformRef} object={refPiece ? refPiece : refItem.groupRef}
-                                       mode={transformMode} onMouseDown={() => orbitRef.current.enabled = false}
-                                       onMouseUp={() => orbitRef.current.enabled = true}/>
-                )}
-
-                <OrbitControls
-                    ref={orbitRef}
-                    makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2}/>
-
-                <IntersectionOverlayController
-                    overlayData={overlayData}  // <--- Pasamos el estado actual
-                    setOverlayData={setOverlayData}
-                />
-            </Canvas>
+                </Canvas>
+            </ErrorBoundary>
             {interfaceComponents[selectedItem]}
 
             <IntersectionOverlay
