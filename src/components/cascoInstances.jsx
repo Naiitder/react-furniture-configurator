@@ -10,6 +10,11 @@ export const useCascoInstances = () => {
     const [cascoInstances, setCascoInstances] = useState({});
 
     useEffect(() => {
+        const i1 = new InterseccionMueble({ x: 0.5, y: 0.5 }, Orientacion.Horizontal);
+        const i2 = new InterseccionMueble({ x: 0.5, y: 0.75 }, Orientacion.Horizontal, false, undefined, [], [i1, null]);
+        const i3 = new InterseccionMueble({ x: 0.5, y: 0.25 }, Orientacion.Horizontal, false, undefined, [], [ null, i1 ]);
+        const i4 = new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical, false, undefined, [i2, i1]);
+        const i5 = new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical, false, undefined, [null, i2]);
         setCascoInstances({
             casco1: {
                 id: 'casco1',
@@ -106,15 +111,7 @@ export const useCascoInstances = () => {
                         depth={0.1}
                     />
                 ],
-                intersecciones: [
-                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.5, y: .25}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
-
-                    new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical),
-                    new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical),
-
-                ],
+                intersecciones: [i1, i2, i3, i4, i5],
             }
         });
     }, []);
