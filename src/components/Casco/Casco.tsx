@@ -318,32 +318,49 @@ const CascoFuncional = (
                     </group>
                 )}
 
-                {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (
-                    <>
-                        {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
-                            parentRef: groupRef,
-                            insideRef: detectionBoxRef,
-                            position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                            width: actualWidth > 2 ? actualWidth / 2 : actualWidth * puertas[indiceActualPuerta].props.width,
-                            height: actualHeight * puertas[indiceActualPuerta].props.height,
-                            depth: actualEspesor,
-                            pivot: "right",
-                        })}
-                        {actualWidth > 2 && (
-                            <>
-                                {React.cloneElement(puertas[indiceActualPuerta] as React.ReactElement, {
-                                    parentRef: groupRef,
-                                    insideRef: detectionBoxRef,
-                                    position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
-                                    width: actualWidth / 2,
-                                    height: actualHeight,
-                                    depth: actualEspesor,
-                                    pivot: "left",
-                                })}
-                            </>
-                        )}
-                    </>
-                )}
+                {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (() => {
+                    const puertaActual = puertas[indiceActualPuerta];
+                    const propsPuerta = puertaActual.props;
+
+                    // 1. Calcular la altura real de la puerta basándose en el ratio (ej: 0.5)
+                    const alturaRealPuerta = actualHeight * (propsPuerta.height || 1);
+                    const anchuraRealPuerta = actualWidth * (propsPuerta.width || 1);
+                    const profundidadRealPuerta = actualEspesor * (propsPuerta.depth || 1);
+
+                    // 2. Calcular el desplazamiento vertical necesario.
+                    const offsetY = (actualHeight - alturaRealPuerta) / 2;
+
+                    // 3. Calcular la nueva posición 'Y' para el centro de la puerta.
+                    const nuevaPosicionY = posiciones.puerta[1] - offsetY;
+
+                    return (
+                        <>
+                            {React.cloneElement(puertaActual as React.ReactElement, {
+                                parentRef: groupRef,
+                                insideRef: detectionBoxRef,
+                                position: [posiciones.puerta[0], nuevaPosicionY, posiciones.puerta[2]],
+                                width: actualWidth > 2 ? anchuraRealPuerta / 2 : anchuraRealPuerta,
+                                height: alturaRealPuerta,
+                                depth: profundidadRealPuerta,
+                                pivot: "right",
+                            })}
+
+                            {actualWidth > 2 && (
+                                <>
+                                    {React.cloneElement(puertaActual as React.ReactElement, {
+                                        parentRef: groupRef,
+                                        insideRef: detectionBoxRef,
+                                        position: [-posiciones.puerta[0], nuevaPosicionY, posiciones.puerta[2]],
+                                        width: anchuraRealPuerta,
+                                        height: alturaRealPuerta,
+                                        depth: profundidadRealPuerta,
+                                        pivot: "left",
+                                    })}
+                                </>
+                            )}
+                        </>
+                    );
+                })()}
 
                 {/* Intersecciones */}
                 {renderInterseccionesInternas()}
@@ -377,6 +394,7 @@ const CascoFuncional = (
     );
 };
 
+// ... resto del componente (CascoWithContext) sin cambios ...
 const CascoWithContext = (props: any) => {
     const {refItem, setRefItem, version} = useSelectedItemProvider();
     const meshRef = useRef<any>(null);

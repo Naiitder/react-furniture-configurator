@@ -50,7 +50,7 @@ const Puerta: React.FC<PuertaProps> = ({
         event.stopPropagation();
     };
 
-    const offset = Math.sin(doorRotation) * 0.5 * depth;
+    const offset = (Math.sin(doorRotation) * 0.5) * depth;
     const direction = pivot === "right" ? -1 : 1;
     const doorX = (pivot === "right" ? direction : -direction) * offset;
     const doorZ = direction * offset;

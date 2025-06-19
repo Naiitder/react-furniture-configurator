@@ -73,8 +73,8 @@ export const calcularPosiciones = ({
             -mitadProfundidad + espesor / 2 + (traseroDentro ? retranqueoTrasero : 0),
         ],
         puerta: [
-            width / 2 - espesor * 2,
-            height / 4 + extraAltura,
+            width / 2,
+            height / 2 + extraAltura,
             depth / 2 + espesor / 2,
         ],
     };
