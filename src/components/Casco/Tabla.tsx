@@ -49,7 +49,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          insideRef,
                                          ref = useRef<any>(null),
                                          position,
-    positionExtra,
+                                         positionExtra,
                                          rotation = [0, 0, 0],
                                          espesorBase,
                                          width,
@@ -401,6 +401,17 @@ const Tabla: React.FC<TablaProps> = ({
 
         return geometry;
     };
+
+    if (
+        !position || position.some(isNaN) ||
+        !width || isNaN(width) ||
+        !height || isNaN(height) ||
+        !depth || isNaN(depth)
+    ) {
+        console.log(position);
+        console.error("❌ Tabla con props inválidas", {position, width, height, depth});
+        return null;
+    }
 
     return (
         <>

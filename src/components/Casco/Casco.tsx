@@ -113,6 +113,7 @@ const CascoFuncional = (
         intersecciones,
     };
 
+
     // Estado local para la configuración
     const [localConfig, setLocalConfig] = useState(initialData);
 
@@ -125,6 +126,8 @@ const CascoFuncional = (
             groupRef.current.name = id;
         }
     }, [id]);
+
+
 
     // Sincronizar configuración cuando está seleccionado
     const isSelected = refItem && refItem.groupRef === groupRef.current;
@@ -140,6 +143,8 @@ const CascoFuncional = (
         }
     }, [refItem, isSelected, version]);
 
+
+
     // Actualizar configuración
     const updateConfig = (key: string, value: any) => {
         setLocalConfig((prev) => {
@@ -153,6 +158,8 @@ const CascoFuncional = (
             return newConfig;
         });
     };
+
+
 
     // Extraer variables del estado local
     const actualWidth = localConfig.width || width;
@@ -177,6 +184,8 @@ const CascoFuncional = (
     if (indiceActualPata > 0) indiceActualPata--;
     let indiceActualPuerta = localConfig.indicePuerta ?? indicePuerta;
     if (indiceActualPuerta > 0) indiceActualPuerta--;
+
+
 
     // Manejador de clics
     const handleClick = (event: React.PointerEvent) => {
@@ -319,6 +328,9 @@ const CascoFuncional = (
                             parentRef: groupRef,
                             insideRef: detectionBoxRef,
                             position: [posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                            width:  actualWidth > 2 ? actualWidth/2 : actualWidth,
+                            height: actualHeight,
+                            depth:  actualEspesor,
                             pivot: "right",
                         })}
                         {actualWidth > 2 && (
@@ -327,6 +339,9 @@ const CascoFuncional = (
                                     parentRef: groupRef,
                                     insideRef: detectionBoxRef,
                                     position: [-posiciones.puerta[0], posiciones.puerta[1], posiciones.puerta[2]],
+                                    width:  actualWidth/2,
+                                    height: actualHeight,
+                                    depth:  actualEspesor,
                                     pivot: "left",
                                 })}
                             </>

@@ -1,10 +1,7 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Canvas, useFrame, useThree} from "@react-three/fiber";
 import {OrbitControls, Stage, TransformControls,} from "@react-three/drei";
 import {useLocation} from "react-router-dom";
-import Casco from "../components/Casco/Casco.js";
-import Pata from "../components/Casco/Pata.js";
-import Puerta from "../components/Casco/Puerta.js";
 import CascoInterface from "../components/Casco/CascoInterface.jsx";
 import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
@@ -15,19 +12,18 @@ import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import ChildItemConfigurationInterface from "../components/ChildItemConfigurationInterface.jsx";
 import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
-import PataAparador from "../components/Aparador/PataAparador.js";
-import Aparador from "../components/Aparador/Aparador.js";
 import AparadorInterface from "../components/Aparador/AparadorInterface.jsx";
 import {useSelectedCajonProvider} from "../contexts/SelectedCajonProvider.jsx";
 import CajonConfigContent from "../components/Aparador/CajonInterface.jsx";
-import Armario from "../components/Armario/Armario.js";
 import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
-import Bodeguero from "../components/Armario/Bodeguero.js";
-import PuertaBodeguero from "../components/Armario/PuertaBodeguero.js";
 import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import IntersectionOverlay from "../components/InterseccionOverlay.js";
 import ErrorBoundary from "antd/lib/alert/ErrorBoundary.js";
 import InterseccionConfigContent from "../components/Casco/InterseccionInterface.jsx";
+import {useCascoInstances} from "../components/cascoInstances.jsx";
+import {getItemComponents} from "../utils/itemComponents.jsx";
+import { getInterfaceComponents } from "../utils/interfaceComponents";
+
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
     const {camera, gl} = useThree();
@@ -70,90 +66,13 @@ export const Experience = () => {
     const selectedItem = params.get("item");
 
     const [transformEnabled, setTransformEnabled] = useState(false);
-    const [transformMode, setTransformMode] = useState("");
-    const [cascoInstances, setCascoInstances] = useState({}); // Almacenar instancias de cascos
+    const [transformMode, setTransformMode] = useState("");// Almacenar instancias de cascos
     const {refItem, setRefItem, version, setVersion} = useSelectedItemProvider();
     const {refPiece, setRefPiece} = useSelectedPieceProvider();
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
     const [scaleDimensions, setScaleDimensions] = useState({x: 2, y: 2, z: 2});
+    const [cascoInstances, setCascoInstances] = useCascoInstances();
 
-    useEffect(() => {
-        setCascoInstances({
-            casco1: {
-                id: 'casco1',
-                name: 'Casco1',
-                position: [-3, 0, 0],
-                rotation: [0, Math.PI, 0],
-                userData: {width: 2, height: 2, depth: 2, espesor: 0.3},
-                patas: [<Pata height={1}/>],
-                puertas: [<Puerta/>],
-                intersecciones: [],
-            },
-            casco2: {
-                id: 'casco2',
-                name: 'Casco2',
-                position: [3, 0, 0],
-                rotation: [0, Math.PI, 0],
-                userData: {width: 2, height: 2, depth: 3, espesor: 0.1},
-                patas: [<Pata height={1}/>],
-                puertas: [<Puerta/>],
-                intersecciones: [],
-            },
-            casco3: {
-                id: 'casco3',
-                name: 'Casco3',
-                position: [0, 0, 0],
-                rotation: [0, Math.PI, 0],
-                userData: {width: 2, height: 2, depth: 2, espesor: 0.1},
-                patas: [<Pata height={1}/>],
-                puertas: [<Puerta/>],
-                intersecciones: [],
-            },
-            casco4: {
-                id: 'casco4',
-                name: 'Casco4',
-                position: [0, 0, 0],
-                rotation: [0, 0, 0],
-                userData: {width: 1.54, height: .93, depth: .6, espesor: 0.05},
-                patas: [<PataAparador height={.1}/>],
-                puertas: [<Puerta/>],
-            },
-            casco5: {
-                id: 'casco5',
-                name: 'Casco5',
-                position: [0, 0, 0],
-                rotation: [0, 0, 0],
-                userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
-                intersecciones: [
-                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.5, y: 0.6225}, Orientacion.Vertical),
-                    new InterseccionMueble({x: 0.5, y: 0.87}, Orientacion.Vertical),
-                ],
-                patas: [<PataAparador height={.1}/>],
-                puertas: [<Puerta/>],
-            },
-            casco6: {
-                id: 'casco6',
-                name: 'Casco6',
-                position: [0, 0, 0],
-                rotation: [0, 0, 0],
-                userData: {width: 0.74, height: 1.23, depth: .37, espesor: 0.02},
-                patas: [<PataAparador height={.1}/>],
-                puertas: [<PuertaBodeguero/>],
-                intersecciones: [
-                    new InterseccionMueble({x: 0.5, y: 0.5}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.5, y: .25}, Orientacion.Horizontal),
-                    new InterseccionMueble({x: 0.5, y: 0.75}, Orientacion.Horizontal),
-
-                    new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical),
-                    new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical),
-
-                ],
-            }
-        });
-    }, []);
-
-    // Actualizar refItem al hacer clic en un casco
     const handleCascoClick = (selectedObject) => {
         setRefItem(selectedObject);
     };
@@ -648,103 +567,6 @@ export const Experience = () => {
         ),
     };
 
-    const itemComponents = {
-        "Casco": (
-            <>
-                {Object.values(cascoInstances)
-                    .filter((casco) => ["casco1", "casco2", "casco3"].includes(casco.id))
-                    .map((casco) => (
-                        <group key={casco.id}>
-                            <Casco
-                                key={casco.id}
-                                id={casco.id}
-                                position={casco.position}
-                                rotation={casco.rotation}
-                                {...casco.userData}
-                                patas={casco.patas}
-                                puertas={casco.puertas}
-                                onClick={handleCascoClick}
-                                version={version}
-                                intersecciones={casco.intersecciones}
-                            />
-                        </group>
-                    ))}
-            </>
-        ),
-        "Aparador": (
-            <>
-                {Object.values(cascoInstances)
-                    .filter((casco) => casco.id === "casco4")
-                    .map((casco) => (
-                        <group key={casco.id}>
-                            <Aparador
-                                key={casco.id}
-                                id={casco.id}
-                                position={casco.position}
-                                rotation={casco.rotation}
-                                {...casco.userData}
-                                patas={casco.patas}
-                                puertas={casco.puertas}
-                                onClick={handleCascoClick}
-                                version={version}
-                                indicePuerta={-1}
-                                indicePata={0}
-                            />
-                        </group>
-                    ))}
-            </>
-        ),
-        "Armario": (
-            <>
-                {Object.values(cascoInstances)
-                    .filter((casco) => casco.id === "casco5")
-                    .map((casco) => (
-                        <group key={casco.id}>
-                            <Armario
-                                key={casco.id}
-                                id={casco.id}
-                                position={casco.position}
-                                rotation={casco.rotation}
-                                {...casco.userData}
-                                intersecciones={casco.intersecciones}
-                                patas={casco.patas}
-                                puertas={casco.puertas}
-                                onClick={handleCascoClick}
-                                version={version}
-                                indicePuerta={-1}
-                                indicePata={0}
-                            />
-                        </group>
-                    ))}
-            </>
-        ),
-        "Bodeguero": (
-            <>
-                {Object.values(cascoInstances)
-                    .filter((casco) => casco.id === "casco6")
-                    .map((casco) => (
-                        <group key={casco.id}>
-                            <Bodeguero
-                                key={casco.id}
-                                id={casco.id}
-                                position={casco.position}
-                                rotation={casco.rotation}
-                                {...casco.userData}
-                                intersecciones={casco.intersecciones}
-                                patas={casco.patas}
-                                puertas={casco.puertas}
-                                onClick={handleCascoClick}
-                                version={version}
-                                indicePuerta={0}
-                                indicePata={0}
-                            />
-                        </group>
-                    ))}
-            </>
-        ),
-
-    };
-
 
     function IntersectionOverlayController({overlayData, setOverlayData}) {
         const {refPiece} = useSelectedPieceProvider();
@@ -856,7 +678,7 @@ export const Experience = () => {
                     <Room positionY={3.5}/>
                     <Stage intensity={.1} environment={"warehouse"} shadows={"contact"} adjustCamera={0}>
 
-                        {itemComponents[selectedItem]}
+                        {getItemComponents(cascoInstances, handleCascoClick, version)[selectedItem]}
 
                     </Stage>
                     {transformEnabled && refItem && (
