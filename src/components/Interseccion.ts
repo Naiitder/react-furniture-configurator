@@ -9,6 +9,7 @@ export interface Posicion {
 }
 
 export default class InterseccionMueble {
+    uuid : string;
     position: Posicion;
     orientation: Orientacion;
     previsualization: boolean;
@@ -24,4 +25,5 @@ export default class InterseccionMueble {
         this.piezasAdyacientes = piezasAdyacientes ?? [];
         this.piezasLimitantes = piezasLimitantes ?? [];
     }
+
 }

@@ -1,6 +1,7 @@
 import {Experience} from "./pages/Experience.jsx";
 import {BrowserRouter, Routes, Route} from "react-router-dom";
 import {FurnitureMenu} from "./pages/FurnitureMenu.jsx";
+import {AppProviders} from "./contexts/AppProviders.jsx";
 
 function App() {
 
@@ -8,7 +9,11 @@ function App() {
         <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Routes>
                 <Route index element={<FurnitureMenu/>}/>
-                <Route path="canvas" element={<Experience/>}/>
+                <Route path="canvas" element={
+                    <AppProviders>
+                        <Experience/>
+                    </AppProviders>
+                }/>
                 {/*<Route path="*" element={<NoPage/>}/>*/}
             </Routes>
         </BrowserRouter>

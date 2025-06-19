@@ -1,16 +1,20 @@
 import { Form, Slider, Select } from "antd";
 import {useEffect, useState} from "react";
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider.jsx";
+import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
 
 const InterseccionConfigContent = () => {
     const { refPiece, setRefPiece, version, setVersion} = useSelectedPieceProvider();
+    const {refItem } = useSelectedItemProvider();
 
     const [config, setConfig] = useState({
         positionExtra: [0,0,0],
         widthExtra: 0,
         heightExtra: 0,
         depthExtra: 0,
-        espesor: 0.1
+        espesor: 0.1,
+        seccionesAdyacientes: [],
+        seccionesLimitantes: [],
     });
 
     useEffect(() => {
@@ -46,7 +50,27 @@ const InterseccionConfigContent = () => {
         });
     };
 
-    console.log(config)
+    let seccionLimitanteHorizontalSuperior = 0;
+    let seccionLimitanteHorizontalInferior = 0;
+
+    if(config.seccionesLimitantes){
+        if (refItem?.groupRef?.children?.[0]?.children && config.seccionesLimitantes[0]) {
+            const objeto3D = refItem.groupRef.children[0].children.find(
+                (child) => child.uuid === config.seccionesLimitantes[0].uuid
+            );
+            seccionLimitanteHorizontalSuperior = objeto3D.position.y;
+            seccionLimitanteHorizontalSuperior = seccionLimitanteHorizontalSuperior+(seccionLimitanteHorizontalSuperior*5/100);
+        }
+        if (refItem?.groupRef?.children?.[0]?.children && config.seccionesLimitantes[1]) {
+            const objeto3D = refItem.groupRef.children[0].children.find(
+                (child) => child.uuid === config.seccionesLimitantes[1].uuid
+            );
+            seccionLimitanteHorizontalInferior = objeto3D.position.y;
+            seccionLimitanteHorizontalInferior = seccionLimitanteHorizontalInferior-(seccionLimitanteHorizontalInferior*5/100);
+
+        }
+    }
+
     return (
         <div style={{
             padding: "16px",
@@ -59,8 +83,8 @@ const InterseccionConfigContent = () => {
                 <Form.Item label="Position X: ">
                     <Slider
                         step={0.12345}
-                        min={0}
-                        max={2}
+                        min={-.4}
+                        max={.4}
                         value={config.positionExtra[0]}
                         onChange={(v) => {
                             const newPos = [...config.positionExtra];
@@ -71,9 +95,9 @@ const InterseccionConfigContent = () => {
                 </Form.Item>
                 <Form.Item label="Position Y: ">
                     <Slider
-                        step={0.12345}
-                        min={0}
-                        max={2}
+                        step={0.01}
+                        min={seccionLimitanteHorizontalSuperior !== 0 ? seccionLimitanteHorizontalSuperior : -.4}
+                        max={seccionLimitanteHorizontalInferior !== 0 ? seccionLimitanteHorizontalInferior : .4}
                         value={config.positionExtra[1]}
                         onChange={(v) => {
                             const newPos = [...config.positionExtra];

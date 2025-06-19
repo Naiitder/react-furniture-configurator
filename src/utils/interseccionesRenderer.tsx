@@ -1,51 +1,45 @@
 import * as React from "react";
-import InterseccionMueble, { Orientacion, Posicion } from "../components/Interseccion";
+import InterseccionMueble, { Orientacion } from "../components/Interseccion";
 import Tabla from "../components/Casco/Tabla";
 
-type RenderInterArgs = {
-    intersecciones: InterseccionMueble[];
-    dimensiones: {
-        width: number;
-        height: number;
-        depth: number;
-        espesor: number;
-        retranqueoTrasero?: number;
-        extraAltura?: number;
-        traseroDentro?: boolean;
-    };
-    refs: {
-        groupRef: React.MutableRefObject<any>;
-        detectionBoxRef: React.MutableRefObject<any>;
-    };
-    materiales: Record<string, any>;
-};
-
+// TODO Arreglar DEPTH al expandir el mueble
 export const renderIntersecciones = ({
-                                                 intersecciones,
-                                                 dimensiones: {
-                                                     width = 0,
-                                                     height = 0,
-                                                     depth = 0,
-                                                     espesor = 0,
-                                                     retranqueoTrasero = 0,
-                                                     extraAltura = 0,
-                                                     traseroDentro = false,
-                                                 },
-                                                 refs: { groupRef, detectionBoxRef },
-                                                 materiales,
-                                             }: RenderInterArgs) => {
-    // 1) Ordenar por fecha y luego por índice
-    const sorted = intersecciones
-        .map((inter, idx) => ({ inter, idx }))
-        .sort((a, b) => {
-            const tA = a.inter.createdAt.getTime();
-            const tB = b.inter.createdAt.getTime();
-            if (tA !== tB) return tA - tB;
-            return a.idx - b.idx;
-        })
-        .map(x => x.inter);
+    intersecciones = [],
+    dimensiones = {},
+    refs = {},
+    materiales = {}
+}) => {
+    const {
+        width = 0,
+        height = 0,
+        depth = 0,
+        espesor = 0,
+        retranqueoTrasero = 0,
+        extraAltura = 0,
+        traseroDentro = false,
+    } = dimensiones;
 
-    // Extras: mismo getVerticalRange y computeHorizontalRange de antes...
+    const { groupRef = { current: null }, detectionBoxRef = { current: null } } = refs;
+
+    //console.log("renderIntersecciones", intersecciones);
+
+    // 1) Ordenamos por fecha de creación y mantenemos el orden original si las fechas son iguales
+    const withIndices = intersecciones.map((inter, idx) => ({inter, originalIndex: idx}));
+
+    const sortedWithIndices = withIndices.sort((a, b) => {
+        const timeA = a.inter.createdAt.getTime();
+        const timeB = b.inter.createdAt.getTime();
+
+        if (timeA !== timeB) {
+            return timeA - timeB;
+        }
+
+        return a.originalIndex - b.originalIndex;
+    });
+
+    const sorted = sortedWithIndices.map(item => item.inter);
+
+    // Función auxiliar: calcula el rango vertical real de una intersección vertical
     const getVerticalRange = (vertical, verticalIndex) => {
         const x = (vertical.position.x - 0.5) * width;
         let topY = extraAltura + height - espesor;
@@ -169,103 +163,130 @@ export const renderIntersecciones = ({
         return [leftX, rightX];
     };
 
-
-    return sorted.map((inter, idx) => {
-        // **Aquí** leemos del userData la posición extra (si existe)
-        const { positionExtra } = (inter as any).userData || {};
-        // Si no hay override, usamos la posición original:
-        const pos: Posicion = positionExtra ?? inter.position;
-
-        // Calculamos x,y,z con pos
-        const x0 = (pos.x - 0.5) * width;
-        const y0 = pos.y * height + extraAltura;
-        const z0 = espesor / 2 + (traseroDentro ? retranqueoTrasero / 2 : 0);
+    return sorted.map((inter: InterseccionMueble, idx) => {
+        const x = (inter.position.x - 0.5) * width;
+        const y = inter.position.y * height + extraAltura;
 
         if (inter.orientation === Orientacion.Horizontal) {
-            const [l, r] = computeHorizontalRange(inter, idx);
-            const wSeg = r - l;
-            const cx = (l + r) / 2;
+            // ——————— BRANCH HORIZONTAL ———————
+            const [leftX, rightX] = computeHorizontalRange(inter, idx);
+            const widthSeg = rightX - leftX;
+            const centerX = (leftX + rightX) / 2;
 
-            return (
-                <Tabla
-                    key={`h-int-${idx}`}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[cx, y0, z0]}
-                    width={wSeg}
-                    height={espesor}
-                    depth={depth - retranqueoTrasero - espesor}
-                    material={inter.previsualization ? materiales.Vidrio : materiales.Artico}
-                    espesorBase={espesor}
-                    isInterseccion
-                    piezasAdyacientesData={
-                        inter.piezasAdyacientes
-                            // 1) quitamos null/undefined
-                            ?.filter((pm): pm is NonNullable<typeof pm> => pm != null)
-                            // 2) luego mapeamos
-                            .map(pm => ({
-                                position: pm.position,
-                                orientation: pm.orientation,
-                                createdAt: pm.createdAt.getTime(),
-                            }))
-                        ?? []
-                    }
-                    piezasLimitantesData={
-                        inter.piezasLimitantes
-                            ?.filter((pl): pl is NonNullable<typeof pl> => pl != null)
-                            .map(pl => ({
-                                position: pl.position,
-                                orientation: pl.orientation,
-                                createdAt: pl.createdAt.getTime(),
-                            }))
-                        ?? []
-                    }
-                />
-            );
+            if(!inter.previsualization){
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            centerX,
+                            y,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        interseccion={inter}
+                        width={widthSeg}
+                        height={espesor}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Artico}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                        seccionesAdyacientes={inter.piezasAdyacientes}
+                        seccionesLimitantes={inter.piezasLimitantes}
+                        orientation={"horizontal"}
+                    />
+                );
+            }
+            else{
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            centerX,
+                            y,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={widthSeg}
+                        height={espesor}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Vidrio}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                        orientation={"horizontal"}
+                        interseccion={inter}
+                        seccionesAdyacientes={inter.piezasAdyacientes}
+                        seccionesLimitantes={inter.piezasLimitantes}
+                    />
+                );
+            }
         } else {
-            const [bY, tY] = getVerticalRange(inter, idx);
-            const hSeg = tY - bY;
-            const cy = (bY + tY) / 2;
-            if (hSeg <= 0) return null;
+            // ——————— BRANCH VERTICAL ———————
+            const [botY, topY] = getVerticalRange(inter, idx);
+            const heightSeg = topY - botY;
+            const centerY = (topY + botY) / 2;
 
-            return (
-                <Tabla
-                    key={`v-int-${idx}`}
-                    parentRef={groupRef}
-                    insideRef={detectionBoxRef}
-                    shape="box"
-                    position={[x0, cy, z0]}
-                    width={espesor}
-                    height={hSeg}
-                    depth={depth - retranqueoTrasero - espesor}
-                    material={inter.previsualization ? materiales.Vidrio : materiales.Artico}
-                    espesorBase={espesor}
-                    isInterseccion
-                    piezasAdyacientesData={
-                        inter.piezasAdyacientes
-                            // 1) quitamos null/undefined
-                            ?.filter((pm): pm is NonNullable<typeof pm> => pm != null)
-                            // 2) luego mapeamos
-                            .map(pm => ({
-                                position: pm.position,
-                                orientation: pm.orientation,
-                                createdAt: pm.createdAt.getTime(),
-                            }))
-                        ?? []
-                    }
-                    piezasLimitantesData={
-                        inter.piezasLimitantes
-                            ?.filter((pl): pl is NonNullable<typeof pl> => pl != null)
-                            .map(pl => ({
-                                position: pl.position,
-                                orientation: pl.orientation,
-                                createdAt: pl.createdAt.getTime(),
-                            }))
-                        ?? []
-                    }
-                />
-            );
+            if (heightSeg <= 0) {
+                return null;
+            }
+
+            if(!inter.previsualization){
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            x,
+                            centerY,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={espesor}
+                        height={heightSeg}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Artico}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                        orientation={"vertical"}
+                        interseccion={inter}
+                        seccionesAdyacientes={inter.piezasAdyacientes}
+                        seccionesLimitantes={inter.piezasLimitantes}
+                    />
+                );
+            }
+            else {
+                return (
+                    <Tabla
+                        key={`int-${idx}`}
+                        parentRef={groupRef}
+                        insideRef={detectionBoxRef}
+                        shape="box"
+                        position={[
+                            x,
+                            centerY,
+                            espesor / 2 +
+                            (traseroDentro ? retranqueoTrasero / 2 : 0),
+                        ]}
+                        width={espesor}
+                        height={heightSeg}
+                        depth={depth - retranqueoTrasero - espesor}
+                        material={materiales.Vidrio}
+                        espesorBase={espesor}
+                        isInterseccion={true}
+                        orientation={"vertical"}
+                        interseccion={inter}
+                        seccionesAdyacientes={inter.piezasAdyacientes}
+                        seccionesLimitantes={inter.piezasLimitantes}
+                    />
+                );
+            }
         }
     });
 };
