@@ -1,7 +1,6 @@
 import * as React from "react";
 import InterseccionMueble, { Orientacion } from "../components/Interseccion";
 import Tabla from "../components/Casco/Tabla";
-import pata from "../components/Casco/Pata";
 
 // TODO Arreglar DEPTH al expandir el mueble
 export const renderIntersecciones = ({
@@ -196,6 +195,7 @@ export const renderIntersecciones = ({
                         isInterseccion={true}
                         seccionesAdyacientes={inter.piezasAdyacientes}
                         seccionesLimitantes={inter.piezasLimitantes}
+                        orientation={"horizontal"}
                     />
                 );
             }
@@ -218,6 +218,7 @@ export const renderIntersecciones = ({
                         material={materiales.Vidrio}
                         espesorBase={espesor}
                         isInterseccion={true}
+                        orientation={"horizontal"}
                         interseccion={inter}
                         seccionesAdyacientes={inter.piezasAdyacientes}
                         seccionesLimitantes={inter.piezasLimitantes}
@@ -253,6 +254,7 @@ export const renderIntersecciones = ({
                         material={materiales.Artico}
                         espesorBase={espesor}
                         isInterseccion={true}
+                        orientation={"vertical"}
                         interseccion={inter}
                         seccionesAdyacientes={inter.piezasAdyacientes}
                         seccionesLimitantes={inter.piezasLimitantes}
@@ -278,6 +280,7 @@ export const renderIntersecciones = ({
                         material={materiales.Vidrio}
                         espesorBase={espesor}
                         isInterseccion={true}
+                        orientation={"vertical"}
                         interseccion={inter}
                         seccionesAdyacientes={inter.piezasAdyacientes}
                         seccionesLimitantes={inter.piezasLimitantes}
