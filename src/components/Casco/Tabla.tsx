@@ -174,16 +174,30 @@ const Tabla: React.FC<TablaProps> = ({
             }
         }
 
-        // --- ELIMINAR DUPLICADOS ENTRE DIRECCIONES SEGÚN PRIORIDAD ---
-        const prioridad: (keyof typeof hits)[] = ['arriba', 'abajo', 'izquierda', 'derecha'];
-        const seenUuids = new Set<string>();
-        for (const dir of prioridad) {
-            hits[dir] = hits[dir].filter(obj => {
-                if (seenUuids.has(obj.uuid)) return false;
-                seenUuids.add(obj.uuid);
-                return true;
-            });
+        // Filtrado de repetidos causados por hitboxes
+        const comunesHorizontal = new Set<string>();
+        for (const obj1 of hits['izquierda']) {
+            for (const obj2 of hits['derecha']) {
+                if (obj1.uuid === obj2.uuid) {
+                    comunesHorizontal.add(obj1.uuid);
+                }
+            }
         }
+
+        hits['izquierda'] = hits['izquierda'].filter(obj => !comunesHorizontal.has(obj.uuid));
+        hits['derecha'] = hits['derecha'].filter(obj => !comunesHorizontal.has(obj.uuid));
+
+        const comunesVertical = new Set<string>();
+        for (const obj1 of hits['arriba']) {
+            for (const obj2 of hits['abajo']) {
+                if (obj1.uuid === obj2.uuid) {
+                    comunesVertical.add(obj1.uuid);
+                }
+            }
+        }
+
+        hits['arriba'] = hits['arriba'].filter(obj => !comunesVertical.has(obj.uuid));
+        hits['abajo'] = hits['abajo'].filter(obj => !comunesVertical.has(obj.uuid));
 
         console.log(`--- Raycast/Box Results for: ${ref.current.uuid} ---`);
         console.log(hits);
