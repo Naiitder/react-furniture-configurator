@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from "react";
 import {Canvas, useFrame, useThree} from "@react-three/fiber";
 import {OrbitControls, Stage, TransformControls,} from "@react-three/drei";
 import {useLocation} from "react-router-dom";
-import CascoInterface from "../components/Casco/CascoInterface.jsx";
 import {Room} from "../components/Enviroment/Room.jsx";
 import RoomConfigPanel from "../components/Enviroment/RoomConfigPanel.jsx";
 import {useDrop} from "react-dnd";
@@ -12,10 +11,8 @@ import {INTERSECTION_TYPES} from "../components/Casco/DraggableIntersection.js";
 import ChildItemConfigurationInterface from "../components/ChildItemConfigurationInterface.jsx";
 import TablaConfigContent from "../components/Casco/TablaInterface.jsx";
 import {useSelectedPieceProvider} from "../contexts/SelectedPieceProvider.jsx";
-import AparadorInterface from "../components/Aparador/AparadorInterface.jsx";
 import {useSelectedCajonProvider} from "../contexts/SelectedCajonProvider.jsx";
 import CajonConfigContent from "../components/Aparador/CajonInterface.jsx";
-import ArmarioInterface from "../components/Armario/ArmarioInterface.jsx";
 import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import IntersectionOverlay from "../components/InterseccionOverlay.js";
 import ErrorBoundary from "antd/lib/alert/ErrorBoundary.js";
@@ -23,6 +20,7 @@ import InterseccionConfigContent from "../components/Casco/InterseccionInterface
 import {useCascoInstances} from "../components/cascoInstances.jsx";
 import {getItemComponents} from "../utils/itemComponents.jsx";
 import {getInterfaceComponents} from "../utils/interfaceComponents";
+import {findScene} from "../utils/findScene.js";
 
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
@@ -179,66 +177,25 @@ export const Experience = () => {
             // <-- mismo fallback aquí
             ud.intersecciones = (ud.intersecciones ?? []).filter(i => !i.previsualization);
         }
-
         setVersion(v => v + 1);
     }
 
-    function findNeighbors(items, keyFn, target) {
-        const sorted = [...items].sort((a, b) => keyFn(a) - keyFn(b));
-        let prev = null, next = null;
-        for (const item of sorted) {
-            const v = keyFn(item);
-            if (v < target) prev = item;
-            else if (v > target && next === null) next = item;
+    function shootRaycastFromTablaId(tablaId) {
+        console.log("Id enviado", tablaId);
+
+        const scene = findScene(refItem?.groupRef);
+        console.log(scene)
+        const tablaObject = scene?.getObjectByProperty('uuid', tablaId);
+
+        console.log("Tabla encontrada: ", tablaObject);
+
+
+        if (tablaObject && typeof tablaObject.shootRaycasts === 'function') {
+            console.log("NUEVA VA A DISPARAR!!");
+            tablaObject.shootRaycasts();
         }
-        return [prev, next];
     }
 
-    function getHorizontalRange(horizontal, verticals) {
-        const x0 = horizontal.position.x;
-
-        const [leftV, rightV] = findNeighbors(
-            verticals,
-            v => v.position.x,
-            x0
-        );
-
-        // Si no hay vertical a la izquierda, usar borde izquierdo
-        const leftX = leftV ? leftV.position.x : 0;
-
-        // Si no hay vertical a la derecha, usar borde derecho
-        const rightX = rightV ? rightV.position.x : 1;
-
-        // Asegura el orden: mayor -> menor (derecha -> izquierda)
-        const max = Math.max(leftX, rightX);
-        const min = Math.min(leftX, rightX);
-
-        return [min, max];
-    }
-
-    function getVerticalRange(vertical, horizontals) {
-        const y0 = vertical.position.y;
-
-        // Inicializamos con null para saber si hay límites reales
-        let topY = null;
-        let bottomY = null;
-
-        horizontals.forEach(h => {
-            const hy = h.position.y;
-            if (hy < y0) {
-                if (bottomY === null || hy > bottomY) bottomY = hy;
-            }
-            if (hy > y0) {
-                if (topY === null || hy < topY) topY = hy;
-            }
-        });
-
-        // Si no se encontró límite, asumimos borde del casco
-        if (bottomY === null) bottomY = 0;
-        if (topY === null) topY = 1;
-
-        return [topY, bottomY]; // De mayor a menor
-    }
 
     const idleTimeRef = useRef(0);
     const lastTimestampRef = useRef(null);
@@ -380,6 +337,12 @@ export const Experience = () => {
             nueva
         ];
         setVersion(v => v + 1);
+
+        // NOTE: FALLA EL GET DE uuid
+        console.log(nueva);
+        console.log("UUID NUEVA:", nueva.uuid);
+        shootRaycastFromTablaId(nueva.uuid)
+
     }
 
 
