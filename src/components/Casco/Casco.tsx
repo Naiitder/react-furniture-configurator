@@ -6,6 +6,7 @@ import {useMaterial} from "../../assets/materials";
 import {calcularDimensiones} from "../../utils/calculadoraDimensiones";
 import {calcularPosiciones} from "../../utils/calculadoraPosiciones";
 import {renderIntersecciones} from "../../utils/interseccionesRenderer";
+import {shootRaycastsFromTablaId} from "../../utils/shootRaycastsFromTablaId";
 
 // Definición de los props para el componente Casco
 export type CascoProps = {
@@ -211,7 +212,7 @@ const CascoFuncional = (
             const timer = setTimeout(() => {
                 actualIntersecciones.forEach((inter) => {
                     if (inter.uuid) {
-                        shootRaycastsFromTablaId(inter.uuid);
+                        shootRaycastsFromTablaId(inter.uuid, refItem);
                     }
                 });
                 setForce((prev) => prev + 1);  // Forzar re-render para usar adyacents actualizados

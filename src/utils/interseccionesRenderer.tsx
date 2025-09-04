@@ -41,6 +41,7 @@ export const renderIntersecciones = ({
         const x = (inter.position.x - 0.5) * width;
         const y = inter.position.y * height + extraAltura;
         console.log(inter);
+
         const leftX = inter.adyacentLeft?.position.x ?? (-width / 2 + espesor / 2);
         const rightX = inter.adyacentRight?.position.x ?? (width / 2 - espesor / 2);
         const topY = inter.adyacentTop?.position.y ?? (height + extraAltura - espesor / 2);
