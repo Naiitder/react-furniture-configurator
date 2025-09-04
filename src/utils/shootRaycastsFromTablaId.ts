@@ -1,8 +1,7 @@
 import {findScene} from "./findScene";
 import {useSelectedItemProvider} from "../contexts/SelectedItemProvider.jsx";
 
-export function shootRaycastsFromTablaId(tablaId: string) {
-    const {refItem} = useSelectedItemProvider()
+export function shootRaycastsFromTablaId(tablaId: string, refItem: any) {
     if (!refItem) return;
 
     const scene = findScene(refItem?.groupRef);

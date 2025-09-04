@@ -8,6 +8,7 @@ import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider"
 import {useSelectedCajonProvider} from "../../contexts/SelectedCajonProvider"
 import {Edges} from "@react-three/drei";
 import InterseccionMueble from "../Interseccion";
+import {shootRaycastsFromTablaId} from "../../utils/shootRaycastsFromTablaId";
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
@@ -172,7 +173,11 @@ const Tabla: React.FC<TablaProps> = ({
 
         console.log(`--- Raycast/Box Results for: ${ref.current.uuid} ---`);
         console.log(hits);
-        return hits;
+        interseccion.adyacentTop = hits.arriba[0];
+        interseccion.adyacentBottom = hits.abajo[0];
+        interseccion.adyacentLeft = hits.izquierda[0];
+        interseccion.adyacentRight = hits.derecha[0];
+//        return hits;
     };
 
     const initialData = {
@@ -196,8 +201,10 @@ const Tabla: React.FC<TablaProps> = ({
     useEffect(() => {
         if (ref.current && interseccion) {
             interseccion.uuid = ref.current.uuid;
+            shootRaycastsFromTablaId(interseccion.uuid, refItem);
         }
     }, []);
+
 
     useEffect(() => {
         if (ref.current) {

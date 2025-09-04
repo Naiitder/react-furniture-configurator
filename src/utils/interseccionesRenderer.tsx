@@ -1,7 +1,6 @@
 import * as React from "react";
 import InterseccionMueble, { Orientacion } from "../components/Interseccion";
 import Tabla from "../components/Casco/Tabla";
-import {shootRaycastsFromTablaId} from "./shootRaycastsFromTablaId";
 
 // TODO Arreglar DEPTH al expandir el mueble
 export const renderIntersecciones = ({
@@ -41,19 +40,21 @@ export const renderIntersecciones = ({
     return sorted.map((inter: InterseccionMueble, idx) => {
         const x = (inter.position.x - 0.5) * width;
         const y = inter.position.y * height + extraAltura;
-        const raycastResult = shootRaycastsFromTablaId(inter.uuid);
-        console.log("Current intersection", inter.uuid);
-        console.log(raycastResult);
-        const leftX = raycastResult['izquierda'][0].position.x;
-        const rightX = raycastResult['derecha'][0].position.x;
-        const topY = raycastResult['arriba'][0].position.y;
-        const botY = raycastResult['abajo'][0].position.y;
+        console.log(inter);
+        const leftX = inter.adyacentLeft?.position.x ?? (-width / 2 + espesor / 2);
+        const rightX = inter.adyacentRight?.position.x ?? (width / 2 - espesor / 2);
+        const topY = inter.adyacentTop?.position.y ?? (height + extraAltura - espesor / 2);
+        const botY = inter.adyacentBottom?.position.y ?? (extraAltura + espesor / 2);
 
 
         if (inter.orientation === Orientacion.Horizontal) {
             // ——————— BRANCH HORIZONTAL ———————
             const widthSeg = rightX - leftX;
             const centerX = (leftX + rightX) / 2;
+
+            if (widthSeg <= 0) {
+                return null;
+            }
 
             if(!inter.previsualization){
                 return (
@@ -105,6 +106,7 @@ export const renderIntersecciones = ({
             }
         } else {
             // ——————— BRANCH VERTICAL ———————
+            const heightSeg = topY - botY;
             const centerY = (topY + botY) / 2;
 
             if (heightSeg <= 0) {
