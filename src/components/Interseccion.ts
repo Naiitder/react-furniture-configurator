@@ -1,5 +1,3 @@
-import {Mesh, Object3D, Object3DEventMap} from "three";
-
 export enum Orientacion {
     Vertical = 'vertical',
     Horizontal = 'horizontal',

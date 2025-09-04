@@ -20,7 +20,6 @@ import InterseccionConfigContent from "../components/Casco/InterseccionInterface
 import {useCascoInstances} from "../components/cascoInstances.jsx";
 import {getItemComponents} from "../utils/itemComponents.jsx";
 import {getInterfaceComponents} from "../utils/interfaceComponents";
-import {findScene} from "../utils/findScene.js";
 
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
@@ -180,21 +179,7 @@ export const Experience = () => {
         setVersion(v => v + 1);
     }
 
-    function shootRaycastFromTablaId(tablaId) {
-        console.log("Id enviado", tablaId);
 
-        const scene = findScene(refItem?.groupRef);
-        console.log(scene)
-        const tablaObject = scene?.getObjectByProperty('uuid', tablaId);
-
-        console.log("Tabla encontrada: ", tablaObject);
-
-
-        if (tablaObject && typeof tablaObject.shootRaycasts === 'function') {
-            console.log("NUEVA VA A DISPARAR!!");
-            tablaObject.shootRaycasts();
-        }
-    }
 
 
     const idleTimeRef = useRef(0);
@@ -337,11 +322,6 @@ export const Experience = () => {
             nueva
         ];
         setVersion(v => v + 1);
-
-        // NOTE: FALLA EL GET DE uuid
-        console.log(nueva);
-        console.log("UUID NUEVA:", nueva.uuid);
-        shootRaycastFromTablaId(nueva.uuid)
 
     }
 

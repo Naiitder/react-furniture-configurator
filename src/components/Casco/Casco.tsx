@@ -198,6 +198,10 @@ const CascoFuncional = (
     // sizar intersecciones
     const renderInterseccionesInternas = () => {
         if (!actualIntersecciones.length) return null;
+        // const todasListas = actualIntersecciones.every(inter => !!inter.uuid);
+        // console.log("Todas listas", todasListas);
+        // if (!todasListas) return null;
+
         return renderIntersecciones({
             intersecciones: actualIntersecciones,
             dimensiones: {
