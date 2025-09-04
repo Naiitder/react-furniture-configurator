@@ -193,8 +193,6 @@ export const renderIntersecciones = ({
                         material={materiales.Artico}
                         espesorBase={espesor}
                         isInterseccion={true}
-                        seccionesAdyacientes={inter.piezasAdyacientes}
-                        seccionesLimitantes={inter.piezasLimitantes}
                         orientation={"horizontal"}
                     />
                 );
@@ -220,8 +218,6 @@ export const renderIntersecciones = ({
                         isInterseccion={true}
                         orientation={"horizontal"}
                         interseccion={inter}
-                        seccionesAdyacientes={inter.piezasAdyacientes}
-                        seccionesLimitantes={inter.piezasLimitantes}
                     />
                 );
             }
@@ -256,8 +252,6 @@ export const renderIntersecciones = ({
                         isInterseccion={true}
                         orientation={"vertical"}
                         interseccion={inter}
-                        seccionesAdyacientes={inter.piezasAdyacientes}
-                        seccionesLimitantes={inter.piezasLimitantes}
                     />
                 );
             }
@@ -282,8 +276,6 @@ export const renderIntersecciones = ({
                         isInterseccion={true}
                         orientation={"vertical"}
                         interseccion={inter}
-                        seccionesAdyacientes={inter.piezasAdyacientes}
-                        seccionesLimitantes={inter.piezasLimitantes}
                     />
                 );
             }

@@ -39,8 +39,6 @@ type TablaProps = {
 
     isInterseccion?: boolean;
     interseccion?: InterseccionMueble;
-    seccionesAdyacientes?: InterseccionMueble[],
-    seccionesLimitantes?: InterseccionMueble[],
     orientation?: "vertical" | "horizontal";
 }
 
@@ -69,8 +67,6 @@ const Tabla: React.FC<TablaProps> = ({
                                          isInterseccion = false,
                                          orientation,
     interseccion,
-    seccionesAdyacientes = [null,null],
-    seccionesLimitantes = [null,null],
                                      }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
@@ -186,8 +182,6 @@ const Tabla: React.FC<TablaProps> = ({
         depthExtra,
         espesor: espesorBase,
         isInterseccion: isInterseccion,
-        seccionesAdyacientes: seccionesAdyacientes,
-        seccionesLimitantes: seccionesLimitantes,
         orientation: orientation,
         shootRaycasts
     };
@@ -216,7 +210,7 @@ const Tabla: React.FC<TablaProps> = ({
                 ...ref.current.userData
             };
         }
-    }, [positionExtra, widthExtra, heightExtra, depthExtra, espesorBase, seccionesAdyacientes, seccionesLimitantes]);
+    }, [positionExtra, widthExtra, heightExtra, depthExtra, espesorBase]);
 
     const [extra, setExtra] = useState({
         positionExtra: position,
@@ -227,8 +221,6 @@ const Tabla: React.FC<TablaProps> = ({
         isinterseccion: isInterseccion,
         orientation: orientation,
         shootRaycasts,
-        seccionesAdyacientes: seccionesAdyacientes,
-        seccionesLimitantes: seccionesLimitantes,
     });
 
     useEffect(() => {
@@ -242,8 +234,6 @@ const Tabla: React.FC<TablaProps> = ({
                 isinterseccion: refPiece.userData.isinterseccion || isInterseccion,
                 orientation: refPiece.userData.orientation || orientation,
                 shootRaycasts,
-                seccionesAdyacientes: seccionesAdyacientes,
-                seccionesLimitantes: seccionesLimitantes,
             });
         }
     }, [refPiece, version]);
