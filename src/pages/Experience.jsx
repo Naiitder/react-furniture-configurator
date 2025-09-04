@@ -22,7 +22,7 @@ import ErrorBoundary from "antd/lib/alert/ErrorBoundary.js";
 import InterseccionConfigContent from "../components/Casco/InterseccionInterface.jsx";
 import {useCascoInstances} from "../components/cascoInstances.jsx";
 import {getItemComponents} from "../utils/itemComponents.jsx";
-import { getInterfaceComponents } from "../utils/interfaceComponents";
+import {getInterfaceComponents} from "../utils/interfaceComponents";
 
 
 const RaycastClickLogger = ({glRef, cameraRef}) => {
@@ -383,56 +383,6 @@ export const Experience = () => {
     }
 
 
-    const interfaceComponents = {
-        "Casco": (
-            <CascoInterface
-                key={refItem?.groupRef?.uuid || "default"}
-                show={transformEnabled}
-                setShow={setTransformEnabled}
-                mode={transformMode}
-                setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
-            />
-        ),
-        "Casco Secciones": (
-            <CascoInterface
-                show={transformEnabled}
-                setShow={setTransformEnabled}
-                mode={transformMode}
-                setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
-            />
-        ),
-        "Aparador": (
-            <AparadorInterface
-                show={transformEnabled}
-                setShow={setTransformEnabled}
-                mode={transformMode}
-                setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
-            />
-        ),
-        "Armario": (
-            <ArmarioInterface
-                show={transformEnabled}
-                setShow={setTransformEnabled}
-                mode={transformMode}
-                setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
-            />
-        ),
-        "Bodeguero": (
-            <ArmarioInterface
-                show={transformEnabled}
-                setShow={setTransformEnabled}
-                mode={transformMode}
-                setMode={setTransformMode}
-                scaleDimensions={scaleDimensions}
-            />
-        ),
-    };
-
-
     function IntersectionOverlayController({overlayData, setOverlayData}) {
         const {refPiece} = useSelectedPieceProvider();
         const {camera, size} = useThree();
@@ -562,7 +512,7 @@ export const Experience = () => {
                     />
                 </Canvas>
             </ErrorBoundary>
-            {interfaceComponents[selectedItem]}
+            {getInterfaceComponents(transformEnabled, setTransformEnabled, transformMode, setTransformMode, scaleDimensions)[selectedItem]}
 
             <IntersectionOverlay
                 isVisible={overlayData.isVisible}
