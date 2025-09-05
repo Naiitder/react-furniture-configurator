@@ -73,139 +73,6 @@ const Tabla: React.FC<TablaProps> = ({
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
 
-    const shootRaycasts = (): {
-        arriba?: THREE.Object3D[];
-        abajo?: THREE.Object3D[];
-        derecha?: THREE.Object3D[];
-        izquierda?: THREE.Object3D[];
-    } | undefined => {
-        if (!ref.current || !parentRef.current) return;
-        if (ref.current.userData?.isInterseccion === false) return;
-
-        const objectsToIntersect: THREE.Object3D[] = [];
-        parentRef.current.traverse(child => {
-            if (child.isMesh && child !== ref.current && child.userData.espesor !== undefined) {
-                objectsToIntersect.push(child);
-            }
-        });
-
-        if (objectsToIntersect.length === 0) return;
-
-        const worldPosition = new THREE.Vector3();
-        ref.current.getWorldPosition(worldPosition);
-
-        const epsilon = 0.001;
-        const hits = {
-            arriba: [] as THREE.Object3D[],
-            abajo: [] as THREE.Object3D[],
-            derecha: [] as THREE.Object3D[],
-            izquierda: [] as THREE.Object3D[],
-        };
-
-        const raycastHits = (origin: THREE.Vector3, direction: THREE.Vector3): THREE.Object3D[] => {
-            const ray = new THREE.Raycaster(origin, direction);
-            const intersects = ray.intersectObjects(objectsToIntersect);
-            const unique = new Map<string, THREE.Object3D>();
-            for (const hit of intersects) {
-                if (!unique.has(hit.object.uuid)) {
-                    unique.set(hit.object.uuid, hit.object);
-                }
-            }
-            return Array.from(unique.values());
-        };
-
-        // --- RAYCASTS CENTRALES ---
-        const originUp = new THREE.Vector3(worldPosition.x, worldPosition.y + adjustedHeight / 2 + epsilon, worldPosition.z);
-        const originDown = new THREE.Vector3(worldPosition.x, worldPosition.y - adjustedHeight / 2 - epsilon, worldPosition.z);
-        const originRight = new THREE.Vector3(worldPosition.x + adjustedWidth / 2 + epsilon, worldPosition.y, worldPosition.z);
-        const originLeft = new THREE.Vector3(worldPosition.x - adjustedWidth / 2 - epsilon, worldPosition.y, worldPosition.z);
-
-        hits.arriba.push(...raycastHits(originUp, new THREE.Vector3(0, 1, 0)));
-        hits.abajo.push(...raycastHits(originDown, new THREE.Vector3(0, -1, 0)));
-        hits.derecha.push(...raycastHits(originRight, new THREE.Vector3(1, 0, 0)));
-        hits.izquierda.push(...raycastHits(originLeft, new THREE.Vector3(-1, 0, 0)));
-
-        // --- HITBOXES (para objetos no alineados al centro) ---
-        const bbox = new THREE.Box3().setFromObject(ref.current);
-        const isHorizontal = adjustedWidth > adjustedHeight;
-
-        const createHitbox = (direction: 'arriba' | 'abajo' | 'izquierda' | 'derecha'): THREE.Box3 => {
-            const box = bbox.clone();
-            const margin = 0.01;
-
-            // La lógica correcta es:
-            // - Si es horizontal Y buscamos arriba/abajo: expandir horizontalmente
-            // - Si es vertical Y buscamos izquierda/derecha: expandir verticalmente
-            // - En otros casos: usar margen mínimo
-            let expandX = margin;
-            let expandY = margin;
-
-            if (isHorizontal && (direction === 'arriba' || direction === 'abajo')) {
-                expandX = adjustedWidth / 2;
-            } else if (!isHorizontal && (direction === 'izquierda' || direction === 'derecha')) {
-                expandY = adjustedHeight / 2;
-            }
-
-            const offset = new THREE.Vector3();
-            if (direction === 'arriba') offset.y += adjustedHeight / 2 + margin;
-            if (direction === 'abajo') offset.y -= adjustedHeight / 2 + margin;
-            if (direction === 'derecha') offset.x += adjustedWidth / 2 + margin;
-            if (direction === 'izquierda') offset.x -= adjustedWidth / 2 + margin;
-
-            box.min.add(offset).sub(new THREE.Vector3(expandX, expandY, 0));
-            box.max.add(offset).add(new THREE.Vector3(expandX, expandY, 0));
-            return box;
-        };
-
-        for (const direction of ['arriba', 'abajo', 'derecha', 'izquierda'] as const) {
-            const hitbox = createHitbox(direction);
-            const filtered = objectsToIntersect.filter(obj => {
-                if (obj.uuid === ref.current.uuid) return false;
-                const objBox = new THREE.Box3().setFromObject(obj);
-                return hitbox.intersectsBox(objBox);
-            });
-            for (const obj of filtered) {
-                if (!hits[direction].some(o => o.uuid === obj.uuid)) {
-                    hits[direction].push(obj);
-                }
-            }
-        }
-
-        // Filtrado de repetidos causados por hitboxes
-        const comunesHorizontal = new Set<string>();
-        for (const obj1 of hits['izquierda']) {
-            for (const obj2 of hits['derecha']) {
-                if (obj1.uuid === obj2.uuid) {
-                    comunesHorizontal.add(obj1.uuid);
-                }
-            }
-        }
-
-        hits['izquierda'] = hits['izquierda'].filter(obj => !comunesHorizontal.has(obj.uuid));
-        hits['derecha'] = hits['derecha'].filter(obj => !comunesHorizontal.has(obj.uuid));
-
-        const comunesVertical = new Set<string>();
-        for (const obj1 of hits['arriba']) {
-            for (const obj2 of hits['abajo']) {
-                if (obj1.uuid === obj2.uuid) {
-                    comunesVertical.add(obj1.uuid);
-                }
-            }
-        }
-
-        hits['arriba'] = hits['arriba'].filter(obj => !comunesVertical.has(obj.uuid));
-        hits['abajo'] = hits['abajo'].filter(obj => !comunesVertical.has(obj.uuid));
-
-        console.log(`--- Raycast/Box Results for: ${ref.current.uuid} ---`);
-        console.log(hits);
-
-        interseccion.adyacentTop = hits.arriba[0];
-        interseccion.adyacentBottom = hits.abajo[0];
-        interseccion.adyacentLeft = hits.izquierda[0];
-        interseccion.adyacentRight = hits.derecha[0];
-        return hits;
-    };
-
     const initialData = {
         positionExtra: position,
         widthExtra,
@@ -214,7 +81,6 @@ const Tabla: React.FC<TablaProps> = ({
         espesor: espesorBase,
         isInterseccion: isInterseccion,
         orientation: orientation,
-        shootRaycasts
     };
 
 
@@ -227,7 +93,7 @@ const Tabla: React.FC<TablaProps> = ({
     useEffect(() => {
         if (ref.current && interseccion) {
             interseccion.uuid = ref.current.uuid;
-            shootRaycastsFromTablaId(interseccion.uuid, refItem);
+            //shootRaycastsFromTablaId(interseccion.uuid, refItem);
         }
     }, []);
 
@@ -253,7 +119,6 @@ const Tabla: React.FC<TablaProps> = ({
         espesor: espesorBase,
         isinterseccion: isInterseccion,
         orientation: orientation,
-        shootRaycasts,
     });
 
     useEffect(() => {
@@ -266,7 +131,6 @@ const Tabla: React.FC<TablaProps> = ({
                 espesor: refPiece.userData.espesor || espesorBase,
                 isinterseccion: refPiece.userData.isinterseccion || isInterseccion,
                 orientation: refPiece.userData.orientation || orientation,
-                shootRaycasts,
             });
         }
     }, [refPiece, version]);

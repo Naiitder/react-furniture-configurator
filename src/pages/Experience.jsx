@@ -406,7 +406,6 @@ export const Experience = () => {
                         height: refPiece.userData.heightExtra ?? 0,
                         depth: refPiece.userData.depthExtra ?? 0
                     },
-                    shootRaycasts: refPiece.userData.shootRaycasts
                 }
             };
 

@@ -6,7 +6,6 @@ import {useMaterial} from "../../assets/materials";
 import {calcularDimensiones} from "../../utils/calculadoraDimensiones";
 import {calcularPosiciones} from "../../utils/calculadoraPosiciones";
 import {renderIntersecciones} from "../../utils/interseccionesRenderer";
-import {shootRaycastsFromTablaId} from "../../utils/shootRaycastsFromTablaId";
 
 // Definición de los props para el componente Casco
 export type CascoProps = {
