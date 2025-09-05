@@ -21,8 +21,6 @@ export const renderIntersecciones = ({
 
     const {groupRef = {current: null}, detectionBoxRef = {current: null}} = refs;
 
-    //console.log("renderIntersecciones", intersecciones);
-
     // 1) Ordenamos por fecha de creación y mantenemos el orden original si las fechas son iguales
     const withIndices = intersecciones.map((inter, idx) => ({inter, originalIndex: idx}));
 
@@ -164,23 +162,60 @@ export const renderIntersecciones = ({
     };
 
     return sorted.map((inter: InterseccionMueble, idx) => {
-        const x = (inter.position.x - 0.5) * width;
-        const y = inter.position.y * height + extraAltura;
+        // Posición original donde se hizo click
+        const originalX = (inter.position.x - 0.5) * width;
+        const originalY = inter.position.y * height + extraAltura;
 
-        let [leftX, rightX] = computeHorizontalRange(inter, idx);
-        leftX = inter.adyacentLeft?.position.x ?? leftX;
-        rightX = inter.adyacentRight?.position.x ?? rightX;
-        const widthSeg = rightX - leftX;
-        const centerX = (leftX + rightX) / 2;
+        let centerX, centerY, widthSeg, heightSeg;
 
-        let [botY, topY] = getVerticalRange(inter, idx);
-        botY = inter.adyacentBottom?.position.y ?? botY;
-        topY = inter.adyacentTop?.position.y ?? topY;
-        const heightSeg = topY - botY;
-        const centerY = (topY + botY) / 2;
+        if (inter.orientation === Orientacion.Horizontal) {
+            // Para horizontales: usar Y original, pero ajustar X y ancho basándose en verticales
+            let [leftX, rightX] = computeHorizontalRange(inter, idx);
+
+            // Aplicar overrides de adyacentes si existen
+            leftX = inter.adyacentLeft?.position.x ?? leftX;
+            rightX = inter.adyacentRight?.position.x ?? rightX;
+
+            widthSeg = rightX - leftX - (espesor / 2);
+            heightSeg = espesor;
+
+            // El centro X debe ser el punto medio del rango disponible
+            centerX = (leftX + rightX) / 2;
+            // El centro Y es la posición original (donde se hizo click)
+            centerY = originalY;
+
+            // Snapping vertical si adyacentes top y bottom existen
+            if (inter.adyacentTop && inter.adyacentBottom) {
+                const topY = inter.adyacentTop.position.y * height + extraAltura;
+                const bottomY = inter.adyacentBottom.position.y * height + extraAltura;
+                centerY = (topY + bottomY) / 2;
+            }
+
+        } else {
+            // Para verticales: usar X original, pero ajustar Y y altura basándose en horizontales
+            let [botY, topY] = getVerticalRange(inter, idx);
+
+            // Aplicar overrides de adyacentes si existen
+            botY = inter.adyacentBottom?.position.y ?? botY;
+            topY = inter.adyacentTop?.position.y ?? topY;
+
+            widthSeg = espesor;
+            heightSeg = topY - botY - (espesor);
+
+            // El centro Y debe ser el punto medio del rango disponible
+            centerY = (botY + topY) / 2;
+            // El centro X es la posición original (donde se hizo click)
+            centerX = originalX;
+
+            // Snapping horizontal si adyacentes left y right existen
+            if (inter.adyacentLeft && inter.adyacentRight) {
+                const leftX = (inter.adyacentLeft.position.x - 0.5) * width;
+                const rightX = (inter.adyacentRight.position.x - 0.5) * width;
+                centerX = (leftX + rightX) / 2;
+            }
+        }
 
         const isHorizontal = inter.orientation === Orientacion.Horizontal;
-
 
         return (
             <Tabla
@@ -191,8 +226,7 @@ export const renderIntersecciones = ({
                 position={[
                     centerX,
                     centerY,
-                    espesor / 2 +
-                    (traseroDentro ? retranqueoTrasero / 2 : 0),
+                    espesor / 2 + (traseroDentro ? retranqueoTrasero / 2 : 0),
                 ]}
                 interseccion={inter}
                 width={isHorizontal ? widthSeg : espesor}

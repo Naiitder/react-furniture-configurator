@@ -67,7 +67,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          stopPropagation = true,
                                          isInterseccion = false,
                                          orientation,
-    interseccion,
+                                         interseccion,
                                      }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
@@ -195,6 +195,28 @@ const Tabla: React.FC<TablaProps> = ({
 
         hits['arriba'] = hits['arriba'].filter(obj => !comunesVertical.has(obj.uuid));
         hits['abajo'] = hits['abajo'].filter(obj => !comunesVertical.has(obj.uuid));
+
+        console.log(`--- ORIGINAL Raycast/Box Results for: ${ref.current.uuid} ---`);
+        console.log(hits);
+
+        // Función para determinar orientación
+        const getOrientation = (obj: THREE.Object3D): boolean => {
+            const objBbox = new THREE.Box3().setFromObject(obj);
+            const size = objBbox.getSize(new THREE.Vector3());
+            return size.x > size.y;
+        };
+
+        // Sort por tipo: preferir orientación opuesta primero, manteniendo orden original dentro de grupos
+        for (const direction of ['arriba', 'abajo', 'derecha', 'izquierda'] as const) {
+            hits[direction].sort((a, b) => {
+                const aOpposite = getOrientation(a) !== isHorizontal;
+                const bOpposite = getOrientation(b) !== isHorizontal;
+                if (aOpposite !== bOpposite) {
+                    return aOpposite ? -1 : 1;
+                }
+                return 0;
+            });
+        }
 
         console.log(`--- Raycast/Box Results for: ${ref.current.uuid} ---`);
         console.log(hits);
