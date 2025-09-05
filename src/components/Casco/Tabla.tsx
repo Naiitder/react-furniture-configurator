@@ -67,7 +67,7 @@ const Tabla: React.FC<TablaProps> = ({
                                          stopPropagation = true,
                                          isInterseccion = false,
                                          orientation,
-    interseccion,
+                                         interseccion,
                                      }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
