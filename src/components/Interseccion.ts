@@ -13,6 +13,7 @@ export interface Posicion {
 export default class InterseccionMueble {
     uuid : string;
     position: Posicion;
+    worldPosition: Posicion;
     orientation: Orientacion;
     previsualization: boolean;
     createdAt: Date;
@@ -21,11 +22,12 @@ export default class InterseccionMueble {
     adyacentLeft?: Object3D;
     adyacentRight?: Object3D;
 
-    constructor(position: Posicion, orientation: Orientacion, previsualization?: boolean, createdAt?: Date) {
+    constructor(position: Posicion, orientation: Orientacion, previsualization?: boolean, createdAt?: Date, worldPosition?: Posicion) {
         this.position = position;
         this.orientation = orientation;
         this.previsualization = previsualization ?? false;
         this.createdAt = createdAt ?? new Date();
+        this.worldPosition = worldPosition;
     }
 
 }

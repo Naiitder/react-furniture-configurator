@@ -1,6 +1,9 @@
 import * as React from "react";
 import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import Tabla from "../components/Casco/Tabla";
+import {Box3, BoxGeometry, Mesh, MeshBasicMaterial, Object3D, Raycaster, Vector3} from "three";
+import {useThree} from "@react-three/fiber";
+import InterseccionRaycaster from "./interseccionRaycaster";
 
 // TODO Arreglar DEPTH al expandir el mueble
 export const renderIntersecciones = ({
@@ -39,6 +42,8 @@ export const renderIntersecciones = ({
 
     const sorted = sortedWithIndices.map(item => item.inter);
 
+
+
     // Función auxiliar: calcula el rango vertical real de una intersección vertical
     return sorted.map((inter: InterseccionMueble, idx) => {
         const x = (inter.position.x - 0.5) * width;
@@ -46,28 +51,29 @@ export const renderIntersecciones = ({
 
         const isHorizontal = inter.orientation === Orientacion.Horizontal;
 
-
         return (
-            <Tabla
-                key={`int-${idx}`}
-                parentRef={groupRef}
-                insideRef={detectionBoxRef}
-                shape="box"
-                position={[
-                    x,
-                    y,
-                    espesor / 2 +
-                    (traseroDentro ? retranqueoTrasero / 2 : 0),
-                ]}
-                interseccion={inter}
-                width={isHorizontal ? width : espesor}
-                height={isHorizontal ? espesor : height}
-                depth={depth - retranqueoTrasero - espesor}
-                material={inter.previsualization ? materiales.Vidrio : materiales.Artico}
-                espesorBase={espesor}
-                isInterseccion={true}
-                orientation={isHorizontal ? "horizontal" : "vertical"}
-            />
+            <React.Fragment key={`int-${idx}`}>
+                <InterseccionRaycaster x={inter.worldPosition.x} y={inter.worldPosition.y} interseccion={inter} />
+                <Tabla
+                    parentRef={groupRef}
+                    insideRef={detectionBoxRef}
+                    shape="box"
+                    position={[
+                        x,
+                        y,
+                        espesor / 2 + (traseroDentro ? retranqueoTrasero / 2 : 0),
+                    ]}
+                    interseccion={inter}
+                    width={isHorizontal ? width : espesor}
+                    height={isHorizontal ? espesor : height}
+                    depth={depth - retranqueoTrasero - espesor}
+                    material={inter.previsualization ? materiales.Vidrio : materiales.Artico}
+                    espesorBase={espesor}
+                    isInterseccion={true}
+                    orientation={isHorizontal ? "horizontal" : "vertical"}
+                />
+            </React.Fragment>
         );
+
     });
 };

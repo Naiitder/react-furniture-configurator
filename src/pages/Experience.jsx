@@ -302,11 +302,14 @@ export const Experience = () => {
             ? Orientacion.Horizontal
             : Orientacion.Vertical;
 
+        const hitWorld = hit.point.clone(); // ✅ World position
+
         const nueva = new InterseccionMueble(
             {x: rawX, y: rawY},
             orient,
             previsualization,
-            undefined,               // createdAt (se genera dentro)
+            undefined,
+            {x: hitWorld.x, y: hitWorld.y}// createdAt (se genera dentro)
         );
 
         // 7) Actualizar estado y userData
