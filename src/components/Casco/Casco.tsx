@@ -197,34 +197,9 @@ const CascoFuncional = (
     const dimensiones = calcularDimensiones(localConfig);
     const posiciones = calcularPosiciones({...localConfig, patas});
 
-    const [mostrarIntersecciones, setMostrarIntersecciones] = useState(false);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setMostrarIntersecciones(true);
-        }, 1000); // Espera 1 segundo antes de renderizar intersecciones (ajustable)
-
-        return () => clearTimeout(timer); // Limpia el timeout si el componente se desmonta
-    }, []);
-
-    useEffect(() => {
-        if (mostrarIntersecciones) {
-            const timer = setTimeout(() => {
-                actualIntersecciones.forEach((inter) => {
-                    if (inter.uuid) {
-                        shootRaycastsFromTablaId(inter.uuid, refItem);
-                    }
-                });
-                setForce((prev) => prev + 1);  // Forzar re-render para usar adyacents actualizados
-            }, 100);  // Pequeño delay para asegurar que los useEffects de Tabla hayan corrido
-
-            return () => clearTimeout(timer);
-        }
-    }, [mostrarIntersecciones, actualIntersecciones]);
-
     // sizar intersecciones
     const renderInterseccionesInternas = () => {
-        if (!mostrarIntersecciones || !actualIntersecciones.length) return null;
+        if (!actualIntersecciones.length) return null;
         // const todasListas = actualIntersecciones.every(inter => !!inter.uuid);
         // console.log("Todas listas", todasListas);
         // if (!todasListas) return null;

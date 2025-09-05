@@ -111,7 +111,7 @@ export const useCascoInstances = () => {
                         depth={0.1}
                     />
                 ],
-                intersecciones: [i1, i2, i3, i4, i5],
+                intersecciones: [],
             }
         });
     }, []);
