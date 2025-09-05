@@ -465,7 +465,7 @@ export const Experience = () => {
 
             {refPiece && !refPiece.userData.isInterseccion && (
                 <ChildItemConfigurationInterface
-                    title="Tabla Configurator"
+                    title={refPiece.uuid}
                     show={true}
                     setShow={true}
                     mode={transformMode}
@@ -478,7 +478,7 @@ export const Experience = () => {
             {refPiece && refPiece.userData.isInterseccion && (
 
                 <ChildItemConfigurationInterface
-                    title="Interseccion Configurator"
+                    title={refPiece.uuid}
                     show={true}
                     setShow={true}
                     mode={transformMode}

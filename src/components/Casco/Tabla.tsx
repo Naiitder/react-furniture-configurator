@@ -132,8 +132,19 @@ const Tabla: React.FC<TablaProps> = ({
         const createHitbox = (direction: 'arriba' | 'abajo' | 'izquierda' | 'derecha'): THREE.Box3 => {
             const box = bbox.clone();
             const margin = 0.01;
-            const expandX = isHorizontal && (direction === 'arriba' || direction === 'abajo') ? adjustedWidth / 2 : margin;
-            const expandY = !isHorizontal && (direction === 'izquierda' || direction === 'derecha') ? adjustedHeight / 2 : margin;
+
+            // La lógica correcta es:
+            // - Si es horizontal Y buscamos arriba/abajo: expandir horizontalmente
+            // - Si es vertical Y buscamos izquierda/derecha: expandir verticalmente
+            // - En otros casos: usar margen mínimo
+            let expandX = margin;
+            let expandY = margin;
+
+            if (isHorizontal && (direction === 'arriba' || direction === 'abajo')) {
+                expandX = adjustedWidth / 2;
+            } else if (!isHorizontal && (direction === 'izquierda' || direction === 'derecha')) {
+                expandY = adjustedHeight / 2;
+            }
 
             const offset = new THREE.Vector3();
             if (direction === 'arriba') offset.y += adjustedHeight / 2 + margin;
@@ -160,24 +171,39 @@ const Tabla: React.FC<TablaProps> = ({
             }
         }
 
-        // --- ELIMINAR DUPLICADOS ENTRE DIRECCIONES SEGÚN PRIORIDAD ---
-        const prioridad: (keyof typeof hits)[] = ['arriba', 'abajo', 'izquierda', 'derecha'];
-        const seenUuids = new Set<string>();
-        for (const dir of prioridad) {
-            hits[dir] = hits[dir].filter(obj => {
-                if (seenUuids.has(obj.uuid)) return false;
-                seenUuids.add(obj.uuid);
-                return true;
-            });
+        // Filtrado de repetidos causados por hitboxes
+        const comunesHorizontal = new Set<string>();
+        for (const obj1 of hits['izquierda']) {
+            for (const obj2 of hits['derecha']) {
+                if (obj1.uuid === obj2.uuid) {
+                    comunesHorizontal.add(obj1.uuid);
+                }
+            }
         }
+
+        hits['izquierda'] = hits['izquierda'].filter(obj => !comunesHorizontal.has(obj.uuid));
+        hits['derecha'] = hits['derecha'].filter(obj => !comunesHorizontal.has(obj.uuid));
+
+        const comunesVertical = new Set<string>();
+        for (const obj1 of hits['arriba']) {
+            for (const obj2 of hits['abajo']) {
+                if (obj1.uuid === obj2.uuid) {
+                    comunesVertical.add(obj1.uuid);
+                }
+            }
+        }
+
+        hits['arriba'] = hits['arriba'].filter(obj => !comunesVertical.has(obj.uuid));
+        hits['abajo'] = hits['abajo'].filter(obj => !comunesVertical.has(obj.uuid));
 
         console.log(`--- Raycast/Box Results for: ${ref.current.uuid} ---`);
         console.log(hits);
+
         interseccion.adyacentTop = hits.arriba[0];
         interseccion.adyacentBottom = hits.abajo[0];
         interseccion.adyacentLeft = hits.izquierda[0];
         interseccion.adyacentRight = hits.derecha[0];
-//        return hits;
+        return hits;
     };
 
     const initialData = {

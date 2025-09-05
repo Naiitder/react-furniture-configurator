@@ -1,5 +1,5 @@
 import * as React from "react";
-import InterseccionMueble, { Orientacion } from "../components/Interseccion";
+import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import Tabla from "../components/Casco/Tabla";
 
 // TODO Arreglar DEPTH al expandir el mueble
@@ -19,7 +19,7 @@ export const renderIntersecciones = ({
         traseroDentro = false,
     } = dimensiones;
 
-    const { groupRef = { current: null }, detectionBoxRef = { current: null } } = refs;
+    const {groupRef = {current: null}, detectionBoxRef = {current: null}} = refs;
 
     //console.log("renderIntersecciones", intersecciones);
 
@@ -167,118 +167,42 @@ export const renderIntersecciones = ({
         const x = (inter.position.x - 0.5) * width;
         const y = inter.position.y * height + extraAltura;
 
-        if (inter.orientation === Orientacion.Horizontal) {
-            // ——————— BRANCH HORIZONTAL ———————
-            let [leftX, rightX] = computeHorizontalRange(inter, idx);
-            leftX = inter.adyacentLeft?.position.x ?? leftX;
-            rightX = inter.adyacentRight?.position.x ?? rightX;
-            const widthSeg = rightX - leftX;
-            const centerX = (leftX + rightX) / 2;
+        let [leftX, rightX] = computeHorizontalRange(inter, idx);
+        leftX = inter.adyacentLeft?.position.x ?? leftX;
+        rightX = inter.adyacentRight?.position.x ?? rightX;
+        const widthSeg = rightX - leftX;
+        const centerX = (leftX + rightX) / 2;
 
-            if(!inter.previsualization){
-                return (
-                    <Tabla
-                        key={`int-${idx}`}
-                        parentRef={groupRef}
-                        insideRef={detectionBoxRef}
-                        shape="box"
-                        position={[
-                            centerX,
-                            y,
-                            espesor / 2 +
-                            (traseroDentro ? retranqueoTrasero / 2 : 0),
-                        ]}
-                        interseccion={inter}
-                        width={widthSeg}
-                        height={espesor}
-                        depth={depth - retranqueoTrasero - espesor}
-                        material={materiales.Artico}
-                        espesorBase={espesor}
-                        isInterseccion={true}
-                        orientation={"horizontal"}
-                    />
-                );
-            }
-            else{
-                return (
-                    <Tabla
-                        key={`int-${idx}`}
-                        parentRef={groupRef}
-                        insideRef={detectionBoxRef}
-                        shape="box"
-                        position={[
-                            centerX,
-                            y,
-                            espesor / 2 +
-                            (traseroDentro ? retranqueoTrasero / 2 : 0),
-                        ]}
-                        width={widthSeg}
-                        height={espesor}
-                        depth={depth - retranqueoTrasero - espesor}
-                        material={materiales.Vidrio}
-                        espesorBase={espesor}
-                        isInterseccion={true}
-                        orientation={"horizontal"}
-                        interseccion={inter}
-                    />
-                );
-            }
-        } else {
-            // ——————— BRANCH VERTICAL ———————
-            let [botY, topY] = getVerticalRange(inter, idx);
-            botY = inter.adyacentBottom?.position.y ?? botY;
-            topY = inter.adyacentTop?.position.y ?? topY;
-            const heightSeg = topY - botY;
-            const centerY = (topY + botY) / 2;
+        let [botY, topY] = getVerticalRange(inter, idx);
+        botY = inter.adyacentBottom?.position.y ?? botY;
+        topY = inter.adyacentTop?.position.y ?? topY;
+        const heightSeg = topY - botY;
+        const centerY = (topY + botY) / 2;
 
-            if(!inter.previsualization){
-                return (
-                    <Tabla
-                        key={`int-${idx}`}
-                        parentRef={groupRef}
-                        insideRef={detectionBoxRef}
-                        shape="box"
-                        position={[
-                            x,
-                            centerY,
-                            espesor / 2 +
-                            (traseroDentro ? retranqueoTrasero / 2 : 0),
-                        ]}
-                        width={espesor}
-                        height={heightSeg}
-                        depth={depth - retranqueoTrasero - espesor}
-                        material={materiales.Artico}
-                        espesorBase={espesor}
-                        isInterseccion={true}
-                        orientation={"vertical"}
-                        interseccion={inter}
-                    />
-                );
-            }
-            else {
-                return (
-                    <Tabla
-                        key={`int-${idx}`}
-                        parentRef={groupRef}
-                        insideRef={detectionBoxRef}
-                        shape="box"
-                        position={[
-                            x,
-                            centerY,
-                            espesor / 2 +
-                            (traseroDentro ? retranqueoTrasero / 2 : 0),
-                        ]}
-                        width={espesor}
-                        height={heightSeg}
-                        depth={depth - retranqueoTrasero - espesor}
-                        material={materiales.Vidrio}
-                        espesorBase={espesor}
-                        isInterseccion={true}
-                        orientation={"vertical"}
-                        interseccion={inter}
-                    />
-                );
-            }
-        }
+        const isHorizontal = inter.orientation === Orientacion.Horizontal;
+
+
+        return (
+            <Tabla
+                key={`int-${idx}`}
+                parentRef={groupRef}
+                insideRef={detectionBoxRef}
+                shape="box"
+                position={[
+                    centerX,
+                    centerY,
+                    espesor / 2 +
+                    (traseroDentro ? retranqueoTrasero / 2 : 0),
+                ]}
+                interseccion={inter}
+                width={isHorizontal ? widthSeg : espesor}
+                height={isHorizontal ? espesor : heightSeg}
+                depth={depth - retranqueoTrasero - espesor}
+                material={inter.previsualization ? materiales.Vidrio : materiales.Artico}
+                espesorBase={espesor}
+                isInterseccion={true}
+                orientation={isHorizontal ? "horizontal" : "vertical"}
+            />
+        );
     });
 };
