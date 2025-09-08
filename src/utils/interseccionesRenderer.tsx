@@ -53,7 +53,6 @@ export const renderIntersecciones = ({
 
         return (
             <React.Fragment key={`int-${idx}`}>
-                <InterseccionRaycaster x={inter.worldPosition.x} y={inter.worldPosition.y} interseccion={inter} />
                 <Tabla
                     parentRef={groupRef}
                     insideRef={detectionBoxRef}
