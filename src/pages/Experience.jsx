@@ -326,90 +326,73 @@ export const Experience = () => {
     }
 
 
-    function IntersectionOverlayController({overlayData, setOverlayData}) {
-        const {refPiece} = useSelectedPieceProvider();
-        const {camera, size} = useThree();
-        const lastUpdateTime = useRef(0);
-        const lastPosition = useRef({x: 0, y: 0});
-        const lastPieceId = useRef(null);
+    function IntersectionOverlayController({ setOverlayData }) {
+        const { refPiece } = useSelectedPieceProvider();
+        const { camera, size } = useThree();
+        const lastCommitTs = useRef(0);
+        const MIN_MS = 50; // throttle ~20fps
 
         useFrame((state) => {
-            const now = state.clock.elapsedTime;
-            const currentPieceId = refPiece?.uuid || null;
-            const shouldBeVisible = refPiece != null && refPiece.userData.isInterseccion;
+            const show = !!refPiece?.userData?.isInterseccion;
 
-            const pieceChanged = currentPieceId !== lastPieceId.current;
-
-            if (pieceChanged) {
-                lastPieceId.current = currentPieceId;
-                lastUpdateTime.current = 0; // Reset throttling
-            }
-
-            if (!shouldBeVisible) {
-                if (overlayData.isVisible) {
-                    setOverlayData(prevData => ({...prevData, isVisible: false}));
-                }
+            // Ocultar sin depender de overlayData prop
+            if (!show) {
+                setOverlayData(prev => (prev.isVisible ? { ...prev, isVisible: false } : prev));
                 return;
             }
 
-            if (overlayData.isVisible && !pieceChanged && (now - lastUpdateTime.current < 0.05)) {
-                return;
-            }
+            // Throttle temporal
+            const nowMs = state.clock.elapsedTime * 1000;
+            if (nowMs - lastCommitTs.current < MIN_MS) return;
 
-            const worldPos = new THREE.Vector3();
-            refPiece.getWorldPosition(worldPos);
-            const ndc = worldPos.clone().project(camera);
-            const x = (ndc.x * 0.5 + 0.5) * size.width;
-            const y = (-ndc.y * 0.5 + 0.5) * size.height;
+            // Proyección a pantalla
+            const wp = new THREE.Vector3();
+            refPiece.getWorldPosition(wp);
+            const ndc = wp.clone().project(camera);
+            const x = Math.round((ndc.x * 0.5 + 0.5) * size.width);
+            const y = Math.round((-ndc.y * 0.5 + 0.5) * size.height);
 
-            const threshold = 3;
-            if (
-                overlayData.isVisible &&
-                !pieceChanged &&
-                Math.abs(x - lastPosition.current.x) < threshold &&
-                Math.abs(y - lastPosition.current.y) < threshold
-            ) {
-                return;
-            }
-
-            lastPosition.current = {x, y};
-            lastUpdateTime.current = now;
-
-            const orientation = refPiece.userData.orientation;
+            const orientation = refPiece.userData.orientation || "horizontal";
             const isVertical = orientation === "vertical";
 
-            const newData = {
+            const computed = {
                 isVisible: true,
                 overlayPositions: {
-                    primary: {
-                        x: Math.round(x - (!isVertical ? 0 : 24)),
-                        y: Math.round(y - (isVertical ? 0 : 24)),
-                        placement: isVertical ? 'left' : 'top'
-                    },
-                    secondary: {
-                        x: Math.round(x + (!isVertical ? 0 : 24)),
-                        y: Math.round(y + (isVertical ? 0 : 24)),
-                        placement: isVertical ? 'right' : 'bottom'
-                    }
+                    primary:   { x: x - (!isVertical ? 0 : 24), y: y - (isVertical ? 0 : 24), placement: isVertical ? "left"  : "top" },
+                    secondary: { x: x + (!isVertical ? 0 : 24), y: y + (isVertical ? 0 : 24), placement: isVertical ? "right" : "bottom" },
                 },
                 intersectionData: {
                     id: refPiece.uuid,
-                    originalIndex: refPiece.userData.originalIndex ?? 0,
-                    position: {
-                        x: refPiece.userData.positionX ?? worldPos.x,
-                        y: refPiece.userData.positionY ?? worldPos.y
-                    },
-                    orientation: orientation || 'horizontal',
-                    createdAt: refPiece.userData.createdAt ?? new Date(),
+                    // ¡NO generes new Date() aquí cada frame!
+                    createdAt: refPiece.userData.createdAt ?? null,
+                    orientation,
+                    position: { x: refPiece.userData.positionX ?? wp.x, y: refPiece.userData.positionY ?? wp.y },
                     dimensions: {
-                        width: refPiece.userData.widthExtra ?? 0,
+                        width:  refPiece.userData.widthExtra  ?? 0,
                         height: refPiece.userData.heightExtra ?? 0,
-                        depth: refPiece.userData.depthExtra ?? 0
+                        depth:  refPiece.userData.depthExtra  ?? 0,
                     },
-                }
+                },
             };
 
-            setOverlayData(newData);
+            // Setter funcional + igualdad superficial estricta
+            setOverlayData(prev => {
+                // mismo id/orientación y mismas coords => no actualices
+                const same =
+                    prev.isVisible === computed.isVisible &&
+                    prev.intersectionData?.id === computed.intersectionData.id &&
+                    prev.intersectionData?.orientation === computed.intersectionData.orientation &&
+                    prev.overlayPositions?.primary?.x   === computed.overlayPositions.primary.x &&
+                    prev.overlayPositions?.primary?.y   === computed.overlayPositions.primary.y &&
+                    prev.overlayPositions?.secondary?.x === computed.overlayPositions.secondary.x &&
+                    prev.overlayPositions?.secondary?.y === computed.overlayPositions.secondary.y;
+
+                if (same) return prev;
+
+                // commit real
+                lastCommitTs.current = nowMs;
+                return computed;
+            });
         });
 
         return null;

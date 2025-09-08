@@ -9,6 +9,7 @@ import {useSelectedCajonProvider} from "../../contexts/SelectedCajonProvider"
 import {Edges} from "@react-three/drei";
 import InterseccionMueble from "../Interseccion";
 import { useThree } from '@react-three/fiber';
+import { MathUtils } from 'three';
 
 //TODO Si hay tanto borde eje Z y eje X hacer que solo se ponga los bordes en el lado frontal del mueble
 
@@ -30,14 +31,12 @@ type TablaProps = {
     stopPropagation?: boolean;
     shape: "box" | "trapezoid";
     taperAmount?: number; // Nueva propiedad para controlar cuánto se estrecha
-
     disableAdjustedWidth?: boolean;
     espesorBase: number;
     posicionCaja?: "top" | "bottom" | "left" | "right";
     bordeEjeY?: boolean;
     bordeEjeZ?: boolean;
     orientacionBordeZ?: "vertical" | "front";
-
     isInterseccion?: boolean;
     interseccion?: InterseccionMueble;
     orientation?: "vertical" | "horizontal";
@@ -76,12 +75,13 @@ const Tabla: React.FC<TablaProps> = ({
 
 
     const initialData = {
-        positionExtra: position,
+        positionExtra: isInterseccion ? [0.5, 0.5, position[2]] : position,
         widthExtra,
         heightExtra,
         depthExtra,
         espesor: espesorBase,
         isInterseccion: isInterseccion,
+        interseccion: interseccion,
         orientation: orientation,
     };
 
@@ -96,31 +96,30 @@ const Tabla: React.FC<TablaProps> = ({
     useEffect(() => {
         if (ref.current && interseccion) {
             interseccion.uuid = ref.current.uuid;
-            //shootRaycastsFromTablaId(interseccion.uuid, refItem);
         }
     }, []);
 
 
     useEffect(() => {
-        if (ref.current) {
-            ref.current.userData = {
-                positionExtra: position,
-                widthExtra,
-                heightExtra,
-                depthExtra,
-                espesor: espesorBase,
-                ...ref.current.userData
-            };
-        }
-    }, [positionExtra, widthExtra, heightExtra, depthExtra, espesorBase]);
+        if (!ref.current) return;
+        ref.current.userData = {
+            ...ref.current.userData,
+            ...(isInterseccion ? {} : { positionExtra: position }),
+            widthExtra,
+            heightExtra,
+            depthExtra,
+            espesor: espesorBase,
+        };
+    }, [isInterseccion, position, widthExtra, heightExtra, depthExtra, espesorBase]);
 
     const [extra, setExtra] = useState({
-        positionExtra: position,
+        positionExtra: isInterseccion ? [0.5, 0.5, position[2]] : position,
         widthExtra: 0,
         heightExtra: 0,
         depthExtra: 0,
         espesor: espesorBase,
         isinterseccion: isInterseccion,
+        interseccion: interseccion,
         orientation: orientation,
     });
 
@@ -133,6 +132,7 @@ const Tabla: React.FC<TablaProps> = ({
                 depthExtra: refPiece.userData.depthExtra || 0,
                 espesor: refPiece.userData.espesor || espesorBase,
                 isinterseccion: refPiece.userData.isinterseccion || isInterseccion,
+                interseccion: refPiece.userData.interseccion || interseccion,
                 orientation: refPiece.userData.orientation || orientation,
             });
         }
@@ -142,8 +142,6 @@ const Tabla: React.FC<TablaProps> = ({
     height = height + extra.heightExtra;
     depth = depth + extra.depthExtra;
     espesorBase = extra.espesor;
-
-    if(isInterseccion) position = extra.positionExtra;
 
     const adjustedWidth = (!disableAdjustedWidth && shape === "trapezoid" && !bordeEjeY) ? width - (espesorBase * 2) : width;
     // Solo para frontal
@@ -304,6 +302,7 @@ const Tabla: React.FC<TablaProps> = ({
     const [interPos, setInterPos] = useState<[number, number, number] | null>(null);
     const [interDims, setInterDims] = useState<{ width?: number; height?: number }>({});
     const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
+    const placedOnceRef = useRef(false);
 
     const rayOrientation =
         isInterseccion
@@ -314,12 +313,11 @@ const Tabla: React.FC<TablaProps> = ({
                     ? "horizontal"
                     : undefined;
 
-// marca al montar
     useEffect(() => {
         if (!ref.current) return;
         ref.current.userData.isTabla = true;
         ref.current.userData.groupRootUuid = parentRef.current?.uuid;
-        ref.current.userData.rayOrientation = rayOrientation; // <<< NUEVO
+        ref.current.userData.rayOrientation = rayOrientation;
     }, [parentRef, rayOrientation]);
 
     useEffect(() => {
@@ -329,7 +327,7 @@ const Tabla: React.FC<TablaProps> = ({
         const parent = me.parent as THREE.Object3D | null;
 
         me.userData.isTabla = true;
-        
+
         const isUnderSameRoot = (obj: THREE.Object3D, rootUuid?: string) => {
             if (!rootUuid) return false;
             let p: THREE.Object3D | null = obj;
@@ -352,10 +350,24 @@ const Tabla: React.FC<TablaProps> = ({
             return list;
         };
 
+
         const cast = (from: THREE.Vector3, dir: THREE.Vector3, targets: THREE.Object3D[]) => {
+            let value = {};
             const rc = raycasterRef.current;
             rc.set(from, dir);
-            return rc.intersectObjects(targets, true);
+            const res = rc.intersectObjects(targets, true);
+            if (res.length) {
+                const h = res[0];
+                value = {
+                    distance: h.distance,
+                    point: h.point,
+                    uuid: h.object.uuid,
+                    name: h.object.name,
+                };
+            } else {
+                value = null;
+            }
+            return value;
         };
 
         const computeAndApply = () => {
@@ -374,8 +386,6 @@ const Tabla: React.FC<TablaProps> = ({
             const resDown  = cast(origin.clone().addScaledVector(new THREE.Vector3(0,-1,0), epsilon), new THREE.Vector3(0,-1,0), targetsUD);
             const resUp    = cast(origin.clone().addScaledVector(new THREE.Vector3(0, 1,0), epsilon), new THREE.Vector3(0, 1,0), targetsUD);
 
-            const first = (arr: any[]) => arr.length ? arr[0] : null;
-
             const avg = (a?: number, b?: number, fb?: number) => {
                 const xs = [a, b].filter(n => typeof n === "number" && isFinite(n)) as number[];
                 if (xs.length === 2) return (xs[0] + xs[1]) / 2;
@@ -383,31 +393,42 @@ const Tabla: React.FC<TablaProps> = ({
                 return fb!;
             };
 
-            let centerXWorld = origin.x;
-            let centerYWorld = origin.y;
+            const centerXWorld = avg(resLeft?.point?.x,  resRight?.point?.x, origin.x);
+            const centerYWorld = avg(resDown?.point?.y,  resUp?.point?.y,   origin.y);
+            const centerWorld  = new THREE.Vector3(centerXWorld, centerYWorld, origin.z);
+            const centerLocal  = parent ? parent.worldToLocal(centerWorld.clone()) : centerWorld;
 
-            centerXWorld = avg(first(resLeft)?.point?.x, first(resRight)?.point?.x, origin.x);
-            centerYWorld = avg(first(resDown)?.point?.y, first(resUp)?.point?.y, origin.y);
-
-            const centerWorld = new THREE.Vector3(centerXWorld, centerYWorld, origin.z);
-            const centerLocal = parent ? parent.worldToLocal(centerWorld.clone()) : centerWorld;
-
-            setInterPos(prev => {
-                const np: [number, number, number] = [centerLocal.x, centerLocal.y, position[2]];
-                if (!prev) return np;
-                return (Math.abs(prev[0]-np[0])>1e-6 || Math.abs(prev[1]-np[1])>1e-6 || Math.abs(prev[2]-np[2])>1e-6) ? np : prev;
-            });
+            if(!placedOnceRef.current) setInterPos([centerLocal.x, centerLocal.y, position[2]]);
+            console.log("a");
 
             interseccion.adyacentRight = resRight;
             interseccion.adyacentTop = resUp;
             interseccion.adyacentLeft = resLeft;
             interseccion.adyacentBottom = resDown;
 
-            console.log("resRight", resRight);
+            const norm = (h:any) => h ? {
+                uuid: h.uuid,
+                name: h.name,
+                point: h.point.toArray() as [number, number, number],
+                distance: h.distance,
+            } : null;
+
+            (me.userData as any).interseccion = {
+                ...(me.userData as any).interseccion,
+                adyacentLeft:  norm(resLeft),
+                adyacentRight: norm(resRight),
+                adyacentTop:   norm(resUp),
+                adyacentBottom:norm(resDown),
+            };
+
+            setExtra(e => ({
+                ...e,
+                interseccion: (me.userData as any).interseccion
+            }));
 
             if (orientation === "horizontal") {
-                const pL = first(resLeft )?.point;
-                const pR = first(resRight)?.point;
+                const pL = resLeft?.point;
+                const pR = resRight?.point;
                 if (pL && pR) {
                     const pLlocal = parent ? parent.worldToLocal(pL.clone()) : pL;
                     const pRlocal = parent ? parent.worldToLocal(pR.clone()) : pR;
@@ -415,8 +436,8 @@ const Tabla: React.FC<TablaProps> = ({
                     if (wLocal > 0 && isFinite(wLocal)) setInterDims(d => ({ ...d, width: wLocal, height: espesorBase }));
                 }
             } else if (orientation === "vertical") {
-                const pD = first(resDown)?.point;
-                const pU = first(resUp  )?.point;
+                const pD = resDown?.point;
+                const pU = resUp?.point;
                 if (pD && pU) {
                     const pDlocal = parent ? parent.worldToLocal(pD.clone()) : pD;
                     const pUlocal = parent ? parent.worldToLocal(pU.clone()) : pU;
@@ -426,30 +447,81 @@ const Tabla: React.FC<TablaProps> = ({
             }
         };
 
-            computeAndApply();                 // 1ª pasada cuando ya han asentado "anteriores"
+            computeAndApply();
             requestAnimationFrame(() => {
-                computeAndApply();               // 2ª pasada
+                computeAndApply();
                 requestAnimationFrame(() => {
-                    computeAndApply();             // 3ª pasada
+                    computeAndApply();
                 });
         });
-    }, [isInterseccion, orientation, scene, parentRef, espesorBase, adjustedWidth, adjustedHeight, adjustedDepth]);
+    }, [isInterseccion, parentRef, scene, orientation]);
 
     let effWidth  = adjustedWidth;
     let effHeight = adjustedHeight;
 
     if (isInterseccion) {
         if (orientation === "horizontal") {
-            // ancho desde L-R; grosor = espesor
             effWidth = interDims.width ?? effWidth;
             effHeight = espesorBase;
         } else if (orientation === "vertical") {
-            // alto desde D-U; ancho = espesor
             effHeight = interDims.height ?? effHeight;
             effWidth = espesorBase;
         }
     }
 
+    const almostEqual = (a:number,b:number) => Math.abs(a-b) < 1e-6;
+
+    useEffect(() => {
+        if (!isInterseccion || !ref.current) return;
+
+        const t = extra.positionExtra; // [tx, ty, tz?] normalizado 0..1 para X/Y
+        if (!t) return;
+
+        const L = interseccion?.adyacentLeft?.point;
+        const R = interseccion?.adyacentRight?.point;
+        const B = interseccion?.adyacentBottom?.point;
+        const T = interseccion?.adyacentTop?.point;
+        if (!L || !R || !B || !T) return; // aún no hay límites
+
+        const parent = ref.current.parent as THREE.Object3D | null;
+        const toLocal = (v: THREE.Vector3) => parent ? parent.worldToLocal(v.clone()) : v;
+
+        const Lx = toLocal(L.clone()).x;
+        const Rx = toLocal(R.clone()).x;
+        const By = toLocal(B.clone()).y;
+        const Ty = toLocal(T.clone()).y;
+
+        const tx = MathUtils.clamp(t[0], 0, 1);
+        const ty = MathUtils.clamp(t[1], 0, 1);
+
+        const x = MathUtils.lerp(Lx, Rx, tx);
+        const y = MathUtils.lerp(By, Ty, ty);
+        const z = position[2];
+
+        setInterPos(prev => {
+            const next: [number, number, number] = [x, y, z];
+            if (prev && almostEqual(prev[0], next[0]) && almostEqual(prev[1], next[1]) && almostEqual(prev[2], next[2])) return prev;
+            return next;
+        });
+
+        // Desde ahora, control manual
+        placedOnceRef.current = true;
+    }, [
+        isInterseccion,
+        extra.positionExtra,                // si cambian sliders
+        interseccion?.adyacentLeft,
+        interseccion?.adyacentRight,
+        interseccion?.adyacentBottom,
+        interseccion?.adyacentTop
+    ]);
+
+
+    useEffect(() => {
+        if (!isInterseccion) return;
+        if (!placedOnceRef.current) return;   // aún no colocado = deja que el autoplacement la fije
+        if (!position) return;
+        setInterPos(position);                // ahora mando yo (desde fuera)
+    }, [isInterseccion, position?.[0], position?.[1], position?.[2]]);
 
     return (
         <>

@@ -12,6 +12,7 @@ export type PuertaProps = {
     width: number;
     height: number;
     depth: number;
+    espesor?: number;
     color?: string;
     pivot?: "left" | "right";
 };

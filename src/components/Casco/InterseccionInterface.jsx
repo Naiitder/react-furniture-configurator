@@ -2,7 +2,6 @@ import { Form, Slider, Select } from "antd";
 import {useEffect, useState} from "react";
 import {useSelectedPieceProvider} from "../../contexts/SelectedPieceProvider.jsx";
 import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
-import InterseccionMueble from "../Interseccion";
 
 const InterseccionConfigContent = () => {
     const { refPiece, setRefPiece, version, setVersion} = useSelectedPieceProvider();
@@ -14,23 +13,31 @@ const InterseccionConfigContent = () => {
         heightExtra: 0,
         depthExtra: 0,
         espesor: 0.1,
-        seccionesAdyacientes: [],
-        seccionesLimitantes: [],
+        interseccion: {},
         orientation: "vertical" | "horizontal",
     });
 
+    const shallowEqual = (a,b) => {
+        for (const k in a) if (a[k] !== b[k]) return false;
+        for (const k in b) if (!(k in a)) return false;
+        return true;
+    };
+
     useEffect(() => {
-        if (refPiece) {
-            // Se prioriza refItem.groupRef.userData, si existe
-            const newConfig = refPiece && refPiece.userData
-                ? refPiece.userData
-                : (refPiece.userData || {});
-            setConfig(prev => ({
-                ...prev,
-                ...newConfig,
-            }));
-        }
+        if (!refPiece) return;
+        const ud = refPiece.userData || {};
+        const next = {
+            positionExtra: ud.positionExtra ?? [0,0,0],
+            widthExtra: ud.widthExtra ?? 0,
+            heightExtra: ud.heightExtra ?? 0,
+            depthExtra: ud.depthExtra ?? 0,
+            espesor: ud.espesor ?? 0.1,
+            interseccion: ud.interseccion ?? {},
+            orientation: ud.orientation ?? "horizontal",
+        };
+        setConfig(prev => shallowEqual(prev, next) ? prev : next);
     }, [refPiece, version]);
+
 
     // Función unificada para actualizar la configuración y modificar también el userData
     // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)
@@ -38,12 +45,10 @@ const InterseccionConfigContent = () => {
         setConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
 
-            // Solo actualiza refPiece fuera del render
             if (refPiece && refPiece.userData) {
                 refPiece.userData[key] = value;
             }
 
-            // Asegura que el re-render ocurra correctamente
             requestAnimationFrame(() => {
                 setVersion((v) => v + 1);
             });
@@ -51,54 +56,6 @@ const InterseccionConfigContent = () => {
             return newConfig;
         });
     };
-
-    let seccionLimitanteHorizontalSuperior = 0;
-    let seccionLimitanteHorizontalInferior = 0;
-    if(refItem) seccionLimitanteHorizontalSuperior = refItem.groupRef.position.y;
-    if(refItem) seccionLimitanteHorizontalInferior = refItem.groupRef.position.y + refItem.groupRef.userData.height;
-
-    let seccionLimitanteVerticalIzq = 0;
-    let seccionLimitanteVerticalDrcha = 0;
-
-    if(refItem) seccionLimitanteVerticalIzq = refItem.groupRef.position.x - refItem.groupRef.userData.width/2;
-    if(refItem) seccionLimitanteVerticalDrcha = refItem.groupRef.position.x + refItem.groupRef.userData.width/2;
-
-
-    if(config.seccionesLimitantes){
-        if (refItem?.groupRef?.children?.[0]?.children && config.seccionesLimitantes[0]) {
-            const objeto3D = refItem.groupRef.children[0].children.find(
-                (child) => child.uuid === config.seccionesLimitantes[0].uuid
-            );
-            if(config.orientation === "horizontal"){
-                seccionLimitanteHorizontalSuperior = objeto3D.position.y;
-                seccionLimitanteHorizontalSuperior = seccionLimitanteHorizontalSuperior+(seccionLimitanteHorizontalSuperior*5/100);
-            }else if(config.orientation === "vertical"){
-                seccionLimitanteVerticalIzq = objeto3D.position.x;
-                seccionLimitanteVerticalIzq = seccionLimitanteVerticalIzq+(seccionLimitanteVerticalIzq*5/100);
-            }
-        }
-        if (refItem?.groupRef?.children?.[0]?.children && config.seccionesLimitantes[1]) {
-            const objeto3D = refItem.groupRef.children[0].children.find(
-                (child) => child.uuid === config.seccionesLimitantes[1].uuid
-            );
-        if(config.orientation === "horizontal"){
-            seccionLimitanteHorizontalInferior = objeto3D.position.y;
-            seccionLimitanteHorizontalInferior = seccionLimitanteHorizontalInferior-(seccionLimitanteHorizontalInferior*5/100);
-        }
-        else if (config.orientation === "vertical"){
-            seccionLimitanteVerticalDrcha = objeto3D.position.x;
-            seccionLimitanteVerticalDrcha = seccionLimitanteVerticalDrcha-(seccionLimitanteVerticalDrcha*5/100);
-        }
-
-        }
-    }
-
-    useEffect(() => {
-        console.log(seccionLimitanteHorizontalSuperior);
-        console.log(seccionLimitanteHorizontalInferior);
-        console.log(config)
-        console.log(refItem)
-    },[seccionLimitanteHorizontalSuperior, seccionLimitanteHorizontalInferior])
 
     return (
         <div style={{
@@ -112,8 +69,8 @@ const InterseccionConfigContent = () => {
                 <Form.Item label="Position X: ">
                     <Slider
                         step={0.01}
-                        min={seccionLimitanteVerticalIzq}
-                        max={seccionLimitanteVerticalDrcha}
+                        min={Number(((config.interseccion?.adyacentLeft?.point?.x ?? 0)).toFixed(3))}
+                        max={Number(((config.interseccion?.adyacentRight?.point?.x ?? 1)).toFixed(3))}
                         value={config.positionExtra[0]}
                         onChange={(v) => {
                             const newPos = [...config.positionExtra];
@@ -125,8 +82,8 @@ const InterseccionConfigContent = () => {
                 <Form.Item label="Position Y: ">
                     <Slider
                         step={0.01}
-                        min={seccionLimitanteHorizontalSuperior}
-                        max={seccionLimitanteHorizontalInferior}
+                        min={Number(((config.interseccion?.adyacentBottom?.point?.y ?? 0)).toFixed(3))}
+                        max={Number(((config.interseccion?.adyacentTop?.point?.y ?? 1)).toFixed(3))}
                         value={config.positionExtra[1]}
                         onChange={(v) => {
                             const newPos = [...config.positionExtra];

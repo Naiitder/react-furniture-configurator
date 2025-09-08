@@ -12,6 +12,7 @@ const PuertaBodeguero: React.FC<PuertaProps & { extraAltura?: number }> = ({
                                                                                width,
                                                                                height,
                                                                                depth,
+                                                                               espesor = 0,
                                                                                color = "#654321",
                                                                                pivot = "right",
                                                                            }) => {
@@ -47,7 +48,7 @@ const PuertaBodeguero: React.FC<PuertaProps & { extraAltura?: number }> = ({
 
     // Ajustar la posición inicial de la caja desde la base de la puerta
     const boxPosition: [number, number, number] = [
-        width / 2 * (pivot === "right" ? -1 : 1),
+        (width / 2 * (pivot === "right" ? -1 : 1))-espesor/8,
         0, // Comienza desde la base, el offset Y viene del position prop
         0,
     ];
@@ -62,7 +63,7 @@ const PuertaBodeguero: React.FC<PuertaProps & { extraAltura?: number }> = ({
                     insideRef={insideRef}
                     ref={doorRef}
                     position={boxPosition}
-                    width={width}
+                    width={width-(espesor*4)}
                     height={height}
                     depth={depth}
                     material={materials.Nogal}

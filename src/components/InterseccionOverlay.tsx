@@ -16,7 +16,6 @@ interface IntersectionOverlayProps {
         orientation: string;
         createdAt: Date;
         dimensions?: { width: number; height: number; depth: number };
-        shootRaycasts: () => { arriba: Mesh[]; abajo: Mesh[]; izquierda: Mesh[]; derecha: Mesh[] }
     };
 }
 
