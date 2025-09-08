@@ -75,70 +75,16 @@ const SingleOverlay: React.FC<SingleOverlayProps> = ({position, intersectionData
         intersectionData.position.y,
     ]);
 
-    const [raycastResults, setRaycastResults] = useState<{
-        arriba: Mesh[];
-        abajo: Mesh[];
-        izquierda: Mesh[];
-        derecha: Mesh[];
-    } | null>(null);
 
-    // Trigger raycasts only on mount or when cacheKey changes
-    useEffect(() => {
-        if (!intersectionData.shootRaycasts) {
-            console.error('[SingleOverlay] shootRaycasts is not a function');
-            return;
-        }
-
-        // ALWAYS clear results when cacheKey changes
-        setRaycastResults(null);
-
-        const results = intersectionData.shootRaycasts();
-
-        if (results && typeof results === 'object') {
-            setRaycastResults(results);
-        } else {
-            console.warn('[SingleOverlay] Invalid raycast results:', results);
-        }
-    }, [cacheKey, intersectionData.shootRaycasts, position.placement]);
-
-    // Compute neighbor information
-    const neighborInfo = useMemo(() => {
-        if (!raycastResults) {
-            return `No hay vecinos (ID: ${intersectionData.id.substring(0, 8)})`;
-        }
-
-        const placementMap = {
-            top: 'arriba',
-            bottom: 'abajo',
-            left: 'izquierda',
-            right: 'derecha',
-        };
-        const rayDirection = placementMap[position.placement];
-
-        const neighborMeshes: Mesh[] = raycastResults[rayDirection] ?? [];
-
-        if (neighborMeshes.length === 0) {
-            return 'Vacío';
-        }
-
-        const labels = neighborMeshes.map(mesh => {
-            const name = mesh.userData?.name || mesh.name;
-            const id = mesh.userData?.id || mesh.uuid;
-            return name || `ID: ${id?.substring(0, 8)}`;
-        });
-
-        return labels.join(', ');
-    }, [raycastResults, intersectionData.id, position.placement]);
 
     // Overlay content
     const overlayContent = useMemo(() => (
         <>
             <div><strong>{intersectionData.orientation === 'vertical' ? 'Vertical' : 'Horizontal'}</strong></div>
             <div>Pos: ({intersectionData.position.x.toFixed(2)}, {intersectionData.position.y.toFixed(2)})</div>
-            <div>Vecino: {neighborInfo}</div>
             <div>{position.placement === 'top' ? '↑' : position.placement === 'left' ? '←' : position.placement === 'bottom' ? '↓' : '→'}</div>
         </>
-    ), [intersectionData.orientation, intersectionData.position, neighborInfo]);
+    ), [intersectionData.orientation, intersectionData.position]);
 
     // Overlay style
     const overlayStyle = useMemo(

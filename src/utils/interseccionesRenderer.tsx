@@ -39,9 +39,6 @@ export const renderIntersecciones = ({
 
     const sorted = sortedWithIndices.map(item => item.inter);
 
-
-
-    // Función auxiliar: calcula el rango vertical real de una intersección vertical
     return sorted.map((inter: InterseccionMueble, idx) => {
         const x = (inter.position.x - 0.5) * width;
         const y = inter.position.y * height + extraAltura;

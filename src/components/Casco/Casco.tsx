@@ -387,7 +387,6 @@ const CascoFuncional = (
 
             <group ref={detectionBoxRef}>
                 <mesh
-                    userData={{ ignoreRaycast: true }}
                     position={[0, actualHeight / 2 + extraAltura, actualRetranqueoTrasero / 2]}
                     material={materiales.Transparent}
                 >

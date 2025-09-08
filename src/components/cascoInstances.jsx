@@ -10,11 +10,12 @@ export const useCascoInstances = () => {
     const [cascoInstances, setCascoInstances] = useState({});
 
     useEffect(() => {
-        const i1 = new InterseccionMueble({ x: 0.5, y: 0.5 }, Orientacion.Horizontal);
-        const i2 = new InterseccionMueble({ x: 0.5, y: 0.75 }, Orientacion.Horizontal, false, undefined, [], [i1, null]);
-        const i3 = new InterseccionMueble({ x: 0.5, y: 0.25 }, Orientacion.Horizontal, false, undefined, [], [ null, i1 ]);
-        const i4 = new InterseccionMueble({x: 0.5, y: 0.6}, Orientacion.Vertical, false, undefined, [i2, i1]);
-        const i5 = new InterseccionMueble({x: 0.5, y: 1}, Orientacion.Vertical, false, undefined, [null, i2]);
+        const t0 = Date.now();
+        const i1 = new InterseccionMueble({ x: 0.5, y: 0.5 }, Orientacion.Horizontal, false, new Date(t0+1));
+        const i2 = new InterseccionMueble({ x: 0.5, y: 0.75}, Orientacion.Horizontal,  false, new Date(t0+2));
+        const i3 = new InterseccionMueble({ x: 0.5, y: 0.25}, Orientacion.Horizontal,  false, new Date(t0+3));
+        const i4 = new InterseccionMueble({ x: 0.5, y: 0.60}, Orientacion.Vertical,    false, new Date(t0+4));
+        const i5 = new InterseccionMueble({ x: 0.5, y: .8}, Orientacion.Vertical,    false, new Date(t0+5));
         setCascoInstances({
             casco1: {
                 id: 'casco1',

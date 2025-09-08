@@ -74,6 +74,7 @@ const Tabla: React.FC<TablaProps> = ({
     const {refCajon, setRefCajon} = useSelectedCajonProvider();
     const { scene } = useThree();
 
+
     const initialData = {
         positionExtra: position,
         widthExtra,
@@ -302,118 +303,137 @@ const Tabla: React.FC<TablaProps> = ({
 
     const [interPos, setInterPos] = useState<[number, number, number] | null>(null);
     const [interDims, setInterDims] = useState<{ width?: number; height?: number }>({});
+    const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
+
+    const rayOrientation =
+        isInterseccion
+            ? orientation
+            : (posicionCaja === "left" || posicionCaja === "right")
+                ? "vertical"
+                : (posicionCaja === "top" || posicionCaja === "bottom")
+                    ? "horizontal"
+                    : undefined;
+
+// marca al montar
+    useEffect(() => {
+        if (!ref.current) return;
+        ref.current.userData.isTabla = true;
+        ref.current.userData.groupRootUuid = parentRef.current?.uuid;
+        ref.current.userData.rayOrientation = rayOrientation; // <<< NUEVO
+    }, [parentRef, rayOrientation]);
 
     useEffect(() => {
         if (!isInterseccion || !ref.current) return;
 
         const me = ref.current as THREE.Mesh;
+        const parent = me.parent as THREE.Object3D | null;
 
-        const origin = me.getWorldPosition(new THREE.Vector3());
-        const epsilon = 0.001;
-        const raycaster = new THREE.Raycaster();
+        me.userData.isTabla = true;
+        
+        const isUnderSameRoot = (obj: THREE.Object3D, rootUuid?: string) => {
+            if (!rootUuid) return false;
+            let p: THREE.Object3D | null = obj;
+            while (p) { if ((p as any).uuid === rootUuid) return true; p = p.parent; }
+            return false;
+        };
 
-        const targets: THREE.Object3D[] = [];
-        scene.traverse((o) => {
-            const isMesh = (o as any).isMesh === true;
-            if (isMesh && o !== me && !(o as any).userData?.ignoreRaycast) targets.push(o);
-        });
+        const collectAllTablas = (me: THREE.Object3D) => {
+            const list: THREE.Object3D[] = [];
+            scene.traverse((o) => {
+                const isMesh = (o as any).isMesh === true;
+                if (
+                    isMesh &&
+                    o !== me &&
+                    !(o as any).userData?.ignoreRaycast &&
+                    (o as any).userData?.isTabla === true &&
+                    isUnderSameRoot(o, parentRef.current?.uuid)
+                ) list.push(o);
+            });
+            return list;
+        };
 
-        const directions = [
-            { key: 'up',    dir: new THREE.Vector3(0,  1, 0) },
-            { key: 'down',  dir: new THREE.Vector3(0, -1, 0) },
-            { key: 'right', dir: new THREE.Vector3(1,  0, 0) },
-            { key: 'left',  dir: new THREE.Vector3(-1, 0, 0) },
-        ] as const;
+        const cast = (from: THREE.Vector3, dir: THREE.Vector3, targets: THREE.Object3D[]) => {
+            const rc = raycasterRef.current;
+            rc.set(from, dir);
+            return rc.intersectObjects(targets, true);
+        };
 
-        const hits: Record<string, { distance: number; point: number[]; uuid: string; name?: string } | null> = {};
+        const computeAndApply = () => {
+            scene.updateMatrixWorld(true);
 
-        directions.forEach(({ key, dir }) => {
-            const from = origin.clone().addScaledVector(dir, epsilon);
-            raycaster.set(from, dir);
-            const res = raycaster.intersectObjects(targets, true);
-            if (res.length) {
-                const h = res[0];
-                hits[key] = {
-                    distance: h.distance,
-                    point: h.point.toArray(),
-                    uuid: h.object.uuid,
-                    name: h.object.name,
-                };
-            } else {
-                hits[key] = null;
-            }
-        });
+            const origin = me.getWorldPosition(new THREE.Vector3());
+            const epsilon = 0.001;
 
-        if (interseccion) {
-            (interseccion as any).raycastHits2D = {
-                origin: origin.toArray(),
-                hits,
-                sourceUuid: me.uuid,
-            };
+            const allTargets = collectAllTablas(me);
 
-            const hits2D = (interseccion as any)?.raycastHits2D?.hits || {};
-            const L = hits2D.left, R = hits2D.right, U = hits2D.up, D = hits2D.down;
+            const targetsLR = allTargets.filter(o => (o as any).userData?.rayOrientation === "vertical");
+            const targetsUD = allTargets.filter(o => (o as any).userData?.rayOrientation === "horizontal");
 
-            const safeAvg = (a?: number, b?: number, fb?: number) => {
-                const xs = [a, b].filter((n) => typeof n === "number" && isFinite(n)) as number[];
+            const resLeft  = cast(origin.clone().addScaledVector(new THREE.Vector3(-1,0,0), epsilon), new THREE.Vector3(-1,0,0), targetsLR);
+            const resRight = cast(origin.clone().addScaledVector(new THREE.Vector3( 1,0,0), epsilon), new THREE.Vector3( 1,0,0), targetsLR);
+            const resDown  = cast(origin.clone().addScaledVector(new THREE.Vector3(0,-1,0), epsilon), new THREE.Vector3(0,-1,0), targetsUD);
+            const resUp    = cast(origin.clone().addScaledVector(new THREE.Vector3(0, 1,0), epsilon), new THREE.Vector3(0, 1,0), targetsUD);
+
+            const first = (arr: any[]) => arr.length ? arr[0] : null;
+
+            const avg = (a?: number, b?: number, fb?: number) => {
+                const xs = [a, b].filter(n => typeof n === "number" && isFinite(n)) as number[];
                 if (xs.length === 2) return (xs[0] + xs[1]) / 2;
                 if (xs.length === 1 && typeof fb === "number") return (xs[0] + fb) / 2;
-                return fb;
+                return fb!;
             };
 
-            const midWorldX = safeAvg(L?.point?.[0], R?.point?.[0], origin.x);
-            const midWorldY = safeAvg(D?.point?.[1], U?.point?.[1], origin.y);
-            const midWorld = new THREE.Vector3(midWorldX!, midWorldY!, origin.z);
+            let centerXWorld = origin.x;
+            let centerYWorld = origin.y;
 
-            const parent = me.parent as THREE.Object3D | null;
-            const midLocal = parent ? parent.worldToLocal(midWorld.clone()) : midWorld;
+            centerXWorld = avg(first(resLeft)?.point?.x, first(resRight)?.point?.x, origin.x);
+            centerYWorld = avg(first(resDown)?.point?.y, first(resUp)?.point?.y, origin.y);
 
-            const newPos: [number, number, number] = [midLocal.x, midLocal.y, position[2]];
-            setInterPos((prev) => {
-                if (!prev) return newPos;
-                const dx = Math.abs(prev[0] - newPos[0]);
-                const dy = Math.abs(prev[1] - newPos[1]);
-                const dz = Math.abs(prev[2] - newPos[2]);
-                return dx > 1e-6 || dy > 1e-6 || dz > 1e-6 ? newPos : prev;
+            const centerWorld = new THREE.Vector3(centerXWorld, centerYWorld, origin.z);
+            const centerLocal = parent ? parent.worldToLocal(centerWorld.clone()) : centerWorld;
+
+            setInterPos(prev => {
+                const np: [number, number, number] = [centerLocal.x, centerLocal.y, position[2]];
+                if (!prev) return np;
+                return (Math.abs(prev[0]-np[0])>1e-6 || Math.abs(prev[1]-np[1])>1e-6 || Math.abs(prev[2]-np[2])>1e-6) ? np : prev;
             });
 
-            const toLocal = (p?: number[]) => {
-                if (!p) return null;
-                const v = new THREE.Vector3(p[0], p[1], p[2] ?? origin.z);
-                return parent ? parent.worldToLocal(v.clone()) : v;
-            };
+            interseccion.adyacentRight = resRight;
+            interseccion.adyacentTop = resUp;
+            interseccion.adyacentLeft = resLeft;
+            interseccion.adyacentBottom = resDown;
+
+            console.log("resRight", resRight);
 
             if (orientation === "horizontal") {
-                const pL = toLocal(L?.point);
-                const pR = toLocal(R?.point);
+                const pL = first(resLeft )?.point;
+                const pR = first(resRight)?.point;
                 if (pL && pR) {
-                    const wLocal = Math.abs(pR.x - pL.x); // ancho entre vecinos en local X
-                    if (isFinite(wLocal) && wLocal > 0) {
-                        setInterDims((d) => ({ ...d, width: wLocal }));
-                    }
+                    const pLlocal = parent ? parent.worldToLocal(pL.clone()) : pL;
+                    const pRlocal = parent ? parent.worldToLocal(pR.clone()) : pR;
+                    const wLocal = Math.abs(pRlocal.x - pLlocal.x);
+                    if (wLocal > 0 && isFinite(wLocal)) setInterDims(d => ({ ...d, width: wLocal, height: espesorBase }));
                 }
             } else if (orientation === "vertical") {
-                const pU = toLocal(U?.point);
-                const pD = toLocal(D?.point);
-                if (pU && pD) {
-                    const hLocal = Math.abs(pU.y - pD.y); // alto entre vecinos en local Y
-                    if (isFinite(hLocal) && hLocal > 0) {
-                        setInterDims((d) => ({ ...d, height: hLocal }));
-                    }
+                const pD = first(resDown)?.point;
+                const pU = first(resUp  )?.point;
+                if (pD && pU) {
+                    const pDlocal = parent ? parent.worldToLocal(pD.clone()) : pD;
+                    const pUlocal = parent ? parent.worldToLocal(pU.clone()) : pU;
+                    const hLocal = Math.abs(pUlocal.y - pDlocal.y);
+                    if (hLocal > 0 && isFinite(hLocal)) setInterDims(d => ({ ...d, height: hLocal, width: espesorBase }));
                 }
             }
+        };
 
-             console.log('Raycasts (Tabla):', interseccion.raycastHits2D);
-        }
-    }, [
-        isInterseccion,
-        interseccion,
-        scene,
-        position,
-        adjustedWidth,
-        adjustedHeight,
-        adjustedDepth,
-    ]);
+            computeAndApply();                 // 1ª pasada cuando ya han asentado "anteriores"
+            requestAnimationFrame(() => {
+                computeAndApply();               // 2ª pasada
+                requestAnimationFrame(() => {
+                    computeAndApply();             // 3ª pasada
+                });
+        });
+    }, [isInterseccion, orientation, scene, parentRef, espesorBase, adjustedWidth, adjustedHeight, adjustedDepth]);
 
     let effWidth  = adjustedWidth;
     let effHeight = adjustedHeight;
