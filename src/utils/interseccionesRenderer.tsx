@@ -1,9 +1,6 @@
 import * as React from "react";
 import InterseccionMueble, {Orientacion} from "../components/Interseccion";
 import Tabla from "../components/Casco/Tabla";
-import {Box3, BoxGeometry, Mesh, MeshBasicMaterial, Object3D, Raycaster, Vector3} from "three";
-import {useThree} from "@react-three/fiber";
-import InterseccionRaycaster from "./interseccionRaycaster";
 
 // TODO Arreglar DEPTH al expandir el mueble
 export const renderIntersecciones = ({
