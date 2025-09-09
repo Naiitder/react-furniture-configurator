@@ -36,7 +36,6 @@ export default function InterseccionTabla(props: InterseccionTablaProps) {
         scene: scene as any,
         orientation,
         espesor: espesorBase,
-        boundsKey,
         uv,
     });
 

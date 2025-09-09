@@ -212,7 +212,6 @@ const CascoFuncional = (
             },
             refs: { groupRef, detectionBoxRef },
             materiales,
-            extraProps: { boundsKey },
         });
     };
 

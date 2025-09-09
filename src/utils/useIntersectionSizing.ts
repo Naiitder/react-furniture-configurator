@@ -18,10 +18,9 @@ export function useIntersectionSizing(opts: {
     scene: THREE.Scene;
     orientation: Orientation;
     espesor: number;
-    boundsKey?: string | number;
     uv?: { x: number; y: number };
 }) {
-    const { meshRef, parentRef, scene, orientation, espesor, boundsKey } = opts;
+    const { meshRef, parentRef, scene, orientation, espesor } = opts;
 
     const [interPos, setInterPos] = useState<[number, number, number] | null>(null);
     const [interDims, setInterDims] = useState<{ width?: number; height?: number }>({});
@@ -147,7 +146,7 @@ export function useIntersectionSizing(opts: {
                 compute();
             });
         });
-    }, [scene, orientation, espesor, parentRef, meshRef, boundsKey]);
+    }, [scene, orientation, espesor, parentRef, meshRef]);
 
     return { interPos, setInterPos, interDims, neighbors, placedOnceRef };
 }

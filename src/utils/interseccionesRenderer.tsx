@@ -7,7 +7,6 @@ export const renderIntersecciones = ({
                                          dimensiones = {},
                                          refs = {},
                                          materiales = {},
-                                         extraProps = {},
                                      }: {
     intersecciones: InterseccionMueble[];
     dimensiones: {
@@ -24,7 +23,6 @@ export const renderIntersecciones = ({
         detectionBoxRef: React.MutableRefObject<any>;
     };
     materiales: any;
-    extraProps?: { boundsKey?: string | number };
 }) => {
     const {
         width = 0,
@@ -76,7 +74,6 @@ export const renderIntersecciones = ({
                 disableAdjustedWidth
                 stopPropagation
                 orientation={isHorizontal ? "horizontal" : "vertical"}
-                boundsKey={extraProps?.boundsKey}
                 uv={{ x: inter.position.x, y: inter.position.y }}
                 interseccion={inter}
             />
