@@ -1,13 +1,13 @@
-import React, {useRef, useEffect, useCallback, useState} from "react";
+import React, { useRef, useEffect, useCallback, useState } from "react";
 import * as THREE from "three";
 import Tabla from "./Tabla";
-import {useSelectedItemProvider} from "../../contexts/SelectedItemProvider.jsx";
-import {useMaterial} from "../../assets/materials";
-import {calcularDimensiones} from "../../utils/calculadoraDimensiones";
-import {calcularPosiciones} from "../../utils/calculadoraPosiciones";
-import {renderIntersecciones} from "../../utils/interseccionesRenderer";
+import { useSelectedItemProvider } from "../../contexts/SelectedItemProvider.jsx";
+import { useMaterial } from "../../assets/materials";
+import { calcularDimensiones } from "../../utils/calculadoraDimensiones";
+import { calcularPosiciones } from "../../utils/calculadoraPosiciones";
+import { renderIntersecciones } from "../../utils/interseccionesRenderer";
 
-// Definición de los props para el componente Casco
+// ===================== Tipos =====================
 export type CascoProps = {
     width?: number;
     height?: number;
@@ -40,13 +40,14 @@ export type CascoProps = {
     material: any[];
     seccionesHorizontales?: any[];
     seccionesVerticales?: any[];
-    version?: any[];
+    version?: any;
     setVersion?: (version: any) => void;
     children?: React.ReactNode;
     id?: string;
     materialPrincipal?: any;
 };
 
+// ===================== Casco Funcional =====================
 const CascoFuncional = (
     props: CascoProps & {
         contextRef: React.MutableRefObject<any>;
@@ -54,7 +55,6 @@ const CascoFuncional = (
         materiales: any;
     }
 ) => {
-    // Valores por defecto
     const {
         width = 2,
         height = 2,
@@ -92,9 +92,9 @@ const CascoFuncional = (
     const detectionBoxRef = useRef<THREE.Group>(null);
     const horizontalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
     const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
-    const {refItem} = useSelectedItemProvider();
+    const { refItem } = useSelectedItemProvider();
 
-    // Valores iniciales para este casco
+    // -------- Initial userData --------
     const initialData = {
         width,
         height,
@@ -113,43 +113,36 @@ const CascoFuncional = (
         intersecciones,
     };
 
-
-    // Estado local para la configuración
+    // -------- Local config --------
     const [localConfig, setLocalConfig] = useState(initialData);
-    const [force, setForce] = useState(0);
 
-    // Inicializar userData y nombre
     useEffect(() => {
         if (groupRef.current && Object.keys(groupRef.current.userData).length === 0) {
-            groupRef.current.userData = {...initialData};
+            groupRef.current.userData = { ...initialData };
         }
         if (groupRef.current && id && !groupRef.current.name) {
             groupRef.current.name = id;
         }
     }, [id]);
 
-
-    // Sincronizar configuración cuando está seleccionado
+    // -------- Selection sync --------
     const isSelected = refItem && refItem.groupRef === groupRef.current;
     useEffect(() => {
         if (refItem && isSelected) {
             const newConfig = refItem.groupRef?.userData ?? refItem.userData ?? initialData;
             setLocalConfig((prev) => {
-                const hasChanged = Object.keys(newConfig).some(
-                    (key) => newConfig[key] !== prev[key]
-                );
-                return hasChanged ? {...prev, ...newConfig} : prev;
+                const hasChanged = Object.keys(newConfig).some((key) => newConfig[key] !== prev[key]);
+                return hasChanged ? { ...prev, ...newConfig } : prev;
             });
         }
     }, [refItem, isSelected, version]);
 
-
-    // Actualizar configuración
+    // -------- Config updater --------
     const updateConfig = (key: string, value: any) => {
         setLocalConfig((prev) => {
-            const newConfig = {...prev, [key]: value};
+            const newConfig = { ...prev, [key]: value };
             if (refItem && refItem.groupRef) {
-                refItem.groupRef.userData = {...refItem.groupRef.userData, [key]: value};
+                refItem.groupRef.userData = { ...refItem.groupRef.userData, [key]: value };
                 if (refItem.groupRef.setVersion) {
                     refItem.groupRef.setVersion((prev: number) => prev + 1);
                 }
@@ -158,8 +151,7 @@ const CascoFuncional = (
         });
     };
 
-
-    // Extraer variables del estado local
+    // -------- Extract actual values --------
     const actualWidth = localConfig.width || width;
     const actualHeight = localConfig.height || height;
     const actualDepth = localConfig.depth || depth;
@@ -168,9 +160,7 @@ const CascoFuncional = (
     const actualTechoDentro = localConfig.techoDentro ?? techoDentro;
     const actualTraseroDentro = localConfig.traseroDentro ?? traseroDentro;
     const actualIntersecciones = localConfig.intersecciones ?? intersecciones;
-    const offsetDepthTraseroDentro = actualTraseroDentro
-        ? actualDepth
-        : actualDepth - actualEspesor;
+    const offsetDepthTraseroDentro = actualTraseroDentro ? actualDepth : actualDepth - actualEspesor;
     const actualRetranqueoTrasero = localConfig.retranqueoTrasero ?? retranqueoTrasero;
     const actualRetranquearSuelo = localConfig.retranquearSuelo ?? retranquearSuelo;
     const actualEsquinaXTriangulada = localConfig.esquinaXTriangulada ?? esquinaXTriangulada;
@@ -183,33 +173,32 @@ const CascoFuncional = (
     let indiceActualPuerta = localConfig.indicePuerta ?? indicePuerta;
     if (indiceActualPuerta > 0) indiceActualPuerta--;
 
-
-    // Manejador de clics
+    // -------- Click handler --------
     const handleClick = (event: React.PointerEvent) => {
         event.stopPropagation();
         if (groupRef.current && detectionBoxRef.current) {
-            setContextRef({groupRef: groupRef.current, detectionRef: detectionBoxRef.current});
+            setContextRef({ groupRef: groupRef.current, detectionRef: detectionBoxRef.current });
         }
     };
 
-    // Calcular dimensiones y posiciones
+    // -------- Dimensiones/posiciones calculadas --------
     const dimensiones = calcularDimensiones(localConfig);
-    const posiciones = calcularPosiciones({...localConfig, patas});
+    const posiciones = calcularPosiciones({ ...localConfig, patas });
 
+    // -------- boundsKey para invalidar intersecciones --------
     const boundsKey = [
-        actualWidth, actualHeight, actualDepth,
-        actualEspesor, actualRetranqueoTrasero,
+        actualWidth,
+        actualHeight,
+        actualDepth,
+        actualEspesor,
+        actualRetranqueoTrasero,
         actualRetranquearSuelo ? 1 : 0,
-        extraAltura
-    ].join('|');
+        extraAltura,
+    ].join("|");
 
-    // sizar intersecciones
+    // -------- Render de intersecciones (usa InterseccionTabla internamente) --------
     const renderInterseccionesInternas = () => {
         if (!actualIntersecciones.length) return null;
-        // const todasListas = actualIntersecciones.every(inter => !!inter.uuid);
-        // console.log("Todas listas", todasListas);
-        // if (!todasListas) return null;
-
         return renderIntersecciones({
             intersecciones: actualIntersecciones,
             dimensiones: {
@@ -218,19 +207,16 @@ const CascoFuncional = (
                 depth: actualDepth,
                 espesor: actualEspesor,
                 retranqueoTrasero: actualRetranqueoTrasero,
-                extraAltura: (patas && indiceActualPata !== -1) ? extraAltura : 0,
+                extraAltura: patas && indiceActualPata !== -1 ? extraAltura : 0,
                 traseroDentro: actualTraseroDentro,
             },
-            refs: {
-                groupRef,
-                detectionBoxRef,
-            },
+            refs: { groupRef, detectionBoxRef },
             materiales,
-            extraProps: {boundsKey, followAbsolutePosition: false}
+            extraProps: { boundsKey },
         });
     };
 
-    // TODO: Coger material de los props, quitar los valores hard-coded
+    // ===================== Render =====================
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
             <group onClick={handleClick}>
@@ -288,6 +274,7 @@ const CascoFuncional = (
                     depth={dimensiones.trasero.depth}
                     material={materialPrincipal || materiales.DarkWood}
                     shape="box"
+                    ignoreRaycast
                 />
 
                 {/* Techo */}
@@ -331,24 +318,21 @@ const CascoFuncional = (
                     </group>
                 )}
 
+                {/* Puertas */}
                 {puertas && indiceActualPuerta !== -1 && puertas[indiceActualPuerta] && (() => {
-                    const puertaActual = puertas[indiceActualPuerta];
-                    const propsPuerta = puertaActual.props;
+                    const puertaActual = puertas[indiceActualPuerta] as React.ReactElement;
+                    const propsPuerta: any = puertaActual.props;
 
-                    // 1. Calcular la altura real de la puerta basándose en el ratio (ej: 0.5)
                     const alturaRealPuerta = actualHeight * (propsPuerta.height || 1);
                     const anchuraRealPuerta = actualWidth * (propsPuerta.width || 1);
                     const profundidadRealPuerta = actualEspesor * (propsPuerta.depth || 1);
 
-                    // 2. Calcular el desplazamiento vertical necesario.
                     const offsetY = (actualHeight - alturaRealPuerta) / 2;
-
-                    // 3. Calcular la nueva posición 'Y' para el centro de la puerta.
                     const nuevaPosicionY = posiciones.puerta[1] - offsetY;
 
                     return (
                         <>
-                            {React.cloneElement(puertaActual as React.ReactElement, {
+                            {React.cloneElement(puertaActual, {
                                 parentRef: groupRef,
                                 insideRef: detectionBoxRef,
                                 position: [posiciones.puerta[0], nuevaPosicionY, posiciones.puerta[2]],
@@ -359,23 +343,21 @@ const CascoFuncional = (
                             })}
 
                             {actualWidth > 2 && (
-                                <>
-                                    {React.cloneElement(puertaActual as React.ReactElement, {
-                                        parentRef: groupRef,
-                                        insideRef: detectionBoxRef,
-                                        position: [-posiciones.puerta[0], nuevaPosicionY, posiciones.puerta[2]],
-                                        width: anchuraRealPuerta,
-                                        height: alturaRealPuerta,
-                                        depth: profundidadRealPuerta,
-                                        pivot: "left",
-                                    })}
-                                </>
+                                React.cloneElement(puertaActual, {
+                                    parentRef: groupRef,
+                                    insideRef: detectionBoxRef,
+                                    position: [-posiciones.puerta[0], nuevaPosicionY, posiciones.puerta[2]],
+                                    width: anchuraRealPuerta,
+                                    height: alturaRealPuerta,
+                                    depth: profundidadRealPuerta,
+                                    pivot: "left",
+                                })
                             )}
                         </>
                     );
                 })()}
 
-                {/* Intersecciones */}
+                {/* Intersecciones (usa InterseccionTabla internamente) */}
                 {renderInterseccionesInternas()}
 
                 {/* Piezas adicionales dinámicas */}
@@ -386,20 +368,25 @@ const CascoFuncional = (
                     materiales,
                     parentRef: groupRef,
                     insideRef: detectionBoxRef,
-                    indiceActualPata
+                    indiceActualPata,
                 })}
 
                 {/* Children dinámicos */}
                 {children}
             </group>
 
+            {/* Detection box (para raycast UV y arrastres) */}
             <group ref={detectionBoxRef}>
                 <mesh
                     position={[0, actualHeight / 2 + extraAltura, actualRetranqueoTrasero / 2]}
                     material={materiales.Transparent}
                 >
                     <boxGeometry
-                        args={[actualWidth - actualEspesor * 2, actualHeight - actualEspesor * 2, actualDepth - actualEspesor / 2 - actualRetranqueoTrasero]}
+                        args={[
+                            actualWidth - actualEspesor * 2,
+                            actualHeight - actualEspesor * 2,
+                            actualDepth - actualEspesor / 2 - actualRetranqueoTrasero,
+                        ]}
                     />
                 </mesh>
             </group>
@@ -407,9 +394,9 @@ const CascoFuncional = (
     );
 };
 
-// ... resto del componente (CascoWithContext) sin cambios ...
+// ===================== Wrapper con contexto =====================
 const CascoWithContext = (props: any) => {
-    const {refItem, setRefItem, version} = useSelectedItemProvider();
+    const { refItem, setRefItem, version } = useSelectedItemProvider();
     const meshRef = useRef<any>(null);
     const materiales = useMaterial();
 
