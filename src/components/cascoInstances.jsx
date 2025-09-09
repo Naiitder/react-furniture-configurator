@@ -77,7 +77,7 @@ function buildInitialCascoInstances() {
             userData: { width: 0.74, height: 1.23, depth: .37, espesor: 0.02 },
             patas: [<PataAparador height={.1} />],
             puertas: [<PuertaBodeguero width={1} height={0.5} depth={1} espesor={0.02} />],
-            intersecciones: [i1, i2, i3, i4, i5],
+            intersecciones: [],
         },
     };
 }

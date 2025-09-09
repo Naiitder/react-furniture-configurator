@@ -40,6 +40,8 @@ type TablaProps = {
     isInterseccion?: boolean;
     interseccion?: InterseccionMueble;
     orientation?: "vertical" | "horizontal";
+    boundsKey?: string;
+    followAbsolutePosition?: boolean;
 }
 
 const Tabla: React.FC<TablaProps> = ({
@@ -67,6 +69,8 @@ const Tabla: React.FC<TablaProps> = ({
                                          isInterseccion = false,
                                          orientation,
                                          interseccion,
+                                         boundsKey,
+                                         followAbsolutePosition = !isInterseccion,
                                      }) => {
     const {refItem, setRefItem} = useSelectedItemProvider();
     const {refPiece, setRefPiece, version} = useSelectedPieceProvider();
@@ -454,7 +458,7 @@ const Tabla: React.FC<TablaProps> = ({
                     computeAndApply();
                 });
         });
-    }, [isInterseccion, parentRef, scene, orientation]);
+    }, [isInterseccion, parentRef, scene, orientation, boundsKey]);
 
     let effWidth  = adjustedWidth;
     let effHeight = adjustedHeight;
@@ -516,12 +520,26 @@ const Tabla: React.FC<TablaProps> = ({
     ]);
 
 
+// DESPUÉS
     useEffect(() => {
         if (!isInterseccion) return;
-        if (!placedOnceRef.current) return;   // aún no colocado = deja que el autoplacement la fije
+        if (!followAbsolutePosition) return; // 👈 evita pisar el cálculo
         if (!position) return;
-        setInterPos(position);                // ahora mando yo (desde fuera)
-    }, [isInterseccion, position?.[0], position?.[1], position?.[2]]);
+        setInterPos(position);
+    }, [isInterseccion, followAbsolutePosition, position?.[0], position?.[1], position?.[2]]);
+
+    useEffect(() => {
+        if (!isInterseccion || !ref.current) return;
+        if (interseccion?.position && !placedOnceRef.current) {
+            const t: [number, number, number] = [
+                interseccion.position.x,
+                interseccion.position.y,
+                position[2],
+            ];
+            ref.current.userData.positionExtra = t;
+            setExtra(e => ({ ...e, positionExtra: t }));
+        }
+    }, [isInterseccion, interseccion?.position?.x, interseccion?.position?.y]);
 
     return (
         <>

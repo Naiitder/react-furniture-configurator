@@ -196,6 +196,13 @@ const CascoFuncional = (
     const dimensiones = calcularDimensiones(localConfig);
     const posiciones = calcularPosiciones({...localConfig, patas});
 
+    const boundsKey = [
+        actualWidth, actualHeight, actualDepth,
+        actualEspesor, actualRetranqueoTrasero,
+        actualRetranquearSuelo ? 1 : 0,
+        extraAltura
+    ].join('|');
+
     // sizar intersecciones
     const renderInterseccionesInternas = () => {
         if (!actualIntersecciones.length) return null;
@@ -219,6 +226,7 @@ const CascoFuncional = (
                 detectionBoxRef,
             },
             materiales,
+            extraProps: {boundsKey, followAbsolutePosition: false}
         });
     };
 
