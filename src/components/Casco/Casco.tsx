@@ -76,8 +76,6 @@ const CascoFuncional = (
         indicePuerta = 0,
         intersecciones = [],
         renderExtraParts,
-        seccionesHorizontales = [],
-        seccionesVerticales = [],
         contextRef,
         setContextRef,
         materiales,
@@ -90,8 +88,6 @@ const CascoFuncional = (
 
     const groupRef = useRef<THREE.Group>(null);
     const detectionBoxRef = useRef<THREE.Group>(null);
-    const horizontalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
-    const verticalSectionsRefs = useRef<{ [key: string]: THREE.Mesh }>({});
     const { refItem } = useSelectedItemProvider();
 
     // -------- Initial userData --------
@@ -184,17 +180,6 @@ const CascoFuncional = (
     // -------- Dimensiones/posiciones calculadas --------
     const dimensiones = calcularDimensiones(localConfig);
     const posiciones = calcularPosiciones({ ...localConfig, patas });
-
-    // -------- boundsKey para invalidar intersecciones --------
-    const boundsKey = [
-        actualWidth,
-        actualHeight,
-        actualDepth,
-        actualEspesor,
-        actualRetranqueoTrasero,
-        actualRetranquearSuelo ? 1 : 0,
-        extraAltura,
-    ].join("|");
 
     // -------- Render de intersecciones (usa InterseccionTabla internamente) --------
     const renderInterseccionesInternas = () => {

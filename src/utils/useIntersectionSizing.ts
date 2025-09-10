@@ -67,13 +67,30 @@ export function useIntersectionSizing(opts: {
             return list;
         };
 
-        const cast = (from: THREE.Vector3, dir: THREE.Vector3, targets: THREE.Object3D[]) => {
+        const cast = (
+            from: THREE.Vector3,
+            dir: THREE.Vector3,
+            targets: THREE.Object3D[],
+            parentForLocal?: THREE.Object3D | null
+        ) => {
             const rc = raycasterRef.current;
             rc.set(from, dir);
             const res = rc.intersectObjects(targets, true);
             if (!res.length) return null as any;
+
             const h = res[0];
-            return { distance: h.distance, point: h.point, uuid: h.object.uuid, name: h.object.name };
+            const worldPoint = h.point.clone();
+            const localPoint = parentForLocal
+                ? parentForLocal.worldToLocal(worldPoint.clone())
+                : worldPoint.clone();
+
+            return {
+                distance: h.distance,
+                point: worldPoint,
+                uuid: h.object.uuid,
+                name: h.object.name,
+                localPoint,
+            };
         };
 
         const avg = (a?: number, b?: number, fb?: number) => {
@@ -93,23 +110,19 @@ export function useIntersectionSizing(opts: {
             const targetsLR = allTargets.filter((o) => (o as any).userData?.rayOrientation === "vertical");
             const targetsUD = allTargets.filter((o) => (o as any).userData?.rayOrientation === "horizontal");
 
-            const left  = cast(origin.clone().addScaledVector(new THREE.Vector3(-1, 0, 0), eps), new THREE.Vector3(-1, 0, 0), targetsLR);
-            const right = cast(origin.clone().addScaledVector(new THREE.Vector3( 1, 0, 0), eps), new THREE.Vector3( 1, 0, 0), targetsLR);
-            const down  = cast(origin.clone().addScaledVector(new THREE.Vector3(0,-1, 0), eps), new THREE.Vector3(0,-1, 0), targetsUD);
-            const up    = cast(origin.clone().addScaledVector(new THREE.Vector3(0, 1, 0), eps), new THREE.Vector3(0, 1, 0), targetsUD);
+            const left  = cast(origin.clone().addScaledVector(new THREE.Vector3(-1, 0, 0), eps), new THREE.Vector3(-1, 0, 0), targetsLR, parent);
+            const right = cast(origin.clone().addScaledVector(new THREE.Vector3( 1, 0, 0), eps), new THREE.Vector3( 1, 0, 0), targetsLR, parent);
+            const down  = cast(origin.clone().addScaledVector(new THREE.Vector3(0,-1, 0), eps), new THREE.Vector3(0,-1, 0), targetsUD, parent);
+            const up    = cast(origin.clone().addScaledVector(new THREE.Vector3(0, 1, 0), eps), new THREE.Vector3(0, 1, 0), targetsUD, parent);
 
             setNeighbors({ left, right, top: up, bottom: down });
 
             // --- DIMENSIONES (igual que tenías) ---
-            if (orientation === "horizontal" && left?.point && right?.point) {
-                const pLlocal = parent ? parent.worldToLocal(left.point.clone()) : left.point;
-                const pRlocal = parent ? parent.worldToLocal(right.point.clone()) : right.point;
-                const wLocal = Math.abs(pRlocal.x - pLlocal.x);
+            if (orientation === "horizontal" && left?.localPoint && right?.localPoint) {
+                const wLocal = Math.abs(right.localPoint.x - left.localPoint.x);
                 if (wLocal > 0 && isFinite(wLocal)) setInterDims({ width: wLocal, height: espesor });
-            } else if (orientation === "vertical" && down?.point && up?.point) {
-                const pDlocal = parent ? parent.worldToLocal(down.point.clone()) : down.point;
-                const pUlocal = parent ? parent.worldToLocal(up.point.clone())   : up.point;
-                const hLocal = Math.abs(pUlocal.y - pDlocal.y);
+            } else if (orientation === "vertical" && down?.localPoint && up?.localPoint) {
+                const hLocal = Math.abs(up.localPoint.y - down.localPoint.y);
                 if (hLocal > 0 && isFinite(hLocal)) setInterDims({ height: hLocal, width: espesor });
             }
 

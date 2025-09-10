@@ -156,6 +156,12 @@ const Tabla: React.FC<TablaProps> = ({
 
     useEffect(() => {
         if (!ref.current) return;
+        ref.current.userData.positionX ??= 0;
+        ref.current.userData.positionY ??= 0;
+    }, []);
+
+    useEffect(() => {
+        if (!ref.current) return;
         ref.current.userData.isTabla = true;
         ref.current.userData.groupRootUuid = (parentRef as any).current?.uuid;
         const prev = ref.current.userData?.rayOrientation;

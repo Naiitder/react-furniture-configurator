@@ -26,8 +26,12 @@ const InterseccionConfigContent = () => {
     useEffect(() => {
         if (!refPiece) return;
         const ud = refPiece.userData || {};
+
+        const px = ud.positionX ?? ud.positionExtra?.[0] ?? 0;
+        const py = ud.positionY ?? ud.positionExtra?.[1] ?? 0;
+
         const next = {
-            positionExtra: ud.positionExtra ?? [0,0,0],
+            positionExtra: [px, py, 0],
             widthExtra: ud.widthExtra ?? 0,
             heightExtra: ud.heightExtra ?? 0,
             depthExtra: ud.depthExtra ?? 0,
@@ -35,25 +39,25 @@ const InterseccionConfigContent = () => {
             interseccion: ud.interseccion ?? {},
             orientation: ud.orientation ?? "horizontal",
         };
+
         setConfig(prev => shallowEqual(prev, next) ? prev : next);
     }, [refPiece, version]);
 
-    console.log(config);
 
-    // Función unificada para actualizar la configuración y modificar también el userData
-    // dentro de refItem.groupRef (o refItem.userData si no existe groupRef)
     const updateConfig = (key, value) => {
         setConfig((prev) => {
             const newConfig = { ...prev, [key]: value };
 
             if (refPiece && refPiece.userData) {
                 refPiece.userData[key] = value;
+
+                if (key === "positionExtra") {
+                    refPiece.userData.positionX = Array.isArray(value) ? (value[0] ?? 0) : 0;
+                    refPiece.userData.positionY = Array.isArray(value) ? (value[1] ?? 0) : 0;
+                }
             }
 
-            requestAnimationFrame(() => {
-                setVersion((v) => v + 1);
-            });
-
+            requestAnimationFrame(() => setVersion((v) => v + 1));
             return newConfig;
         });
     };
@@ -70,8 +74,8 @@ const InterseccionConfigContent = () => {
                 <Form.Item label="Position X: ">
                     <Slider
                         step={0.01}
-                        min={Number(((config.interseccion?.adyacentLeft?.point?.[0] ?? 0)).toFixed(3))}
-                        max={Number(((config.interseccion?.adyacentRight?.point?.[0] ?? 1)).toFixed(3))}
+                        min={Number(((config.interseccion?.adyacentLeft?.localPoint?.[0] ?? 0)).toFixed(3))}
+                        max={Number(((config.interseccion?.adyacentRight?.localPoint?.[0] ?? 1)).toFixed(3))}
                         value={config.positionExtra[0]}
                         onChange={(v) => {
                             const newPos = [...config.positionExtra];
@@ -83,8 +87,8 @@ const InterseccionConfigContent = () => {
                 <Form.Item label="Position Y: ">
                     <Slider
                         step={0.01}
-                        min={Number(((config.interseccion?.adyacentBottom?.point?.[1] ?? 0)).toFixed(3))}
-                        max={Number(((config.interseccion?.adyacentTop?.point?.[1] ?? 1)).toFixed(3))}
+                        min={Number(((config.interseccion?.adyacentBottom?.localPoint?.[1] ?? 0)).toFixed(3))}
+                        max={Number(((config.interseccion?.adyacentTop?.localPoint?.[1] ?? 1)).toFixed(3))}
                         value={config.positionExtra[1]}
                         onChange={(v) => {
                             const newPos = [...config.positionExtra];

@@ -49,7 +49,6 @@ export const renderIntersecciones = ({
     return sorted.map((inter: InterseccionMueble, i: number) => {
         const isHorizontal = inter.orientation === Orientacion.Horizontal;
 
-        // Posición base (x/y en coords locales del Casco)
         const x = (inter.position.x - 0.5) * width; // uv.x -> [-0.5..0.5] * width
         const y = inter.position.y * height + extraAltura; // uv.y * height + altura patas
         const z = espesor / 2 + (traseroDentro ? retranqueoTrasero / 2 : 0);
@@ -60,13 +59,11 @@ export const renderIntersecciones = ({
                 parentRef={groupRef}
                 insideRef={detectionBoxRef}
                 position={[x, y, z]}
-                // Dimensiones "semilla". El wrapper recalculará width/height exactos.
                 width={isHorizontal ? width : espesor}
                 height={isHorizontal ? espesor : height}
                 depth={depth - retranqueoTrasero - espesor}
                 material={inter.previsualization ? materiales.Vidrio : materiales.Artico}
                 espesorBase={espesor}
-                // Estas props solo afectan a decorados y a userData.rayOrientation de las TABLAS normales
                 posicionCaja={isHorizontal ? "top" : "left"}
                 bordeEjeY={true}
                 bordeEjeZ={false}
